@@ -1,0 +1,82 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+.pnpm-debug.log*
+.pnp/
+.pnp.js
+
+# Dependency directories
+/.pnp
+.pnp.js
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Environment variable files
+models/
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build artifacts
+dist/
+build/
+out/
+
+# Test coverage
+coverage/
+
+# Cache files
+.cache/
+.next/
+.nuxt/
+.svelte-kit/
+.vscode/
+.idea/
+
+# IDE directories and files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Temporary files
+*.tmp
+*.temp
+
+# Other files
+*.log
+*.lock
+*.bak
+
+# MacOS files
+.DS_Store
+
+# Compiled binary
+*.out
+
+# GitHub settings (if needed)
+.github/
