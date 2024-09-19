@@ -1,13 +1,13 @@
 import { Router } from 'express';
-import userPageController from './controller';
+import userController from './controller';
 
-const typePageRoutes = Router();
+const userRoutes = Router();
 
-typePageRoutes.get('/', userPageController.getAllUserPages);
-typePageRoutes.get('/:id', userPageController.getUserPageById); // http://localhost:3000/api/v1/typePage/1
-typePageRoutes.put('/:id', userPageController.updateUserPage);
-typePageRoutes.delete('/:id', userPageController.deleteUserPage);
-typePageRoutes.post('/', userPageController.createUserPage);
+userRoutes.get('/', userController.getAllUser);
+userRoutes.get('/:id', userController.getUserById); // http://localhost:3000/api/v1/typePage/1
+userRoutes.put('/:id', userController.updateUser);
+userRoutes.delete('/:id', userController.deleteUser);
+userRoutes.post('/', userController.createUser);
 
-export default typePageRoutes;
+export default userRoutes;
   

@@ -5,7 +5,7 @@ import { success, error } from '../../../middlewares/response';
 class UserPageController extends UserPageService {
 
   constructor() {
-    super();  // Compones el controlador inyectando el servicio
+    super();  
   }
 
   public getAllUserPages = async (req: Request, res: Response): Promise<void> => {
@@ -20,25 +20,17 @@ class UserPageController extends UserPageService {
   public getUserPageById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const userPage = await this._getUserPageById(Number(id)); // Llamada al servicio
+      const userPage = await this._getUserPageById(Number(id));
+      console.log(userPage);
+      
       if (userPage) {
         success({ req, res, data: userPage, status: 200 });
       } else {
-        error({
-          req,
-          res,
-          data: 'User page not found',
-          status: 204
-        });
+    
+        success({ req, res, data: 'Record not found', status: 204});
       }
     } catch (err) {
-      error({
-        req,
-        res,
-        data: 'Error fetching user page',
-        status: 500,
-        details: err
-      });
+      error({ req, res, data: 'Error fetching record', status: 500, details: err });
     }
   }
 
@@ -47,13 +39,7 @@ class UserPageController extends UserPageService {
       const newUserPage = await this._createUserPage(req.body); // Llamada al servicio
       success({ req, res, data: newUserPage, status: 201 });
     } catch (err) {
-      error({
-        req,
-        res,
-        data: 'Error creating user page',
-        status: 500,
-        details: err
-      });
+      error({ req, res, data: 'Error creating record', status: 500, details: err });
     }
   }
 
@@ -64,21 +50,10 @@ class UserPageController extends UserPageService {
       if (updatedUserPage) {
         success({ req, res, data: updatedUserPage, status: 200 });
       } else {
-        error({
-          req,
-          res,
-          data: 'User page not found',
-          status: 204,
-        });
+        error({ req, res, data: 'Record not found', status: 204, });
       }
     } catch (err) {
-      error({
-        req,
-        res,
-        data: 'Error updating user page',
-        status: 500,
-        details: err
-      });
+      error({ req, res, data: 'Error updating record', status: 500, details: err });
     }
   }
 
@@ -89,21 +64,10 @@ class UserPageController extends UserPageService {
       if (result) {
         success({ req, res, data: 'User page deleted successfully', status: 200 });
       } else {
-        error({
-          req,
-          res,
-          data: 'User page not found',
-          status: 204,
-        });
+        error({ req, res, data: 'User page not found', status: 204, });
       }
     } catch (err) {
-      error({
-        req,
-        res,
-        data: 'Error deleting user page',
-        status: 500,
-        details: err
-      });
+      error({ req, res, data: 'Error deleting user page', status: 500, details: err });
     }
   }
 

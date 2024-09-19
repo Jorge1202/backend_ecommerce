@@ -1,4 +1,4 @@
-import { UserPage, UserPageAttributes } from '../../../models/user-page';
+import { UserPage } from '../../../models/user-page';
 import { TypePage } from '../../../models/type-page';
 import { User } from '../../../models/user';
 import { PageServices } from '../../../models/page-services';
@@ -17,15 +17,7 @@ export class UserPageService {
 
   protected async _getUserPageById(id: number): Promise<UserPage | null> {
     try {
-      const userPage = await UserPage.findByPk(id, {
-        include: [
-          { model: TypePage },
-          { model: User },
-          { model: PageServices },
-          { model: PageStore },
-          { model: Profile },
-        ],
-      });
+      const userPage = await UserPage.findByPk(id);
       return userPage;
     } catch (error) {
       throw new Error(`Error obteniendo UserPage con id ${id}: ${error}`);

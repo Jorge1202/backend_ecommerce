@@ -1,67 +1,51 @@
-import { TypePageModel } from './model';
+import { TypePage } from '../../../models/type-page'; 
 
-class TypePageService {
-    // Obtener todos los registros
-    public async findAll(): Promise<TypePageModel[]> {
-        try {
-            const list = await TypePageModel.findAll();
-            return list;
-        } catch (error) {
-            console.error('Error obteniendo la lista:', error);
-            throw error;
-        }
+export class TypePageService {
+  protected async findAll(): Promise<TypePage[]> {
+    try {      
+      const users = await TypePage.findAll();
+      return users;
+    } catch (error) {
+      throw new Error(`Error obteniendo Users: ${error}`);
     }
+  }
 
-    // Obtener un registro por ID
-    public async findByPk(id: string): Promise<TypePageModel | null> {
-        try {
-            return await TypePageModel.findByPk(id);
-        } catch (error) {
-            console.error('Error obteniendo el registro por ID:', error);
-            throw error;
-        }
+  protected async _findByPk(id: number): Promise<TypePage | null> {
+    try {
+      const user = await TypePage.findByPk(id); // Remover el include de User
+      return user;
+    } catch (error) {
+      throw new Error(`Error obteniendo User con id ${id}: ${error}`);
     }
+  }
+  
 
-    // Crear un nuevo registro
-    public async createData(pageData: Omit<TypePageModel, 'id_type_page'>): Promise<TypePageModel> {
-        try {
-            const newPage = await TypePageModel.create(pageData);
-            return newPage;
-        } catch (error) {
-            console.error('Error creando registro:', error);
-            throw error;
-        }
+  protected async _create(data: TypePage): Promise<TypePage> {
+    try {
+      const newUser = await TypePage.create(data);
+      return newUser;
+    } catch (error) {
+      throw new Error(`Error creating user: ${error}`);
     }
+  }
 
-    // Actualizar un registro
-    public async updateById(id: string, pageData: Partial<Omit<TypePageModel, 'id_type_page'>>): Promise<TypePageModel | null> {
-        try {
-            const pageToUpdate = await TypePageModel.findByPk(id);
-            if (pageToUpdate) {
-                await pageToUpdate.update(pageData);
-                return pageToUpdate;
-            }
-            return null;
-        } catch (error) {
-            console.error('Error actualizando registro:', error);
-            throw error;
-        }
+  protected async _update(id: number, data: Partial<TypePage>): Promise<TypePage | null> {
+    try {
+      const user = await TypePage.findByPk(id);
+      if (!user) {
+        throw new Error(`User with id ${id} not found`);
+      }
+      await user.update(data);
+      return user;
+    } catch (error) {
+      throw new Error(`Error updating user: ${error}`);
     }
+  }
 
-    // Eliminar un registro
-    public async deleteById(id: string): Promise<boolean> {
-        try {
-            const pageToDelete = await TypePageModel.findByPk(id);
-            if (pageToDelete) {
-                await pageToDelete.destroy();
-                return true;
-            }
-            return false;
-        } catch (error) {
-            console.error('Error eliminando registro:', error);
-            throw error;
-        }
-    }
+  protected async destroy(id: number): Promise<number> {
+    const result = await TypePage.destroy({
+      where: { IdTypePage: id },
+    });
+    return result;
+  }  
 }
-
-export default new TypePageService();

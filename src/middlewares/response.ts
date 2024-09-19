@@ -23,10 +23,15 @@ export function success({
     status = 200,   // Valor por defecto
     details
   }: ResponseParams): void {
-    const message = data || statusMessage[status] || 'Error';
-    res.status(status).json({
+    console.log('success....');
+    
+    const message = data || statusMessage[status] || 'Success';
+    console.log(message);
+    
+    res.status(200).json({
+        status,
         error: '',
-        body: data || message
+        body: message
     });
 }
 
@@ -46,6 +51,7 @@ export function error({
     const message = data || statusMessage[status] || 'Error';
     res.status(status).json({
         error: message,
+        status,
         body: ''
     });
 }

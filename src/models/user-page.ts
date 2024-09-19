@@ -77,7 +77,10 @@ export class UserPage extends Model<UserPageAttributes, UserPageCreationAttribut
       type: DataTypes.STRING(50),
       allowNull: false,
       references: {
-        model: 'user',
+        model: {
+          tableName: 'user',
+          schema: 'user' // Aquí se especifica el esquema
+        },
         key: 'id_user'
       },
       field: 'id_user'

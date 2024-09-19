@@ -1,33 +1,33 @@
 import { Request, Response } from 'express';
-import { UserPageService } from './service';
+import { UserService } from './service';
 import { success, error } from '../../../middlewares/response';
 
-class UserPageController extends UserPageService {
+class UserController extends UserService {
 
   constructor() {
     super();  // Compones el controlador inyectando el servicio
   }
 
-  public getAllUserPages = async (req: Request, res: Response): Promise<void> => {
+  public getAllUser = async (req: Request, res: Response): Promise<void> => {
     try {
-      const userPages = await this._getAllUserPages();
-      success({ req, res, data: userPages, status: 200 });
+      const user = await this._getAllUser();
+      success({ req, res, data: user, status: 200 });
     } catch (err) {
-      error({ req, res, data: 'Error fetching user pages', details: err, status: 500 });
+      error({ req, res, data: 'Error fetching user ', details: err, status: 500 });
     }
   }
 
-  public getUserPageById = async (req: Request, res: Response): Promise<void> => {
+  public getUserById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const userPage = await this._getUserPageById(Number(id)); // Llamada al servicio
-      if (userPage) {
-        success({ req, res, data: userPage, status: 200 });
+      const user = await this._getUserById(String(id));
+      if (user) {
+        success({ req, res, data: user, status: 200 });
       } else {
         error({
           req,
           res,
-          data: 'User page not found',
+          data: 'User  not found',
           status: 204
         });
       }
@@ -35,39 +35,39 @@ class UserPageController extends UserPageService {
       error({
         req,
         res,
-        data: 'Error fetching user page',
+        data: 'Error fetching user ',
         status: 500,
         details: err
       });
     }
   }
 
-  public  createUserPage = async (req: Request, res: Response): Promise<void> => {
+  public  createUser = async (req: Request, res: Response): Promise<void> => {
     try {
-      const newUserPage = await this._createUserPage(req.body); // Llamada al servicio
-      success({ req, res, data: newUserPage, status: 201 });
+      const newUser = await this._createUser(req.body); // Llamada al servicio
+      success({ req, res, data: newUser, status: 201 });
     } catch (err) {
       error({
         req,
         res,
-        data: 'Error creating user page',
+        data: 'Error creating user ',
         status: 500,
         details: err
       });
     }
   }
 
-  public updateUserPage = async (req: Request, res: Response): Promise<void> => {
+  public updateUser = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const updatedUserPage = await this._updateUserPage(Number(id), req.body); // Llamada al servicio
-      if (updatedUserPage) {
-        success({ req, res, data: updatedUserPage, status: 200 });
+      const updatedUser = await this._updateUser(String(id), req.body); // Llamada al servicio
+      if (updatedUser) {
+        success({ req, res, data: updatedUser, status: 200 });
       } else {
         error({
           req,
           res,
-          data: 'User page not found',
+          data: 'User  not found',
           status: 204,
         });
       }
@@ -75,24 +75,24 @@ class UserPageController extends UserPageService {
       error({
         req,
         res,
-        data: 'Error updating user page',
+        data: 'Error updating user ',
         status: 500,
         details: err
       });
     }
   }
 
-  public deleteUserPage = async (req: Request, res: Response): Promise<void> => {
+  public deleteUser = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const result = await this._deleteUserPage(Number(id)); // Llamada al servicio
+      const result = await this._deleteUser(String(id)); // Llamada al servicio
       if (result) {
-        success({ req, res, data: 'User page deleted successfully', status: 200 });
+        success({ req, res, data: 'User  deleted successfully', status: 200 });
       } else {
         error({
           req,
           res,
-          data: 'User page not found',
+          data: 'User  not found',
           status: 204,
         });
       }
@@ -100,7 +100,7 @@ class UserPageController extends UserPageService {
       error({
         req,
         res,
-        data: 'Error deleting user page',
+        data: 'Error deleting user ',
         status: 500,
         details: err
       });
@@ -109,4 +109,4 @@ class UserPageController extends UserPageService {
 
 }
 
-export default new UserPageController();
+export default new UserController();

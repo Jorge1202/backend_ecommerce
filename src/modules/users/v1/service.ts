@@ -1,72 +1,51 @@
-import { UserPage, UserPageAttributes } from '../../../models/user-page';
-import { TypePage } from '../../../models/type-page';
-import { User } from '../../../models/user';
-import { PageServices } from '../../../models/page-services';
-import { PageStore } from '../../../models/page-store';
-import { Profile } from '../../../models/profile';
+import { User } from '../../../models/user'; 
 
-export class UserPageService {
-  protected async _getAllUserPages(): Promise<UserPage[]> {
+export class UserService {
+  protected async _getAllUser(): Promise<User[]> {
     try {      
-      const userPages = await UserPage.findAll();
-      return userPages;
+      const users = await User.findAll();
+      return users;
     } catch (error) {
-      throw new Error(`Error obteniendo UserPages: ${error}`);
+      throw new Error(`Error obteniendo Users: ${error}`);
     }
   }
 
-  protected async _getUserPageById(id: number): Promise<UserPage | null> {
+  protected async _getUserById(id: string): Promise<User | null> {
     try {
-      const userPage = await UserPage.findByPk(id, {
-        include: [
-          { model: TypePage },
-          { model: User },
-          { model: PageServices },
-          { model: PageStore },
-          { model: Profile },
-        ],
-      });
-      return userPage;
+      const user = await User.findByPk(id); // Remover el include de User
+      return user;
     } catch (error) {
-      throw new Error(`Error obteniendo UserPage con id ${id}: ${error}`);
+      throw new Error(`Error obteniendo User con id ${id}: ${error}`);
+    }
+  }
+  
+
+  protected async _createUser(data: User): Promise<User> {
+    try {
+      const newUser = await User.create(data);
+      return newUser;
+    } catch (error) {
+      throw new Error(`Error creating user: ${error}`);
     }
   }
 
-  protected async _createUserPage(data: {
-    IdUser: string;
-    IdTypePage: number;
-    Username: string;
-  }): Promise<UserPage> {
+  protected async _updateUser(id: string, data: Partial<User>): Promise<User | null> {
     try {
-      const userPage = await UserPage.create({
-        IdUser: data.IdUser,
-        IdTypePage: data.IdTypePage,
-        Username: data.Username,
-      });
-      return userPage;
-    } catch (error) {
-      throw new Error(`Error creando UserPage: ${error}`);
-    }
-  }
-
-  protected async _updateUserPage(id: number, data: Partial<UserPage>): Promise<UserPage | null> {
-    try {
-      const userPage = await UserPage.findByPk(id);
-      if (!userPage) {
-        throw new Error('UserPage no encontrado');
+      const user = await User.findByPk(id);
+      if (!user) {
+        throw new Error(`User with id ${id} not found`);
       }
-
-      await userPage.update(data);
-      return userPage;
+      await user.update(data);
+      return user;
     } catch (error) {
-      throw new Error(`Error actualizando UserPage con id ${id}: ${error}`);
+      throw new Error(`Error updating user: ${error}`);
     }
   }
 
-  protected async _deleteUserPage(id: number): Promise<number> {
-    const result = await UserPage.destroy({
-      where: { IdUserPage: id },
+  protected async _deleteUser(id: string): Promise<number> {
+    const result = await User.destroy({
+      where: { IdUser: id },
     });
     return result;
-  }
+  }  
 }

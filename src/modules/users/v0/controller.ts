@@ -3,8 +3,7 @@ import { Request, Response } from 'express';
 import UserService from './service';
 
 // Obtener todos los usuarios
-export const findAll = async (req: Request, res: Response): Promise<void> => {
-    
+export const findAll = async (req: Request, res: Response): Promise<void> => {    
     try {
         const users = await UserService.findAll();        
         res.status(200).json(users);
