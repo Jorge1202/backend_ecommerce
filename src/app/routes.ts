@@ -36,5 +36,4 @@ async function loadRoutes(app: Express) {
     }
 }
 
-
 export default loadRoutes;

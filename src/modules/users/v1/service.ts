@@ -1,7 +1,7 @@
 import { User } from '../../../models/user'; 
 
 export class UserService {
-  protected async _getAllUser(): Promise<User[]> {
+  protected async _findAll(): Promise<User[]> {
     try {      
       const users = await User.findAll();
       return users;
@@ -10,7 +10,7 @@ export class UserService {
     }
   }
 
-  protected async _getUserById(id: string): Promise<User | null> {
+  protected async _findByPk(id: string): Promise<User | null> {
     try {
       const user = await User.findByPk(id); // Remover el include de User
       return user;
@@ -20,7 +20,7 @@ export class UserService {
   }
   
 
-  protected async _createUser(data: User): Promise<User> {
+  protected async _create(data: User): Promise<User> {
     try {
       const newUser = await User.create(data);
       return newUser;
@@ -29,7 +29,7 @@ export class UserService {
     }
   }
 
-  protected async _updateUser(id: string, data: Partial<User>): Promise<User | null> {
+  protected async _update(id: string, data: Partial<User>): Promise<User | null> {
     try {
       const user = await User.findByPk(id);
       if (!user) {
@@ -42,7 +42,7 @@ export class UserService {
     }
   }
 
-  protected async _deleteUser(id: string): Promise<number> {
+  protected async _destroy(id: string): Promise<number> {
     const result = await User.destroy({
       where: { IdUser: id },
     });

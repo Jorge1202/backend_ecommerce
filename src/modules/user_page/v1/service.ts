@@ -6,56 +6,56 @@ import { PageStore } from '../../../models/page-store';
 import { Profile } from '../../../models/profile';
 
 export class UserPageService {
-  protected async _getAllUserPages(): Promise<UserPage[]> {
+  protected async _findAll(): Promise<UserPage[]> {
     try {      
-      const userPages = await UserPage.findAll();
-      return userPages;
+      const list = await UserPage.findAll();
+      return list;
     } catch (error) {
-      throw new Error(`Error obteniendo UserPages: ${error}`);
+      throw new Error(`Error obteniendo la lista: ${error}`);
     }
   }
 
-  protected async _getUserPageById(id: number): Promise<UserPage | null> {
+  protected async _findByPk(id: number): Promise<UserPage | null> {
     try {
-      const userPage = await UserPage.findByPk(id);
-      return userPage;
+      const record = await UserPage.findByPk(id);
+      return record;
     } catch (error) {
-      throw new Error(`Error obteniendo UserPage con id ${id}: ${error}`);
+      throw new Error(`Error obteniendo el registro con id ${id}: ${error}`);
     }
   }
 
-  protected async _createUserPage(data: {
+  protected async _create(data: {
     IdUser: string;
     IdTypePage: number;
     Username: string;
   }): Promise<UserPage> {
     try {
-      const userPage = await UserPage.create({
+      const newRecord = await UserPage.create({
         IdUser: data.IdUser,
         IdTypePage: data.IdTypePage,
         Username: data.Username,
       });
-      return userPage;
+      return newRecord;
     } catch (error) {
-      throw new Error(`Error creando UserPage: ${error}`);
+      throw new Error(`Error creating record: ${error}`);
     }
   }
 
-  protected async _updateUserPage(id: number, data: Partial<UserPage>): Promise<UserPage | null> {
+  protected async _update(id: number, data: Partial<UserPage>): Promise<UserPage | null> {
     try {
-      const userPage = await UserPage.findByPk(id);
-      if (!userPage) {
-        throw new Error('UserPage no encontrado');
+      const record = await UserPage.findByPk(id);
+      if (!record) {
+        throw new Error(`Record with id ${id} not found`);
       }
 
-      await userPage.update(data);
-      return userPage;
+      await record.update(data);
+      return record;
     } catch (error) {
-      throw new Error(`Error actualizando UserPage con id ${id}: ${error}`);
+      throw new Error(`Error actualizando registro con id ${id}: ${error}`);
     }
   }
 
-  protected async _deleteUserPage(id: number): Promise<number> {
+  protected async _destroy(id: number): Promise<number> {
     const result = await UserPage.destroy({
       where: { IdUserPage: id },
     });

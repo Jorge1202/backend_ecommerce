@@ -1,68 +1,73 @@
 import { Request, Response } from 'express';
-import AuthService from './service';
+import { AuthService } from './service';
+import { success, error } from '../../../middlewares/response';
 
-class AuthController {
-  // Obtener todos los registros de autenticación
-  public async findAll(req: Request, res: Response): Promise<Response> {
+class TypePageController extends AuthService {
+
+  constructor() {
+    super(); 
+  }
+
+  public getAll = async (req: Request, res: Response): Promise<void> => {
     try {
-      const auths = await AuthService.getAllAuths();
-      return res.json(auths); // Responde con todos los registros
-    } catch (error) {
-      return res.status(500).json({ message: 'Error al obtener los registros de autenticación.', error });
+      const findList = await this._findAll();
+      success({ req, res, data: findList, status: 200 });
+    } catch (err) {
+      error({ req, res, data: 'Error fetching record ', details: err, status: 500 });
     }
   }
 
-  // Obtener un registro por ID
-  public async findByPk(req: Request, res: Response): Promise<Response> {
+  public getById = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id_auth } = req.params;
-      const auth = await AuthService.getAuthById(Number(id_auth));
-      if (auth) {
-        return res.json(auth); // Responde con el registro encontrado
+      const { id } = req.params;
+      const findData = await this._findByPk(Number(id));
+      if (findData) {
+        success({ req, res, data: findData, status: 200 });
+      } else {
+        error({ req, res, data: 'Record not found', status: 204 });
       }
-      return res.status(404).json({ message: 'Registro de autenticación no encontrado.' });
-    } catch (error) {
-      return res.status(500).json({ message: 'Error al obtener el registro de autenticación.', error });
+    } catch (err) {
+      error({ req, res, data: 'Error fetching record ', status: 500, details: err });
     }
   }
 
-  // Crear un nuevo registro de autenticación
-  public async createData(req: Request, res: Response): Promise<Response> {
+  public create = async (req: Request, res: Response): Promise<void> => {
     try {
-      const newAuth = await AuthService.createAuth(req.body); // Crea el registro con los datos del body
-      return res.status(201).json(newAuth); // Responde con el registro creado
-    } catch (error) {
-      return res.status(500).json({ message: 'Error al crear el registro de autenticación.', error });
+      const newRecord = await this._create(req.body); // Llamada al servicio
+      success({ req, res, data: newRecord, status: 201 });
+    } catch (err) {
+      error({ req, res, data: 'Error creating record ', status: 500, details: err });
     }
   }
 
-  // Actualizar un registro de autenticación por ID
-  public async updateById(req: Request, res: Response): Promise<Response> {
+  public updateById = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id_auth } = req.params;
-      const [affectedCount, updatedAuths] = await AuthService.updateAuth(Number(id_auth), req.body);
-      if (affectedCount > 0) {
-        return res.json(updatedAuths[0]); // Responde con el registro actualizado
+      const { id } = req.params;
+      const updatedRecord = await this._update(Number(id), req.body); // Llamada al servicio
+      if (updatedRecord) {
+        success({ req, res, data: updatedRecord, status: 200 });
+      } else {
+        error({ req, res, data: 'Record  not found', status: 204, });
       }
-      return res.status(404).json({ message: 'Registro de autenticación no encontrado.' });
-    } catch (error) {
-      return res.status(500).json({ message: 'Error al actualizar el registro de autenticación.', error });
+    } catch (err) {
+      error({ req, res, data: 'Error updating record ', status: 500, details: err });
     }
   }
 
-  // Eliminar un registro de autenticación por ID
-  public async deleteById(req: Request, res: Response): Promise<Response> {
+  public deleteById = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id_auth } = req.params;
-      const deletedCount = await AuthService.deleteAuth(Number(id_auth));
-      if (deletedCount > 0) {
-        return res.status(204).send(); // No devuelve contenido si la eliminación fue exitosa
+      const { id } = req.params;
+      const result = await this._destroy(Number(id)); // Llamada al servicio
+      if (result) {
+        success({ req, res, data: 'Record  deleted successfully', status: 200 });
+      } else {
+        error({ req, res, data: 'Record not found', status: 204, });
       }
-      return res.status(404).json({ message: 'Registro de autenticación no encontrado.' });
-    } catch (error) {
-      return res.status(500).json({ message: 'Error al eliminar el registro de autenticación.', error });
+    } catch (err) {
+      error({ req, res, data: 'Error deleting record ', status: 500, details: err });
     }
   }
+
 }
 
-export default new AuthController();
+export default new TypePageController();

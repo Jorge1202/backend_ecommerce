@@ -8,102 +8,63 @@ class UserController extends UserService {
     super();  // Compones el controlador inyectando el servicio
   }
 
-  public getAllUser = async (req: Request, res: Response): Promise<void> => {
+  public getAll = async (req: Request, res: Response): Promise<void> => {
     try {
-      const user = await this._getAllUser();
-      success({ req, res, data: user, status: 200 });
+      const findList = await this._findAll();
+      success({ req, res, data: findList, status: 200 });
     } catch (err) {
-      error({ req, res, data: 'Error fetching user ', details: err, status: 500 });
+      error({ req, res, data: 'Error fetching record ', details: err, status: 500 });
     }
   }
 
-  public getUserById = async (req: Request, res: Response): Promise<void> => {
+  public getById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const user = await this._getUserById(String(id));
-      if (user) {
-        success({ req, res, data: user, status: 200 });
+      const findData = await this._findByPk(String(id));
+      if (findData) {
+        success({ req, res, data: findData, status: 200 });
       } else {
-        error({
-          req,
-          res,
-          data: 'User  not found',
-          status: 204
-        });
+        error({ req, res, data: 'Record  not found', status: 204 });
       }
     } catch (err) {
-      error({
-        req,
-        res,
-        data: 'Error fetching user ',
-        status: 500,
-        details: err
-      });
+      error({req,res,data: 'Error fetching record ',status: 500,details: err});
     }
   }
 
-  public  createUser = async (req: Request, res: Response): Promise<void> => {
+  public  create = async (req: Request, res: Response): Promise<void> => {
     try {
-      const newUser = await this._createUser(req.body); // Llamada al servicio
-      success({ req, res, data: newUser, status: 201 });
+      const newRecord = await this._create(req.body); // Llamada al servicio
+      success({ req, res, data: newRecord, status: 201 });
     } catch (err) {
-      error({
-        req,
-        res,
-        data: 'Error creating user ',
-        status: 500,
-        details: err
-      });
+      error({ req, res, data: 'Error creating record ', status: 500, details: err });
     }
   }
 
-  public updateUser = async (req: Request, res: Response): Promise<void> => {
+  public updateById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const updatedUser = await this._updateUser(String(id), req.body); // Llamada al servicio
-      if (updatedUser) {
-        success({ req, res, data: updatedUser, status: 200 });
+      const updatedRecord = await this._update(String(id), req.body); // Llamada al servicio
+      if (updatedRecord) {
+        success({ req, res, data: updatedRecord, status: 200 });
       } else {
-        error({
-          req,
-          res,
-          data: 'User  not found',
-          status: 204,
-        });
+        error({ req, res, data: 'Record  not found', status: 204, });
       }
     } catch (err) {
-      error({
-        req,
-        res,
-        data: 'Error updating user ',
-        status: 500,
-        details: err
-      });
+      error({ req, res, data: 'Error updating record ', status: 500, details: err });
     }
   }
 
-  public deleteUser = async (req: Request, res: Response): Promise<void> => {
+  public deleteById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const result = await this._deleteUser(String(id)); // Llamada al servicio
+      const result = await this._destroy(String(id)); // Llamada al servicio
       if (result) {
-        success({ req, res, data: 'User  deleted successfully', status: 200 });
+        success({ req, res, data: 'Record  deleted successfully', status: 200 });
       } else {
-        error({
-          req,
-          res,
-          data: 'User  not found',
-          status: 204,
-        });
+        error({req,res,data: 'Record not found',status: 204,});
       }
     } catch (err) {
-      error({
-        req,
-        res,
-        data: 'Error deleting user ',
-        status: 500,
-        details: err
-      });
+      error({ req, res, data: 'Error deleting record ', status: 500, details: err });
     }
   }
 

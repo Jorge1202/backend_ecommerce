@@ -1,13 +1,13 @@
 import { Router } from 'express';
-import AuthController from './controller';
+import userController from './controller';
 
-const router = Router();
+const userRoutes = Router();
 
-// Define las rutas y las acciones correspondientes
-router.post('/auth', AuthController.findAll);
-router.get('/auth/:id_auth', AuthController.findByPk);
-router.put('/auth/:id_auth', AuthController.updateById);
-router.delete('/auth/:id_auth', AuthController.deleteById);
+userRoutes.get('/', userController.getAll);
+userRoutes.get('/:id', userController.getById); // http://localhost:3000/api/v1/typePage/1
+userRoutes.put('/:id', userController.updateById);
+userRoutes.delete('/:id', userController.deleteById);
+userRoutes.post('/', userController.create);
 
-export default router;
-
+export default userRoutes;
+  

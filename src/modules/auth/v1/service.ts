@@ -1,37 +1,51 @@
-import {AuthModel} from './model';
+import { Auth } from '../../../models/auth'; 
 
-class AuthService {
-  // Obtener todos los registros de autenticación
-  public async getAllAuths(): Promise<AuthModel[]> {
-    return await AuthModel.findAll(); // Obtiene todos los registros
+export class AuthService {
+  protected async _findAll(): Promise<Auth[]> {
+    try {      
+      const list = await Auth.findAll();
+      return list;
+    } catch (error) {
+      throw new Error(`Error obteniendo la lista: ${error}`);
+    }
   }
 
-  // Obtener un registro de autenticación por ID
-  public async getAuthById(id_auth: number): Promise<AuthModel | null> {
-    return await AuthModel.findOne({
-      where: { id_auth },
-    }); // Encuentra por la clave primaria
+  protected async _findByPk(id: number): Promise<Auth | null> {
+    try {
+      const record = await Auth.findByPk(id); // Remover el include de User
+      return record;
+    } catch (error) {
+      throw new Error(`Error obteniendo el registro con id ${id}: ${error}`);
+    }
+  }
+  
+
+  protected async _create(data: Auth): Promise<Auth> {
+    try {
+      const newRecord = await Auth.create(data);
+      return newRecord;
+    } catch (error) {
+      throw new Error(`Error creating record: ${error}`);
+    }
   }
 
-  // Crear un nuevo registro de autenticación
-  public async createAuth(data: Partial<AuthModel>): Promise<AuthModel> {
-    return await AuthModel.create(data); // Crea un nuevo registro
+  protected async _update(id: number, data: Partial<Auth>): Promise<Auth | null> {
+    try {
+      const record = await Auth.findByPk(id);
+      if (!record) {
+        throw new Error(`Record with id ${id} not found`);
+      }
+      await record.update(data);
+      return record;
+    } catch (error) {
+      throw new Error(`Error updating record: ${error}`);
+    }
   }
 
-  // Actualizar un registro de autenticación por ID
-  public async updateAuth(id_auth: number, data: Partial<AuthModel>): Promise<[number, AuthModel[]]> {
-    return await AuthModel.update(data, {
-      where: { id_auth },
-      returning: true, // Devuelve el registro actualizado
+  protected async _destroy(id: number): Promise<number> {
+    const result = await Auth.destroy({
+      where: { IdAuth: id },
     });
-  }
-
-  // Eliminar un registro de autenticación por ID
-  public async deleteAuth(id_auth: number): Promise<number> {
-    return await AuthModel.destroy({
-      where: { id_auth },
-    }); // Elimina el registro
-  }
+    return result;
+  }  
 }
-
-export default new AuthService();
