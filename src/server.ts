@@ -1,7 +1,6 @@
 //Punto de entrada para levantar el servidor
 import { app } from "./app";
 import { config } from "./config/config";
-import sequelize from "./config/db";
 const cors = require("cors"); 
 
 const startServer = async () => {

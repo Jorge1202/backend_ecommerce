@@ -1,38 +1,37 @@
-import { User } from '../../users/v1/model';  // Asegúrate de que tu modelo esté correctamente importado
+import {AuthModel} from './model';
 
-class IdentityService {
-  
-  /**
-   * Verifica si el usuario está registrado y si la sesión es válida.
-   * @param userId - ID del usuario
-   * @param deviceId - ID del dispositivo (si es necesario)
-   * @returns Un objeto con información sobre la validez del login
-   */
-  async validateLogin(userId: string, deviceId: string) {
-    try {
-      // Aquí puedes implementar la lógica para validar si el usuario está registrado
-    //   const user = await User.findById(userId);
-      const user = {devices: ''};
-      
-      if (!user) {
-        return { error: true, message: 'Usuario no encontrado', code: 404 };
-      }
-      
-      // Si estás manejando sesiones por dispositivo, verifica el dispositivo
-      if (deviceId && !user.devices.includes(deviceId)) {
-        return { error: true, message: 'Dispositivo no autorizado', code: 403 };
-      }
-      
-      return { error: false, message: 'Login válido', code: 200 };
-      
-    } catch (error) {
-      console.error('[IdentityService] Error validating login:', error);
-      return { error: true, message: 'Error al validar login', code: 500 };
-    }
+class AuthService {
+  // Obtener todos los registros de autenticación
+  public async getAllAuths(): Promise<AuthModel[]> {
+    return await AuthModel.findAll(); // Obtiene todos los registros
   }
 
-  // Puedes agregar más métodos aquí según tus necesidades
+  // Obtener un registro de autenticación por ID
+  public async getAuthById(id_auth: number): Promise<AuthModel | null> {
+    return await AuthModel.findOne({
+      where: { id_auth },
+    }); // Encuentra por la clave primaria
+  }
 
+  // Crear un nuevo registro de autenticación
+  public async createAuth(data: Partial<AuthModel>): Promise<AuthModel> {
+    return await AuthModel.create(data); // Crea un nuevo registro
+  }
+
+  // Actualizar un registro de autenticación por ID
+  public async updateAuth(id_auth: number, data: Partial<AuthModel>): Promise<[number, AuthModel[]]> {
+    return await AuthModel.update(data, {
+      where: { id_auth },
+      returning: true, // Devuelve el registro actualizado
+    });
+  }
+
+  // Eliminar un registro de autenticación por ID
+  public async deleteAuth(id_auth: number): Promise<number> {
+    return await AuthModel.destroy({
+      where: { id_auth },
+    }); // Elimina el registro
+  }
 }
 
-export default new IdentityService();
+export default new AuthService();

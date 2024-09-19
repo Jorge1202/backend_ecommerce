@@ -1,17 +1,12 @@
 //Configuración principal de la aplicación
 import express, { Request, Response } from 'express';
 import routes from './routes';
-import error from '../utils/errors'; 
-import { config } from '../config/config';
-
-const bodyParse = require('body-parser');
+import error from '../middlewares/errors'; 
 
 const app = express();
 
-app.use(bodyParse.json());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 
 //#region ROUTES
 

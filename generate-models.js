@@ -1,12 +1,2 @@
-// generate-models.js
-const SequelizeAuto = require('sequelize-auto');
-const auto = new SequelizeAuto('ecommerce', 'postgres', 'adminadmin12', {
-  host: 'localhost',
-  dialect: 'postgres',
-  directory: './models', // Carpeta donde se guardarán los modelos
-});
 
-auto.run((err) => {
-  if (err) throw err;
-  console.log('Models generated successfully!');
-});
+//npx sequelize-auto -h localhost -d ecommerce -u postgres -x adminadmin12 --dialect postgres --noInitModels --noAlias --caseModel p --caseFile k --caseProp p --lang ts -o "./src/models_ts"

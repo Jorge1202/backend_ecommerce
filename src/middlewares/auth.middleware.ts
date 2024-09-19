@@ -28,11 +28,11 @@ const getToken = async (req: Request): Promise<any> => {
   if (decoded.error) {
     return decoded;
   } else {
-    const login = await IdentityService.validateLogin(decoded.message.id, decoded.message.idDispositivo);
+    // const login = await IdentityService.validateLogin(decoded.message.id, decoded.message.idDispositivo);
 
-    if (login.error) {
-      return { error: true, code: 401, message: 'Sesión inválida. Por favor inicia sesión nuevamente.' };
-    }
+    // if (login.error) {
+    //   return { error: true, code: 401, message: 'Sesión inválida. Por favor inicia sesión nuevamente.' };
+    // }
 
     req.body.token = decoded.message;
     return decoded;

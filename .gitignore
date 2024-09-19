@@ -24,7 +24,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # Environment variable files
-models/
+/models/
 .env
 .env.local
 .env.development.local

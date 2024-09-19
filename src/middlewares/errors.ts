@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { statusMessage } from './codeRecuest';
+import { statusMessage } from '../utils/codeRecuest';
 import { error } from './response';  
 
 export interface CustomError extends Error {
@@ -7,13 +7,19 @@ export interface CustomError extends Error {
 }
 
 function errors(err: CustomError, req: Request, res: Response, next: NextFunction): void {
-    console.log('[error] ', err);
 
     const num_error = err.statusCode || 500
     const message = err.message || statusMessage[num_error];
     const status = num_error;
 
-    error(req, res, message, status);    
+    error({
+        req, 
+        res, 
+        data: message, 
+        status: status, 
+        details: err
+      });  
+      next(); 
 }
 
 export default errors;

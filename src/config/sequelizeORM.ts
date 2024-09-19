@@ -1,6 +1,9 @@
 // sequelize.config.ts
 import { Sequelize } from 'sequelize-typescript';
 import * as dotenv from 'dotenv';
+import { initModel } from './initModel';
+
+
 
 dotenv.config(); // Carga las variables de entorno desde un archivo .env
 
@@ -52,6 +55,11 @@ const sequelize = new Sequelize({
 });
 
 
+initModel(sequelize)
+
+
+
+
 // Verificar la conexión a la base de datos
 sequelize.authenticate()
   .then(() => {
@@ -69,6 +77,9 @@ sequelize.authenticate()
   .catch((error) => {
     console.error('Error al sincronizar la base de datos:', error);
   });
+
+
+
 
 export { sequelize };
 
