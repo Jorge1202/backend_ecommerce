@@ -1,4 +1,5 @@
 import { Auth } from '../../../models/auth'; 
+import { Transaction } from 'sequelize';
 
 export class AuthService {
   protected async _findAll(): Promise<Auth[]> {
@@ -20,10 +21,10 @@ export class AuthService {
   }
   
 
-  protected async _create(data: Auth): Promise<Auth> {
+  protected async _create(data: Auth, transaction: Transaction): Promise<Auth> {
     try {   
       data.DataCreate = new Date()   
-      const newRecord = await Auth.create(data);
+      const newRecord = await Auth.create(data, {transaction});
       return newRecord;
     } catch (error) {
       throw new Error(`Error creating record: ${error}`);

@@ -1,3 +1,4 @@
+import { Transaction } from 'sequelize';
 import { User } from '../../../models/user'; 
 
 export class UserService {
@@ -20,9 +21,9 @@ export class UserService {
   }
   
 
-  protected async _create(data: User): Promise<User> {
+  protected async _create(data: User, transaction: Transaction): Promise<User> {
     try {
-      const newUser = await User.create(data);
+      const newUser = await User.create(data,{transaction});
       return newUser;
     } catch (error) {
       throw new Error(`Error creating user: ${error}`);

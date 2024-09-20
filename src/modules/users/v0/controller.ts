@@ -16,8 +16,6 @@ export const findAll = async (req: Request, res: Response): Promise<void> => {
 export const findByPk = async (req: Request, res: Response): Promise<void> => {
     const userId = req.params.id;
 
-    console.log(userId);
-    
     try {
         const user = await UserService.findByPk(userId);
         if (!user) {

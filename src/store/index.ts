@@ -20,7 +20,7 @@ export const findByPk = async (schema: string, table: string, id: string | numbe
   try {
 
     const query = `SELECT * FROM "${schema}"."${table}" WHERE id_${table} = $1`;
-    console.log(query);
+
     
     const result = await pool.query(query, [id]);
     // console.log(`get id => ${id} from table => ${table}`);

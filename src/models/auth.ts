@@ -11,6 +11,7 @@ export interface AuthAttributes {
   IdUser: string;
   DataCreate: Date;
   DataUpdate?: Date;
+  Pw?: string;
 } 
 
 export type AuthPk = "IdAuth";
@@ -25,6 +26,7 @@ export class Auth extends Model<AuthAttributes, AuthCreationAttributes> implemen
   IdUser!: string;
   DataCreate!: Date;
   DataUpdate?: Date;
+  Pw?: string;
 
   // Auth hasMany CodeAutentication via IdAuth
   CodeAutentications!: CodeAutentication[];
@@ -95,6 +97,11 @@ export class Auth extends Model<AuthAttributes, AuthCreationAttributes> implemen
       type: DataTypes.DATE, // Tipo DATE para fecha y hora
       allowNull: true,      
       field: 'date_update',
+    },
+    Pw: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      field: 'pw'
     }
   }, {
     sequelize,

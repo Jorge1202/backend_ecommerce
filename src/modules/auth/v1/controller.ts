@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import { AuthService } from './service';
 import { success, error } from '../../../middlewares/response';
+import { Transaction } from 'sequelize';
 
+const bcrypt = require("bcrypt");
 class AuthController extends AuthService {
 
   constructor() {
@@ -32,12 +34,21 @@ class AuthController extends AuthService {
     }
   }
 
-  public create = async (req: Request, res: Response): Promise<void> => {
+  public create = async (req: Request, res: Response, transaction: Transaction): Promise<any> => {
     try {
-      const newRecord = await this._create(req.body); // Llamada al servicio
-      success({ req, res, data: newRecord, status: 201 });
+        // const isMatch = await bcrypt.compare(enteredPassword, storedHashedPassword);
+        const data = req.body;
+        let { auth } = data;
+        const {Password, IdUser} = auth;
+        const hashedPassword = await bcrypt.hash(Password, 10); // Asume que tienes un método para encriptar
+
+        const authHas = {...auth, Password:hashedPassword, Pw:Password}
+        const newRecord = await this._create(authHas, transaction);
+        return newRecord; // Retorna el nuevo registro
+
     } catch (err) {
-      error({ req, res, data: 'Error creating record... ', status: 500, details: err });
+      throw new Error(`Error creating Auth record: ${err}`);
+      // error({ req, res, data: 'Error creating record... ', status: 500, details: err });
     }
   }
 

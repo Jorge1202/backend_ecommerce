@@ -1,9 +1,5 @@
 import { UserPage } from '../../../models/user-page';
-import { TypePage } from '../../../models/type-page';
-import { User } from '../../../models/user';
-import { PageServices } from '../../../models/page-services';
-import { PageStore } from '../../../models/page-store';
-import { Profile } from '../../../models/profile';
+import { Transaction } from 'sequelize';
 
 export class UserPageService {
   protected async _findAll(): Promise<UserPage[]> {
@@ -12,6 +8,17 @@ export class UserPageService {
       return list;
     } catch (error) {
       throw new Error(`Error obteniendo la lista: ${error}`);
+    }
+  }
+
+  protected async _findByUsername(Username: string): Promise<UserPage | null> {
+    try {
+      const record = await UserPage.findOne({
+        where: { Username } // Busca donde el campo 'username' coincida
+      });
+      return record;
+    } catch (error) {
+      throw new Error(`Error obteniendo el registro con USERNAME ${Username}: ${error}`);
     }
   }
 
@@ -28,13 +35,13 @@ export class UserPageService {
     IdUser: string;
     IdTypePage: number;
     Username: string;
-  }): Promise<UserPage> {
+  }, transaction: Transaction): Promise<UserPage> {
     try {
       const newRecord = await UserPage.create({
         IdUser: data.IdUser,
         IdTypePage: data.IdTypePage,
         Username: data.Username,
-      });
+      }, {transaction});
       return newRecord;
     } catch (error) {
       throw new Error(`Error creating record: ${error}`);

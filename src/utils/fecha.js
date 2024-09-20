@@ -19,8 +19,8 @@ export const fechaLocal = (isoDate) => {
     const options = { timeZone: timeZone, hour12: false };
     const newDateString = date.toLocaleString(locale, options);
     
-    console.log(date.toISOString());
-    console.log(newDateString);
+    // console.log(date.toISOString());
+    // console.log(newDateString);
 
     return newDateString
 }

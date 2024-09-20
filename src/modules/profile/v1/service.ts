@@ -1,4 +1,5 @@
-import { Profile } from '../../../models/profile'; 
+import { Transaction } from 'sequelize';
+import { Profile, ProfileCreationAttributes  } from '../../../models/profile'; 
 
 export class ProfileService {
   protected async _findAll(): Promise<Profile[]> {
@@ -20,9 +21,9 @@ export class ProfileService {
   }
   
 
-  protected async _create(data: Profile): Promise<Profile> {
+  protected async _create(data: Profile, transaction: Transaction ): Promise<Profile> {
     try {   
-      const newRecord = await Profile.create(data);
+      const newRecord = await Profile.create(data, {transaction});
       return newRecord;
     } catch (error) {
       throw new Error(`Error creating record: ${error}`);

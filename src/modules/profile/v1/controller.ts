@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { ProfileService } from './service';
 import { success, error } from '../../../middlewares/response';
-
+import { ProfileCreationAttributes  } from '../../../models/profile';
+import { Transaction } from 'sequelize';
 class ProfileController extends ProfileService {
 
   constructor() {
@@ -33,12 +34,27 @@ class ProfileController extends ProfileService {
     }
   }
 
-  public create = async (req: Request, res: Response): Promise<void> => {
+  // public create = async ( data:ProfileCreationAttributes ): Promise<any> => {
+  //   try {
+
+  //     // const { data.body
+  //     const newRecord = await this._create(data);
+  //     return newRecord; // Retorna el nuevo registro
+
+  //   } catch (err) {
+  //     throw new Error(`Error creating Auth record: ${err}`);
+  //   }
+  // }
+  
+  public create = async ( req: Request, res: Response, transacción: Transaction ): Promise<any> => {
     try {
-      const newRecord = await this._create(req.body); // Llamada al servicio
-      success({ req, res, data: newRecord, status: 201 });
+
+      const {profile } = req.body
+      const newRecord = await this._create(profile, transacción);
+      return newRecord; // Retorna el nuevo registro
+
     } catch (err) {
-      error({ req, res, data: 'Error creating record... ', status: 500, details: err });
+      throw new Error(`Error creating Auth record: ${err}`);
     }
   }
 

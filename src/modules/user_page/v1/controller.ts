@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import { UserPageService } from './service';
 import { success, error } from '../../../middlewares/response';
-
+import { UserPage } from '../../../models/user-page';
+import { Transaction } from 'sequelize';
 class UserPageController extends UserPageService {
 
   constructor() {
@@ -21,7 +22,6 @@ class UserPageController extends UserPageService {
     try {
       const { id } = req.params;
       const userPage = await this._findByPk(Number(id));
-      console.log(userPage);
       
       if (userPage) {
         success({ req, res, data: userPage, status: 200 });
@@ -34,12 +34,25 @@ class UserPageController extends UserPageService {
     }
   }
 
-  public create = async (req: Request, res: Response): Promise<void> => {
+  public getByUsername = async (username:string): Promise<UserPage | null> => {
     try {
-      const newUserPage = await this._create(req.body); // Llamada al servicio
-      success({ req, res, data: newUserPage, status: 201 });
+      const userPage = await this._findByUsername(String(username));
+      return userPage
     } catch (err) {
-      error({ req, res, data: 'Error creating record', status: 500, details: err });
+      throw new Error(`Error obteniendo el registro con USERNAME ${username}: ${error}`);
+    }
+  }
+
+  public create = async (req: Request, res: Response, transaction: Transaction ): Promise<any> => {
+    try {
+
+      let data = req.body;
+      const {userPage} = data;
+
+      const newRecord = await this._create(userPage, transaction); // Llamada al servicio
+      return newRecord; 
+    } catch (err) {
+      throw new Error(`Error creating Auth record: ${err}`);
     }
   }
 

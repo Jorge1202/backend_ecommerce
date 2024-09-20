@@ -1,11 +1,16 @@
 import { Request, Response } from 'express';
-import { UserService } from './service';
+import { Transaction } from 'sequelize';
+import { success, error } from '../../../middlewares/response';
+import { sequelize } from '../../../config/database/sequelizeORM';
+
 import { User } from '../../../models/user'; 
 import { Auth } from '../../../models/auth'; 
-import { success, error } from '../../../middlewares/response';
-const bcrypt = require("bcrypt");
+import { UserPage } from '../../../models/user-page';
 
-
+import { UserService } from './service';
+import AuthController from '../../auth/v1/controller'
+import UserPageController from '../../user_page/v1/controller'
+import ProfileController from '../../profile/v1/controller'
 interface Record {
   user:User,
   auth:Auth,
@@ -41,31 +46,35 @@ class UserController extends UserService {
   }
 
   public  create = async (req: Request, res: Response): Promise<void> => {
+    const transaction = await sequelize.transaction(); // Inicia la transacción
     try {
-      const data = req.body;
+      let data = req.body;
       const { user, auth } = data;
 
-      const responseJson = await this.ValidDataCreate(res, data);
-      if(responseJson){
+      // 1. Validación de datos
+      const responseJson = await this.ValidDataCreate(res, req.body);
+      if (!responseJson) return;
 
-        const newRecord = await this._create(data); // Llamada al servicio
-        
-        
-        
-        
-        
-        // const isMatch = await bcrypt.compare(enteredPassword, storedHashedPassword);
-        const hashedPassword = await bcrypt.hash(auth.Password, 10);
+      // 2. Crear usuario
+      const newUser = await this._createUser(user, transaction);
 
+      // 3. Crear página de usuario
+      const newUserPage = await this._createUserPage(newUser, transaction);
 
+      // 4. Crear autenticación
+      await this._createUserAuth(newUser, auth, transaction);
 
-        console.log(data);
-        console.log(responseJson);
-        
-        // success({ res, data: newRecord, status: 201 });
-      }
+      // 5. Crear perfil
+      await this._createUserProfile(newUser, newUserPage, transaction);
+
+      // Confirma todas las operaciones
+      await transaction.commit();
+
+      success({ res, data: 'Registro exitoso. El usuario se ha creado correctamente.', status: 201 });
+      
     } catch (err) {
-      error({ res, data: 'Error creating record ', status: 500, details: err });
+      await transaction.rollback(); // Revertir las operaciones en caso de error
+    error({ res, data: 'Error creating record', status: 500, details: err });
     }
   }
 
@@ -102,21 +111,32 @@ class UserController extends UserService {
       const { user, auth } = data;
   
       // Validación de campos obligatorios del usuario
+      const newUserPage = await UserPageController.getByUsername(user.Username);
+      if(newUserPage){
+        error({ res, data: 'El username ya se encuentra en uso', status: 409 });
+        return false;
+      }
+
       if (!user.Email) {
         error({ res, data: 'Ingresa el Email', status: 422 });
+        return false;
       }
       if (!user.Username) {
         error({ res, data: 'Ingresa el username', status: 422 });
+        return false;
       }
       if (!user.Name) {
         error({ res, data: 'Ingresa el nombre', status: 422 });
+        return false;
       }
       if (!user.Firstname) {
         error({ res, data: 'Ingresa el apellido', status: 422 });
+        return false;
       }
 
       if (!auth.Password) {
         error({ res, data: 'Ingresa la contraseña', status: 422 });
+        return false;
       }
   
       // Si todo está bien, retornamos los datos
@@ -126,8 +146,34 @@ class UserController extends UserService {
       return null;
     }
   };
-  
 
+  private async _createUser(user: User, transaction: Transaction): Promise<User> {
+    // return await this._create(user, {transaction});
+    return await this._create(user, transaction);
+  }
+
+  private async _createUserPage(user: User, transaction: Transaction): Promise<UserPage> {
+    const userPageData = { IdUser: user.IdUser, Username: user.Username, IdTypePage: 1 };
+    return await UserPageController.create({ body: { userPage: userPageData } } as Request, {} as Response, transaction);
+  }
+
+  private async _createUserAuth(user: User, auth: Auth, transaction: Transaction): Promise<void> {
+    await AuthController.create({ body: { auth: { Password: auth.Password, IdUser: user.IdUser } } } as Request, {} as Response , transaction);
+  }
+
+  private async _createUserProfile(user: User, userPage: UserPage, transaction: Transaction): Promise<void> {
+    const profileData = {
+      Name: user.Name,
+      Firstname: user.Firstname,
+      Lastname: user.Lastname || '',
+      Email: user.Email,
+      Phone: user.Phone || '',
+      ProfilePicture: "https://example.com/profile.jpg",
+      PortadaPicture: "https://example.com/cover.jpg",
+      IdUserPage: userPage.IdUserPage
+    };
+    await ProfileController.create({ body: { profile: profileData } } as Request, {} as Response, transaction);
+  }
 }
 
 

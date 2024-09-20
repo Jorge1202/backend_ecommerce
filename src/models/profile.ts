@@ -130,13 +130,13 @@ export class Profile extends Model<ProfileAttributes, ProfileCreationAttributes>
     },
     IsVarificado: {
       type: DataTypes.BOOLEAN,
-      allowNull: false,
+      allowNull: true,
       defaultValue: false,
       field: 'is_varificado'
     },
     IsActive: {
       type: DataTypes.BOOLEAN,
-      allowNull: false,
+      allowNull: true,
       defaultValue: true,
       field: 'is_active'
     },
