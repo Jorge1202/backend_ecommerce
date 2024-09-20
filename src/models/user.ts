@@ -66,6 +66,7 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
       type: DataTypes.STRING(50),
       allowNull: false,
       primaryKey: true,
+      defaultValue: DataTypes.UUIDV4,
       field: 'id_user'
     },
     Email: {
@@ -112,6 +113,7 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
     DateCreate: {
       type: DataTypes.DATE,
       allowNull: true,
+      defaultValue: DataTypes.NOW, // Establece fecha y hora actuales
       field: 'date_create'
     },
     DateUpdate: {
@@ -123,7 +125,19 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
     sequelize,
     tableName: 'user',
     schema: 'user',
-    timestamps: false,
+    timestamps: true, // Utiliza timestamps automáticos
+    createdAt: 'DateCreate',
+    updatedAt: 'DateUpdate',
+    hooks: {
+      beforeCreate: (user: User) => {
+        const now = new Date();
+        user.DateCreate = now;
+        user.DateUpdate = now;
+      },
+      beforeUpdate: (user: User) => {
+        user.DateUpdate = new Date();
+      }
+    },
     indexes: [
       {
         name: "id_user_pkey",

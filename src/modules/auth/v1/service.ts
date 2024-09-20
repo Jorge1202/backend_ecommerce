@@ -21,12 +21,13 @@ export class AuthService {
   
 
   protected async _create(data: Auth): Promise<Auth> {
-    try {
+    try {   
+      data.DataCreate = new Date()   
       const newRecord = await Auth.create(data);
       return newRecord;
     } catch (error) {
       throw new Error(`Error creating record: ${error}`);
-    }
+    } 
   }
 
   protected async _update(id: number, data: Partial<Auth>): Promise<Auth | null> {

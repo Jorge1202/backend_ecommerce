@@ -1,5 +1,5 @@
 // services/UserService.ts
-import pool from '../../../config/db';
+import pool from '../../../store/db';
 import { findAll, findByPk } from '../../../store';
 import { User } from './model'; // Importar la interfaz
 

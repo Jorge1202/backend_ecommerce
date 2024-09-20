@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { AuthService } from './service';
+import { ProfileService } from './service';
 import { success, error } from '../../../middlewares/response';
 
-class AuthController extends AuthService {
+class ProfileController extends ProfileService {
 
   constructor() {
     super(); 
@@ -21,7 +21,8 @@ class AuthController extends AuthService {
   public getById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const findData = await this._findByPk(Number(id));
+      
+      const findData = await this._findByPk(String(id));
       if (findData) {
         success({ req, res, data: findData, status: 200 });
       } else {
@@ -44,7 +45,7 @@ class AuthController extends AuthService {
   public updateById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const updatedRecord = await this._update(Number(id), req.body); // Llamada al servicio
+      const updatedRecord = await this._update(String(id), req.body); // Llamada al servicio
       if (updatedRecord) {
         success({ req, res, data: updatedRecord, status: 200 });
       } else {
@@ -58,7 +59,7 @@ class AuthController extends AuthService {
   public deleteById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const result = await this._destroy(Number(id)); // Llamada al servicio
+      const result = await this._destroy(String(id)); // Llamada al servicio
       if (result) {
         success({ req, res, data: 'Record  deleted successfully', status: 200 });
       } else {
@@ -71,4 +72,4 @@ class AuthController extends AuthService {
 
 }
 
-export default new AuthController();
+export default new ProfileController();

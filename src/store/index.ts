@@ -1,5 +1,5 @@
 import { QueryResult } from 'pg'; // npm install pg
-import pool from '../config/db';
+import pool from './db';
 //#region ######################## FUNCIONES UTILITARIAS
 
 // Consulta genérica para obtener todos los registros de una tabla

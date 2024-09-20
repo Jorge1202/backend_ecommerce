@@ -6,25 +6,25 @@ import type { User, UserId } from './user';
 
 export interface AuthAttributes {
   IdAuth: number;
-  Password?: string;
-  Status: number;
-  IdUser?: string;
-  DataCreate: string;
-  DataUpdate?: string;
-}
+  Password: string;
+  Status?: number;
+  IdUser: string;
+  DataCreate: Date;
+  DataUpdate?: Date;
+} 
 
 export type AuthPk = "IdAuth";
 export type AuthId = Auth[AuthPk];
-export type AuthOptionalAttributes = "IdAuth" | "Password" | "IdUser" | "DataUpdate";
+export type AuthOptionalAttributes = "IdAuth" | "Status" | "DataUpdate";
 export type AuthCreationAttributes = Optional<AuthAttributes, AuthOptionalAttributes>;
 
 export class Auth extends Model<AuthAttributes, AuthCreationAttributes> implements AuthAttributes {
   IdAuth!: number;
-  Password?: string;
-  Status!: number;
-  IdUser?: string;
-  DataCreate!: string;
-  DataUpdate?: string;
+  Password!: string;
+  Status?: number;
+  IdUser!: string;
+  DataCreate!: Date;
+  DataUpdate?: Date;
 
   // Auth hasMany CodeAutentication via IdAuth
   CodeAutentications!: CodeAutentication[];
@@ -67,17 +67,18 @@ export class Auth extends Model<AuthAttributes, AuthCreationAttributes> implemen
     },
     Password: {
       type: DataTypes.STRING(100),
-      allowNull: true,
+      allowNull: false,
       field: 'password'
     },
     Status: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      defaultValue: 1,
       field: 'status'
     },
     IdUser: {
       type: DataTypes.STRING(50),
-      allowNull: true,
+      allowNull: false,
       references: {
         model: 'user',
         key: 'id_user'
@@ -85,20 +86,33 @@ export class Auth extends Model<AuthAttributes, AuthCreationAttributes> implemen
       field: 'id_user'
     },
     DataCreate: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       allowNull: false,
-      field: 'data_create'
+      defaultValue: DataTypes.NOW, // Establece fecha y hora actuales
+      field: 'date_create'
     },
     DataUpdate: {
-      type: DataTypes.DATEONLY,
-      allowNull: true,
-      field: 'data_update'
+      type: DataTypes.DATE, // Tipo DATE para fecha y hora
+      allowNull: true,      
+      field: 'date_update',
     }
   }, {
     sequelize,
     tableName: 'auth',
     schema: 'user',
-    timestamps: false,
+    timestamps: true, // Utiliza timestamps automáticos
+    createdAt: 'DataCreate',
+    updatedAt: 'DataUpdate',
+    hooks: {
+      beforeCreate: (auth: Auth) => {
+        const now = new Date();
+        auth.DataCreate = now;
+        auth.DataUpdate = now;
+      },
+      beforeUpdate: (auth: Auth) => {
+        auth.DataUpdate = new Date();
+      }
+    },
     indexes: [
       {
         name: "auth_pkey",

@@ -17,8 +17,8 @@ export interface ProfileAttributes {
   Descripcion?: string;
   IsVarificado: boolean;
   IsActive: boolean;
-  DateCreate: string;
-  DateUpdate?: string;
+  DateCreate: Date;
+  DateUpdate?: Date;
   IdUserPage: number;
 }
 
@@ -40,8 +40,8 @@ export class Profile extends Model<ProfileAttributes, ProfileCreationAttributes>
   Descripcion?: string;
   IsVarificado!: boolean;
   IsActive!: boolean;
-  DateCreate!: string;
-  DateUpdate?: string;
+  DateCreate!: Date;
+  DateUpdate?: Date;
   IdUserPage!: number;
 
   // Profile hasMany BannersProfile via IdPageUser
@@ -80,6 +80,7 @@ export class Profile extends Model<ProfileAttributes, ProfileCreationAttributes>
       type: DataTypes.STRING(50),
       allowNull: false,
       primaryKey: true,
+      defaultValue: DataTypes.UUIDV4,
       field: 'id_profile'
     },
     Name: {
@@ -140,12 +141,13 @@ export class Profile extends Model<ProfileAttributes, ProfileCreationAttributes>
       field: 'is_active'
     },
     DateCreate: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       allowNull: false,
+      defaultValue: DataTypes.NOW,
       field: 'date_create'
     },
     DateUpdate: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       allowNull: true,
       field: 'date_update'
     },
@@ -162,7 +164,24 @@ export class Profile extends Model<ProfileAttributes, ProfileCreationAttributes>
     sequelize,
     tableName: 'profile',
     schema: 'pages',
-    timestamps: false,
+    timestamps: true, // Utiliza timestamps automáticos
+    createdAt: 'DateCreate',
+    updatedAt: 'DateUpdate',
+    hooks: {
+      beforeCreate: (profile: Profile) => {
+        const now = new Date();
+        profile.DateCreate = now;
+        profile.DateUpdate = now;
+
+         // Concatenar Name, Firstname y Lastname para Fullname
+         profile.Fullname = [profile.Name, profile.Firstname, profile.Lastname]
+         .filter(Boolean) // Elimina valores undefined o null
+         .join(' ');
+      },
+      beforeUpdate: (profile: Profile) => {
+        profile.DateUpdate = new Date();
+      }
+    },
     indexes: [
       {
         name: "pageUser_pkey",

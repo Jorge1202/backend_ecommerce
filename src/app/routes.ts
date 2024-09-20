@@ -8,6 +8,8 @@ import typePageRoutes from '../modules/type_page/v0/routes'
 import userRoutes_1 from '../modules/users/v1/routes'
 import userPageRoutes_v1 from '../modules/user_page/v1/routes'
 import typePageRoutes_v1 from '../modules/type_page/v1/routes'
+import authRoutes_v1 from '../modules/auth/v1/routes'
+import profileRoutes_v1 from '../modules/profile/v1/routes'
 //#endregion ############################ VERION 1
 
 
@@ -28,7 +30,9 @@ async function loadRoutes(app: Express) {
         //#region referencia v1
         app.use(`/api/${VERSION_NameFile.v1}/users`, userRoutes_1);
         app.use(`/api/${VERSION_NameFile.v1}/userpage`, userPageRoutes_v1);
-        app.use(`/api/${VERSION_NameFile.v2}/typepage`, typePageRoutes_v1);
+        app.use(`/api/${VERSION_NameFile.v1}/typepage`, typePageRoutes_v1);
+        app.use(`/api/${VERSION_NameFile.v1}/auth`, authRoutes_v1);
+        app.use(`/api/${VERSION_NameFile.v1}/profile`, profileRoutes_v1);
         //#endregion referencia
         
     } catch (error) {

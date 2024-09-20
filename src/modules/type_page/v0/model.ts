@@ -1,5 +1,5 @@
 import { DataTypes, Model } from 'sequelize';
-import { sequelize } from '../../../config/sequelizeORM';
+import { sequelize } from '../../../config/database/sequelizeORM';
 
 class TypePageModel extends Model {
     public id_type_page!: number;
