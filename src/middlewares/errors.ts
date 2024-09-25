@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { statusMessage } from '../utils/codeRecuest';
+import { statusMessage } from '../Utils/codeRecuest';
 import { error } from './response';  
 
 export interface CustomError extends Error {

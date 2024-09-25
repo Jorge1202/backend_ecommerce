@@ -1,6 +1,6 @@
 //Punto de entrada para levantar el servidor
 import { app } from "./app";
-import { config } from "./config/config";
+import { config } from "./Config/config";
 const cors = require("cors"); 
 
 const startServer = async () => {

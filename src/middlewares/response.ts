@@ -1,7 +1,7 @@
 // Tipos para los parámetros de las funciones
 import { Request, Response, NextFunction } from 'express';
 // Definición del mensaje de estado
-import { statusMessage } from '../utils/codeRecuest';
+import { statusMessage } from '../Utils/codeRecuest';
 
 
 

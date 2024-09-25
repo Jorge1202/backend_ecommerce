@@ -23,7 +23,7 @@ const config: Config = {
     // version: process.env.API_VERSION  || 'v1',
     version: 'v1',
     api: {
-        PORT: Number(process.env.PORT) || 3000, // Convertimos a número para mayor seguridad
+        PORT: Number(process.env.PORT) || 3005, // Convertimos a número para mayor seguridad
     },
     jwt: {
         secret: process.env.JWT_SECRET || 'notasecret',

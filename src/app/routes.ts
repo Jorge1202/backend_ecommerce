@@ -1,33 +1,24 @@
 import { Express } from 'express';
-//#region ############################ VERION 0
-import userRoutes from '../modules/users/v0/routes'
-import typePageRoutes from '../modules/type_page/v0/routes'
-//#endregion ############################ VERION 0
 
 //#region ############################ VERION 1
-import userRoutes_1 from '../modules/users/v1/routes'
-import userPageRoutes_v1 from '../modules/user_page/v1/routes'
-import typePageRoutes_v1 from '../modules/type_page/v1/routes'
-import authRoutes_v1 from '../modules/auth/v1/routes'
-import profileRoutes_v1 from '../modules/profile/v1/routes'
+import userRoutes_1 from '../v1/Routes/user_page.routes'
+import userPageRoutes_v1 from '../v1/Routes/user_page.routes'
+import typePageRoutes_v1 from '../v1/Routes/type_page.routes'
+import authRoutes_v1 from '../v1/Routes/auth.routes'
+import profileRoutes_v1 from '../v1/Routes/profile.routes'
 //#endregion ############################ VERION 1
 
 
 //El valor da referencia al nombre de la carpeta (v0, V1, ...vN)
 const VERSION_NameFile = {
-    v:'v0',
     v1:'v1',
     v2:'v2',
 }
 async function loadRoutes(app: Express) {
     try {
 
-        //#region referencia v0        
-        app.use(`/api/${VERSION_NameFile.v}/users`, userRoutes);
-        app.use(`/api/${VERSION_NameFile.v}/typepage`, typePageRoutes);
-        //#endregion referencia
-
         //#region referencia v1
+        app.use(`/api/${VERSION_NameFile.v1}/users`, userRoutes_1);
         app.use(`/api/${VERSION_NameFile.v1}/users`, userRoutes_1);
         app.use(`/api/${VERSION_NameFile.v1}/userpage`, userPageRoutes_v1);
         app.use(`/api/${VERSION_NameFile.v1}/typepage`, typePageRoutes_v1);
