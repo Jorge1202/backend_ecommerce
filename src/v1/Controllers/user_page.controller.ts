@@ -43,19 +43,6 @@ class UserPageController extends UserPageService {
     }
   }
 
-  public create = async (req: Request, res: Response, transaction: Transaction ): Promise<any> => {
-    try {
-
-      let data = req.body;
-      const {userPage} = data;
-
-      const newRecord = await this._create(userPage, transaction); // Llamada al servicio
-      return newRecord; 
-    } catch (err) {
-      throw new Error(`Error creating Auth record: ${err}`);
-    }
-  }
-
   public updateById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
@@ -67,20 +54,6 @@ class UserPageController extends UserPageService {
       }
     } catch (err) {
       error({ req, res, data: 'Error updating record', status: 500, details: err });
-    }
-  }
-
-  public deleteById = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { id } = req.params;
-      const result = await this._destroy(Number(id)); // Llamada al servicio
-      if (result) {
-        success({ req, res, data: 'User page deleted successfully', status: 200 });
-      } else {
-        error({ req, res, data: 'User page not found', status: 204, });
-      }
-    } catch (err) {
-      error({ req, res, data: 'Error deleting user page', status: 500, details: err });
     }
   }
 

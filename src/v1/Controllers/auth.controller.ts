@@ -14,59 +14,6 @@ class AuthController extends AuthService {
     super(); 
   }
 
-  public create = async (req: Request, res: Response, transaction: Transaction): Promise<any> => {
-    try {
-        // 
-        const data = req.body;
-        let { auth, user } = data;
-        const newRecord = await this._createAuth(auth, transaction)
-
-        await this._createAuthCode(newRecord, user, transaction)
-        
-    } catch (err) {
-      throw new Error(`Error creating Auth record: ${err}`);
-      // error({ req, res, data: 'Error creating record... ', status: 500, details: err });
-    }
-  }
-
-  private async _createAuth(auth: Auth, transaction: Transaction): Promise<any> {
-    const { Password } = auth;
-    
-    // Hashear la contraseña
-    const hashedPassword = await bcrypt.hash(Password, 10);
-    
-    // Crear el objeto con las propiedades necesarias
-    const authData = {
-      Password: hashedPassword,
-      IdUser: auth.IdUser,
-      DataCreate: new Date(),
-      Username: auth.Username,
-      Pw: Password, // Guardar la contraseña original en caso necesario
-    };
-  
-    // Usar Sequelize para crear una instancia del modelo Auth en la base de datos
-    const newRecord = await Auth.create(authData, { transaction });
-  
-    return newRecord;
-  }
-
-
-
-  private async _createAuthCode(auth: Auth, user: User, transaction: Transaction): Promise<void> {
-
-    const body = { 
-      code_autentication: { 
-        IdAuth: auth.IdAuth,
-        Description: 'Validar primer acceso',      
-      },
-      IdUser: auth.IdUser,
-      user
-    }
-
-    await CodeController.create({body:body} as Request, {} as Response , transaction);
-  }
-
-
   public getByUsername = async (req: Request, res: Response): Promise<void> => {
     try {
       const { username, password } = req.params;

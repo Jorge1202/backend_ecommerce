@@ -4,7 +4,7 @@ import { handleServiceError } from '../../Utils/errorHandler_catch';
 
 export class AuthService {
 
-  private async _createAuthentication(authData: AuthCreationAttributes, transaction: Transaction): Promise<Auth> {
+  public async _createAuthentication(authData: AuthCreationAttributes, transaction: Transaction): Promise<Auth> {
     try {
       return await Auth.create(authData, { transaction });
     } catch (error) {

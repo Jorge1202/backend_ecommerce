@@ -32,31 +32,7 @@ class ProfileController extends ProfileService {
       error({ req, res, data: 'Error fetching record ', status: 500, details: err });
     }
   }
-
-  // public create = async ( data:ProfileCreationAttributes ): Promise<any> => {
-  //   try {
-
-  //     // const { data.body
-  //     const newRecord = await this._create(data);
-  //     return newRecord; // Retorna el nuevo registro
-
-  //   } catch (err) {
-  //     throw new Error(`Error creating Auth record: ${err}`);
-  //   }
-  // }
   
-  public create = async ( req: Request, res: Response, transacción: Transaction ): Promise<any> => {
-    try {
-
-      const {profile } = req.body
-      const newRecord = await this._create(profile, transacción);
-      return newRecord; // Retorna el nuevo registro
-
-    } catch (err) {
-      throw new Error(`Error creating Auth record: ${err}`);
-    }
-  }
-
   public updateById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;

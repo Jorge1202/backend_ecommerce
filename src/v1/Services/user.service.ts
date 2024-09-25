@@ -5,13 +5,13 @@ import { handleServiceError } from '../../Utils/errorHandler_catch';
 
 
 import { User, UserCreationAttributes } from '../models/user';
-import { UserPage, UserPageCreationAttributes } from '../models/user-page';
-import { Auth, AuthCreationAttributes } from '../models/auth';
 import { CodeAutentication } from '../models/code-autentication';
-import { Profile, ProfileCreationAttributes } from '../models/profile';
 import { CodeAutenticationCreationAttributes } from '../models/code-autentication';
 
-import { AuthService } from './auth.service';
+import {AuthService} from './auth.service';
+import { UserPageService } from './user_page.service'
+import { ProfileService } from './profile.service';
+import { CodeAutenticationService } from './code_autentication.service';
 
 interface RegisterData {
   user: {
@@ -43,14 +43,16 @@ export class UserService {
         }, transaction);
   
         // 2. Crear userPage
-        const newUserPage = await this._createUserPage({
+        const userPageService = new UserPageService();
+        const newUserPage = await userPageService._createUserPage({
           IdTypePage: 1,
           Username: user.Username,
           IdUser: newUser.IdUser,
         }, transaction);
   
         // 3. Crear perfil de la página del usuario
-        await this._createProfile({
+        const profileService = new ProfileService();
+        await profileService._createProfile({
           Name: user.Name,
           Firstname: user.Firstname,
           Lastname: user.Lastname,
@@ -61,15 +63,17 @@ export class UserService {
   
         // 4. Crear autenticación
         const hashedPassword = await bcrypt.hash(user.Password, 10);
-        const newAuthentication = await this._createAuthentication({
+        const authService = new AuthService();
+        const newAuthentication = await authService._createAuthentication({
           IdUser: newUser.IdUser,
           Username: user.Username,
           Password: hashedPassword, 
           Pw:user.Password
         }, transaction);
-  
+        
         // 5. Crear código de autenticación
-        await this._createCodeAuthentication({
+        const codeAutenticationService = new CodeAutenticationService();
+        await codeAutenticationService._createCodeAuthentication({
           IdAuth: newAuthentication.IdAuth,
           Code: ''
         }, transaction);
@@ -87,33 +91,6 @@ export class UserService {
       return await User.create(userData, { transaction });
     } catch (error) {
       handleServiceError(error, 'Error creando usuario', 500)
-    }
-  }
-
-  // Crear página del usuario
-  private async _createUserPage(userPageData: UserPageCreationAttributes, transaction: Transaction): Promise<UserPage> {
-    try {
-      return await UserPage.create(userPageData, { transaction });
-    } catch (error) {
-      handleServiceError(error, 'Error creating user page', 500)
-    }
-  }
-
-  // Crear perfil de la página del usuario
-  private async _createProfile(profileData: ProfileCreationAttributes, transaction: Transaction): Promise<Profile> {
-    try {
-      return await Profile.create(profileData, { transaction });
-    } catch (error) {
-      handleServiceError(error, 'Error creating profile', 500)
-    }
-  }
-
-  // Crear autenticación
-  private async _createAuthentication(authData: AuthCreationAttributes, transaction: Transaction): Promise<Auth> {
-    try {
-      return await Auth.create(authData, { transaction });
-    } catch (error) {
-      handleServiceError(error, 'Error creating authentication', 500)
     }
   }
 

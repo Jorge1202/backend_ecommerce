@@ -1,7 +1,18 @@
-import { UserPage } from '../models/user-page';
+import { UserPage, UserPageCreationAttributes } from '../models/user-page';
 import { Transaction } from 'sequelize';
+import { handleServiceError } from '../../Utils/errorHandler_catch';
 
 export class UserPageService {
+
+  public async _createUserPage(userPageData: UserPageCreationAttributes, transaction: Transaction): Promise<UserPage> {
+    try {
+      return await UserPage.create(userPageData, { transaction });
+    } catch (error) {
+      handleServiceError(error, 'Error creating user page', 500)
+    }
+  }
+
+
   protected async _findAll(): Promise<UserPage[]> {
     try {      
       const list = await UserPage.findAll();
@@ -31,23 +42,6 @@ export class UserPageService {
     }
   }
 
-  protected async _create(data: {
-    IdUser: string;
-    IdTypePage: number;
-    Username: string;
-  }, transaction: Transaction): Promise<UserPage> {
-    try {
-      const newRecord = await UserPage.create({
-        IdUser: data.IdUser,
-        IdTypePage: data.IdTypePage,
-        Username: data.Username,
-      }, {transaction});
-      return newRecord;
-    } catch (error) {
-      throw new Error(`Error creating record: ${error}`);
-    }
-  }
-
   protected async _update(id: number, data: Partial<UserPage>): Promise<UserPage | null> {
     try {
       const record = await UserPage.findByPk(id);
@@ -62,10 +56,4 @@ export class UserPageService {
     }
   }
 
-  protected async _destroy(id: number): Promise<number> {
-    const result = await UserPage.destroy({
-      where: { IdUserPage: id },
-    });
-    return result;
-  }
 }

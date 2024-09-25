@@ -1,5 +1,6 @@
 import { Transaction } from 'sequelize';
 import { Profile, ProfileCreationAttributes  } from '../models/profile'; 
+import { handleServiceError } from '../../Utils/errorHandler_catch';
 
 export class ProfileService {
   protected async _findAll(): Promise<Profile[]> {
@@ -20,15 +21,23 @@ export class ProfileService {
     }
   }
   
-
-  protected async _create(data: Profile, transaction: Transaction ): Promise<Profile> {
-    try {   
-      const newRecord = await Profile.create(data, {transaction});
-      return newRecord;
+  // Crear perfil de la página del usuario
+  public async _createProfile(profileData: ProfileCreationAttributes, transaction: Transaction): Promise<Profile> {
+    try {
+      return await Profile.create(profileData, { transaction });
     } catch (error) {
-      throw new Error(`Error creating record: ${error}`);
-    } 
+      handleServiceError(error, 'Error creating profile', 500)
+    }
   }
+
+  // protected async _create(data: Profile, transaction: Transaction ): Promise<Profile> {
+  //   try {   
+  //     const newRecord = await Profile.create(data, {transaction});
+  //     return newRecord;
+  //   } catch (error) {
+  //     throw new Error(`Error creating record: ${error}`);
+  //   } 
+  // }
 
   protected async _update(id: string, data: Partial<Profile>): Promise<Profile | null> {
     try {
