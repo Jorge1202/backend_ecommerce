@@ -1,28 +1,45 @@
-import { Auth, AuthCreationAttributes } from '../models/auth'; 
 import { Transaction } from 'sequelize';
 import { handleServiceError } from '../../Utils/errorHandler_catch';
 
+import { Auth, AuthCreationAttributes } from '../models/auth'; 
+import { CodeAutentication } from '../models/code-autentication';
+
+import { CodeAutenticationService } from './code_autentication.service';
+
+interface AuthResult {
+  auth: Auth; // Asumiendo que 'Auth' es el tipo que devuelve 'createAuth'
+  codeAuth: CodeAutentication; // Asumiendo que 'CodeAuthentication' es el tipo que devuelve '_createCodeAuthentication'
+}
+
 export class AuthService {
 
-  public async _createAuthentication(authData: AuthCreationAttributes, transaction: Transaction): Promise<Auth> {
+  public async _createAuth(authData: AuthCreationAttributes, transaction: Transaction): Promise<AuthResult> {
     try {
-      return await Auth.create(authData, { transaction });
+      const auth = await this.createAuth(authData, transaction);
+
+      const code_AutService = new CodeAutenticationService();
+      const codeAuth = await code_AutService._createCodeAuthentication({
+        IdAuth: auth.IdAuth
+      }, transaction);
+
+      return {
+        auth,
+        codeAuth,
+      };
+
     } catch (error) {
       handleServiceError(error, 'Error creating authentication', 500)
     }
   }
 
-  // protected async _create(data: Auth, transaction: Transaction): Promise<Auth> {
-  //   try {   
-  //     // data.DataCreate = new Date()   
-  //     const newRecord = await Auth.create(data, {transaction});
-  //     return newRecord;
-  //   } catch (error) {
-  //     throw new Error(`Error creating record: ${error}`);
-  //   } 
-  // }
+  private async createAuth(userData: AuthCreationAttributes, transaction: Transaction): Promise<Auth> {
+    try {
+      return await Auth.create(userData, { transaction });
+    } catch (error) {
+      handleServiceError(error, 'Error creating authentication', 500)
+    }
+  }
 
-  
   protected async _findAll(): Promise<Auth[]> {
     try {      
       const list = await Auth.findAll();
@@ -64,11 +81,4 @@ export class AuthService {
       throw new Error(`Error updating record: ${error}`);
     }
   }
-
-  protected async _destroy(id: number): Promise<number> {
-    const result = await Auth.destroy({
-      where: { IdAuth: id },
-    });
-    return result;
-  }  
 }

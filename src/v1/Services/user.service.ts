@@ -2,16 +2,14 @@ import { Transaction } from 'sequelize';
 const bcrypt = require("bcrypt");
 import { withTransaction } from '../../Utils/transaction_helper';
 import { handleServiceError } from '../../Utils/errorHandler_catch';
-
+import { MailService, MailServiceConfig, MailActions } from '../Secure/mails/sendMail';
 
 import { User, UserCreationAttributes } from '../models/user';
-import { CodeAutentication } from '../models/code-autentication';
-import { CodeAutenticationCreationAttributes } from '../models/code-autentication';
 
 import {AuthService} from './auth.service';
 import { UserPageService } from './user_page.service'
 import { ProfileService } from './profile.service';
-import { CodeAutenticationService } from './code_autentication.service';
+import { success } from '../../middlewares/response';
 
 interface RegisterData {
   user: {
@@ -24,10 +22,10 @@ interface RegisterData {
     Password: string;
   };
 }
-
 export class UserService {
 
-  protected async registerUser(data: RegisterData): Promise<void> {
+  //Registro de usuarios
+  protected async registerUser(data: RegisterData): Promise<any> {
     await withTransaction(async (transaction)=>{
       try {
         const { user } = data;
@@ -64,27 +62,34 @@ export class UserService {
         // 4. Crear autenticación
         const hashedPassword = await bcrypt.hash(user.Password, 10);
         const authService = new AuthService();
-        const newAuthentication = await authService._createAuthentication({
+        const resultAuth =  await authService._createAuth({
           IdUser: newUser.IdUser,
           Username: user.Username,
           Password: hashedPassword, 
           Pw:user.Password
         }, transaction);
-        
-        // 5. Crear código de autenticación
-        const codeAutenticationService = new CodeAutenticationService();
-        await codeAutenticationService._createCodeAuthentication({
-          IdAuth: newAuthentication.IdAuth,
-          Code: ''
-        }, transaction);
-  
+
+
+        const mailConfig: MailServiceConfig = {
+          accion:MailActions.CodeAuth,
+          to: user.Email,
+          subject: 'Verifica tu cuenta',
+          name: user.Name,
+          firstname: user.Firstname,
+          code: resultAuth.codeAuth.Code ?? '',
+          username: user.Username
+        };
+        const mailService = new MailService(mailConfig);
+        // Envía el correo
+        mailService.send();
+
       } catch (err) {
         throw new Error(`Error registering user: ${err}`);
       }
-
+      
     })
+    return 'Usuario registrado exitosamente. ¡Verifica tu cuenta!';
   }
-
   // Crear usuario
   private async _createUser(userData: UserCreationAttributes, transaction: Transaction): Promise<User> {
     try {
@@ -94,18 +99,8 @@ export class UserService {
     }
   }
 
-  // Crear código de autenticación
-  private async _createCodeAuthentication(codeData: CodeAutenticationCreationAttributes, transaction: Transaction): Promise<void> {
-    try {
-
-      await CodeAutentication.create(codeData, { transaction });
-    } catch (error) {
-      handleServiceError(error, 'Error creating authentication code', 500)
-    }
-  }
-
   // Obtener todos los usuarios
-  public async findAll(): Promise<User[]> {
+  protected async findAll(): Promise<User[]> {
     try {
       return await User.findAll();
     } catch (error) {
@@ -114,7 +109,7 @@ export class UserService {
   }
 
   // Obtener usuario por ID
-  public async findByPk(id: string): Promise<User | null> {
+  protected async findByPk(id: string): Promise<User | null> {
     try {
       return await User.findByPk(id);
     } catch (error) {
@@ -123,7 +118,7 @@ export class UserService {
   }
 
   // Actualizar usuario
-  public async update(id: string, data: Partial<User>): Promise<User | null> {
+  protected async update(id: string, data: Partial<User>): Promise<User | null> {
     try {
       const user = await User.findByPk(id);
       if (!user) {
@@ -137,7 +132,7 @@ export class UserService {
   }
 
   // Eliminar usuario
-  public async destroy(id: string): Promise<number> {
+  protected async destroy(id: string): Promise<number> {
     try {
       return await User.destroy({ where: { IdUser: id } });
     } catch (error) {

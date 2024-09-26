@@ -4,7 +4,7 @@ import type { Auth, AuthId } from './auth';
 
 export interface CodeAutenticationAttributes {
   IdCodeAutentication: number;
-  Code: string;
+  Code?: string;
   Description?: string;
   IsActive?: boolean;
   IdAuth: number;
@@ -14,12 +14,12 @@ export interface CodeAutenticationAttributes {
 
 export type CodeAutenticationPk = "IdCodeAutentication";
 export type CodeAutenticationId = CodeAutentication[CodeAutenticationPk];
-export type CodeAutenticationOptionalAttributes = "IdCodeAutentication" | "Description" | "IsActive" | "DateCreate" | "DateUpdate";
+export type CodeAutenticationOptionalAttributes = "IdCodeAutentication" | "Code" | "Description" | "IsActive" | "DateCreate" | "DateUpdate";
 export type CodeAutenticationCreationAttributes = Optional<CodeAutenticationAttributes, CodeAutenticationOptionalAttributes>;
 
 export class CodeAutentication extends Model<CodeAutenticationAttributes, CodeAutenticationCreationAttributes> implements CodeAutenticationAttributes {
   IdCodeAutentication!: number;
-  Code!: string;
+  Code?: string;
   Description?: string;
   IsActive?: boolean;
   IdAuth!: number;
@@ -43,7 +43,7 @@ export class CodeAutentication extends Model<CodeAutenticationAttributes, CodeAu
     },
     Code: {
       type: DataTypes.STRING(20),
-      allowNull: false,
+      allowNull: true,
       field: 'code'
     },
     Description: {
@@ -112,3 +112,4 @@ export class CodeAutentication extends Model<CodeAutenticationAttributes, CodeAu
   });
   }
 }
+

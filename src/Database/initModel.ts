@@ -1,15 +1,15 @@
 import { Sequelize } from 'sequelize-typescript';
 
 
-import { User } from '../../v1/models/user';
-import { Auth } from '../../v1/models/auth';
-import { CodeAutentication } from '../../v1/models/code-autentication';
-import { UserPage } from '../../v1/models/user-page';
-import { TypePage } from '../../v1/models/type-page';
-import { Profile } from '../../v1/models/profile';
-import { StatisticsProfile } from '../../v1/models/statistics-profile';
+import { User } from '../v1/models/user';
+import { Auth } from '../v1/models/auth';
+import { CodeAutentication } from '../v1/models/code-autentication';
+import { UserPage } from '../v1/models/user-page';
+import { TypePage } from '../v1/models/type-page';
+import { Profile } from '../v1/models/profile';
+import { StatisticsProfile } from '../v1/models/statistics-profile';
 
-import { PageStore } from '../../v1/models/page-store';
+import { PageStore } from '../v1/models/page-store';
 
 const initModel = (sequelize: Sequelize) => {
     

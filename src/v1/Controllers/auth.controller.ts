@@ -1,11 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../Services/auth.service';
 import { success, error } from '../../middlewares/response';
-import { Transaction } from 'sequelize';
-
-import { Auth } from '../models/auth';
-import CodeController from './codeAuth.controller';
-import { User } from '../models/user';
 
 const bcrypt = require("bcrypt");
 class AuthController extends AuthService {

@@ -1,12 +1,11 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
-import type { Profile, ProfileId } from './profile';
 
 export interface StatisticsProfileAttributes {
   IdStatisticsProfile: number;
-  IdPageUser: string;
-  Followers: number;
-  Following: number;
+  Followers?: number;
+  Following?: number;
+  IdProfile: string;
 }
 
 export type StatisticsProfilePk = "IdStatisticsProfile";
@@ -16,15 +15,10 @@ export type StatisticsProfileCreationAttributes = Optional<StatisticsProfileAttr
 
 export class StatisticsProfile extends Model<StatisticsProfileAttributes, StatisticsProfileCreationAttributes> implements StatisticsProfileAttributes {
   IdStatisticsProfile!: number;
-  IdPageUser!: string;
-  Followers!: number;
-  Following!: number;
+  Followers?: number;
+  Following?: number;
+  IdProfile!: string;
 
-  // StatisticsProfile belongsTo Profile via IdPageUser
-  IdPageUserProfile!: Profile;
-  getIdPageUserProfile!: Sequelize.BelongsToGetAssociationMixin<Profile>;
-  setIdPageUserProfile!: Sequelize.BelongsToSetAssociationMixin<Profile, ProfileId>;
-  createIdPageUserProfile!: Sequelize.BelongsToCreateAssociationMixin<Profile>;
 
   static initModel(sequelize: Sequelize.Sequelize): typeof StatisticsProfile {
     return StatisticsProfile.init({
@@ -35,26 +29,22 @@ export class StatisticsProfile extends Model<StatisticsProfileAttributes, Statis
       primaryKey: true,
       field: 'id_statistics_profile'
     },
-    IdPageUser: {
-      type: DataTypes.STRING(50),
-      allowNull: false,
-      references: {
-        model: 'profile',
-        key: 'id_profile'
-      },
-      field: 'id_page_user'
-    },
     Followers: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       defaultValue: 0,
       field: 'followers'
     },
     Following: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       defaultValue: 0,
       field: 'following'
+    },
+    IdProfile: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      field: 'idProfile'
     }
   }, {
     sequelize,

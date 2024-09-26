@@ -7,8 +7,15 @@ import { Auth } from '../models/auth';
 import { UserService } from '../Services/user.service';
 import UserPageController from './user_page.controller';
 interface Record {
-  user:User,
-  auth:Auth,
+  user: {
+    Username: string;
+    Name: string;
+    Firstname: string;
+    Lastname?: string;
+    Email: string;
+    Phone: string;
+    Password: string;
+  };
 }
 
 class UserController extends UserService {
@@ -17,7 +24,7 @@ class UserController extends UserService {
     super(); 
   }
 
-  public  create = async (req: Request, res: Response): Promise<void> => {
+  public create = async (req: Request, res: Response): Promise<void> => {
     try {
       let data = req.body;
 
@@ -91,10 +98,10 @@ class UserController extends UserService {
 
   private ValidDataCreate = async (res: Response, data: Record): Promise<boolean | null> => {
     try {
-      const { user, auth } = data;
+      const { user } = data;
   
-      if (!user || !auth) {
-        error({ res, data: 'Faltan datos de usuario o autenticación', status: 400 });
+      if (!user) {
+        error({ res, data: 'Faltan datos de usuario o autenticación', details:'(Controller.ValidDataCreate)', status: 400 });
         return false;
       }
 
@@ -106,24 +113,24 @@ class UserController extends UserService {
       }
 
       if (!user.Email) {
-        error({ res, data: 'Ingresa el Email', status: 422 });
+        error({ res, data: 'Ingresa el Email', details:'(Controller.ValidDataCreate)', status: 422, });
         return false;
       }
       if (!user.Username) {
-        error({ res, data: 'Ingresa el username', status: 422 });
+        error({ res, data: 'Ingresa el username', details:'(Controller.ValidDataCreate)', status: 422, });
         return false;
       }
       if (!user.Name) {
-        error({ res, data: 'Ingresa el nombre', status: 422 });
+        error({ res, data: 'Ingresa el nombre', details:'(Controller.ValidDataCreate)', status: 422, });
         return false;
       }
       if (!user.Firstname) {
-        error({ res, data: 'Ingresa el apellido', status: 422 });
+        error({ res, data: 'Ingresa el apellido', details:'(Controller.ValidDataCreate)', status: 422, });
         return false;
       }
 
-      if (!auth.Password) {
-        error({ res, data: 'Ingresa la contraseña', status: 422 });
+      if (!user.Password) {
+        error({ res, data: 'Ingresa la contraseña', details:'(Controller.ValidDataCreate)', status: 422, });
         return false;
       }
   

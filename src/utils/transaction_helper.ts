@@ -1,4 +1,4 @@
-import { sequelize } from '../Database/pg.db/sequelizeORM';
+import { sequelize } from '../Database/sequelizeORM';
 import { Transaction } from 'sequelize';
 
 export async function withTransaction(callback: (transaction: Transaction) => Promise<void>): Promise<void> {
@@ -12,3 +12,4 @@ export async function withTransaction(callback: (transaction: Transaction) => Pr
     throw new Error(`Transaction failed: ${error}`);
   }
 }
+  

@@ -2,8 +2,7 @@
 import { Request } from 'express';
 import jwt from 'jsonwebtoken';
 
-import { config } from '../../Config/config';  // Archivo de configuración
-import { AuthService } from '../Services/auth.service';  // Servicio de identidad
+import { config } from '../../Config';  // Archivo de configuración
 
 const secret = config.jwt.secret;
 

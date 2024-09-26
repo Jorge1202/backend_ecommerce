@@ -44,7 +44,8 @@ export function error({
     status = 500,   // Valor por defecto
     details
   }: ResponseParams): void {
-    console.error(`[response error] ${details ? details : data}`)
+    details && console.error(`[response details] ${details}`)
+    data && console.error(`[response error] ${data}`)
 
     const message = data || statusMessage[status] || 'Error';
     res.status(status).json({
