@@ -1,6 +1,5 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
-import type { StatusRegister, StatusRegisterId } from './status-register';
 
 export interface HistoryRegisterAttributes {
   Id: number;
@@ -32,11 +31,6 @@ export class HistoryRegister extends Model<HistoryRegisterAttributes, HistoryReg
   DateCreate?: Date;
   DateUpdate?: Date;
 
-  // HistoryRegister belongsTo StatusRegister via StatusRegister
-  StatusRegisterStatusRegister!: StatusRegister;
-  getStatusRegisterStatusRegister!: Sequelize.BelongsToGetAssociationMixin<StatusRegister>;
-  setStatusRegisterStatusRegister!: Sequelize.BelongsToSetAssociationMixin<StatusRegister, StatusRegisterId>;
-  createStatusRegisterStatusRegister!: Sequelize.BelongsToCreateAssociationMixin<StatusRegister>;
 
   static initModel(sequelize: Sequelize.Sequelize): typeof HistoryRegister {
     return HistoryRegister.init({
@@ -81,10 +75,6 @@ export class HistoryRegister extends Model<HistoryRegisterAttributes, HistoryReg
       type: DataTypes.INTEGER,
       allowNull: true,
       defaultValue: 1,
-      references: {
-        model: 'status_register',
-        key: 'id'
-      },
       field: 'status_register'
     },
     DateCreate: {

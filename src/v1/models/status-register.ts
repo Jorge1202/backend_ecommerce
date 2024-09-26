@@ -28,7 +28,7 @@ export class StatusRegister extends Model<StatusRegisterAttributes, StatusRegist
       field: 'id'
     },
     Status: {
-      type: DataTypes.STRING(20),
+      type: DataTypes.STRING(50),
       allowNull: true,
       field: 'status'
     },

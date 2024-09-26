@@ -1,9 +1,6 @@
 import { Request, Response } from 'express';
 import { success, error } from '../../middlewares/response';
 
-import { User } from '../models/user'; 
-import { Auth } from '../models/auth'; 
-
 import { UserService } from '../Services/user.service';
 import UserPageController from './user_page.controller';
 interface Record {
