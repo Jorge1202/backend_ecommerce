@@ -67,7 +67,7 @@ export class HistoryRegister extends Model<HistoryRegisterAttributes, HistoryReg
       field: 'username'
     },
     Password: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING(100),
       allowNull: true,
       field: 'password'
     },

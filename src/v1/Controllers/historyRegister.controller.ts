@@ -38,8 +38,8 @@ class historyRegisterController extends HistoryRegisterService {
 
   public getById = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
-      const findData = await this._findByPk(Number(id));
+      const { email } = req.params;
+      const findData = await this._findByEmail(String(email));
       if (findData) {
         success({ res, data: findData, status: 200 });
       } else {
@@ -52,8 +52,8 @@ class historyRegisterController extends HistoryRegisterService {
   
   public updateById = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { id } = req.params;
-      const updatedRecord = await this._update(Number(id), req.body);
+      const { email } = req.params;
+      const updatedRecord = await this._update(String(email), req.body);
       if (updatedRecord) {
         success({ res, data: updatedRecord, status: 200 });
       } else {

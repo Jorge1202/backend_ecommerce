@@ -9,7 +9,7 @@ import { User, UserCreationAttributes } from '../models/user';
 import {AuthService} from './auth.service';
 import { UserPageService } from './user_page.service'
 import { ProfileService } from './profile.service';
-import { success } from '../../middlewares/response';
+import { HistoryRegisterService } from './historyRegister.service';
 
 interface RegisterData {
   user: {
@@ -82,6 +82,13 @@ export class UserService {
         const mailService = new MailService(mailConfig);
         // Envía el correo
         mailService.send();
+
+        // 4. Crear autenticación
+        const historyRegisterService = new HistoryRegisterService();
+        user.Password = hashedPassword
+        await historyRegisterService._update (user.Email, user, transaction);
+
+
 
       } catch (err) {
         throw new Error(`Error registering user: ${err}`);
