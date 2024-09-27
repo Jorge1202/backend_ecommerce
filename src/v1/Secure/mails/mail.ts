@@ -5,6 +5,17 @@ import error from '../../../middlewares/error';
 import {bodyMail} from './switchMail';
 import { MailActions } from './sendMail';
 
+export interface DataMail {
+  name:string
+  firstname:string
+  code?:string
+  link?:string
+  token?:string
+  username?:string
+  company?:string
+  linkFront?:string
+}
+
 export interface Mail_DataObject {
   accion: MailActions;
   message: {
@@ -12,12 +23,7 @@ export interface Mail_DataObject {
     to: string;
     subject: string;
   };
-  dataMail: {
-    name:string
-    firstname:string
-    code:string
-    username:string
-  };
+  dataMail: DataMail;
 }
 
 // Inicializa el transportador de nodemailer
@@ -135,4 +141,4 @@ export async function Main(dataObject: Mail_DataObject): Promise<boolean> {
 // 8925 0917
 // 8574 1963
 // 2264 0318
-// 4803 3277
+// 4803 3277 

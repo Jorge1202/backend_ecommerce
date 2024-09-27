@@ -4,7 +4,7 @@ import { handleServiceError } from '../../Utils/errorHandler_catch';
 
 export class UserPageService {
 
-  public async _createUserPage(userPageData: UserPageCreationAttributes, transaction: Transaction): Promise<UserPage> {
+  public async createUserPage(userPageData: UserPageCreationAttributes, transaction: Transaction): Promise<UserPage> {
     try {
       return await UserPage.create(userPageData, { transaction });
     } catch (error) {
@@ -12,8 +12,7 @@ export class UserPageService {
     }
   }
 
-
-  protected async _findAll(): Promise<UserPage[]> {
+  protected async _ProtectedFindAll(): Promise<UserPage[]> {
     try {      
       const list = await UserPage.findAll();
       return list;
@@ -22,7 +21,7 @@ export class UserPageService {
     }
   }
 
-  protected async _findByUsername(Username: string): Promise<UserPage | null> {
+  protected async _ProtectedFindByUsername(Username: string): Promise<UserPage | null> {
     try {
       const record = await UserPage.findOne({
         where: { Username } // Busca donde el campo 'username' coincida
@@ -33,7 +32,7 @@ export class UserPageService {
     }
   }
 
-  protected async _findByPk(id: number): Promise<UserPage | null> {
+  protected async _ProtectedFindByPk(id: number): Promise<UserPage | null> {
     try {
       const record = await UserPage.findByPk(id);
       return record;
@@ -42,7 +41,7 @@ export class UserPageService {
     }
   }
 
-  protected async _update(id: number, data: Partial<UserPage>): Promise<UserPage | null> {
+  protected async _ProtectedUpdate(id: number, data: Partial<UserPage>): Promise<UserPage | null> {
     try {
       const record = await UserPage.findByPk(id);
       if (!record) {

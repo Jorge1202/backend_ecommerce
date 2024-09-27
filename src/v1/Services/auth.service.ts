@@ -1,5 +1,6 @@
 import { Transaction } from 'sequelize';
 import { handleServiceError } from '../../Utils/errorHandler_catch';
+const bcrypt = require("bcrypt");
 
 import { Auth, AuthCreationAttributes } from '../models/auth'; 
 import { CodeAutentication } from '../models/code-autentication';
@@ -13,12 +14,16 @@ interface AuthResult {
 
 export class AuthService {
 
-  public async _createAuth(authData: AuthCreationAttributes, transaction: Transaction): Promise<AuthResult> {
+  public async createAuth(authData: AuthCreationAttributes, transaction: Transaction): Promise<AuthResult> {
     try {
-      const auth = await this.createAuth(authData, transaction);
+
+      const hashedPassword = await bcrypt.hash(authData.Password, 10);
+      authData = {...authData, Password:hashedPassword}
+
+      const auth = await this._PrivateCreateAuth(authData, transaction);
 
       const code_AutService = new CodeAutenticationService();
-      const codeAuth = await code_AutService._createCodeAuthentication({
+      const codeAuth = await code_AutService.createCodeAuthentication({
         IdAuth: auth.IdAuth
       }, transaction);
 
@@ -32,7 +37,7 @@ export class AuthService {
     }
   }
 
-  private async createAuth(userData: AuthCreationAttributes, transaction: Transaction): Promise<Auth> {
+  private async _PrivateCreateAuth(userData: AuthCreationAttributes, transaction: Transaction): Promise<Auth> {
     try {
       return await Auth.create(userData, { transaction });
     } catch (error) {
@@ -40,25 +45,7 @@ export class AuthService {
     }
   }
 
-  protected async _findAll(): Promise<Auth[]> {
-    try {      
-      const list = await Auth.findAll();
-      return list;
-    } catch (error) {
-      throw new Error(`Error obteniendo la lista: ${error}`);
-    }
-  }
-
-  protected async _findByPk(id: number): Promise<Auth | null> {
-    try {
-      const record = await Auth.findByPk(id); // Remover el include de User
-      return record;
-    } catch (error) {
-      throw new Error(`Error obteniendo el registro con id ${id}: ${error}`);
-    }
-  }
-  
-  protected async _findByUsername(Username: string): Promise<Auth | null> {
+  protected async _ProtectedFindByUsername(Username: string): Promise<Auth | null> {
     try {
       const record = await Auth.findOne({
         where: { Username } // Busca donde el campo 'username' coincida
@@ -69,16 +56,4 @@ export class AuthService {
     }
   }
 
-  protected async _update(id: number, data: Partial<Auth>): Promise<Auth | null> {
-    try {
-      const record = await Auth.findByPk(id);
-      if (!record) {
-        throw new Error(`Record with id ${id} not found`);
-      }
-      await record.update(data);
-      return record;
-    } catch (error) {
-      throw new Error(`Error updating record: ${error}`);
-    }
-  }
 }

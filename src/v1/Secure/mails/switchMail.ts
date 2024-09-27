@@ -1,23 +1,17 @@
 import { config } from '../../../Config';
 
 import { MailActions } from './sendMail';
+import { DataMail } from './mail';
 import { template } from './content/template';
 import { welcomeNewUser } from './content/welcomeNewUser';
 import { cedeAuth } from './content/code_auth';
 import { recoveryPass } from './content/recoveryPass';
 import { newDevice } from './content/newDevice';
 
-interface Params {
-  name: string;
-  firstname: string;
-  username?: string;
-  code: string;
-}
-
-export const bodyMail = async (action: MailActions, params: Params): Promise<string> => {
+export const bodyMail = async (action: MailActions, params: DataMail): Promise<string> => {
   let body = '';
   const company = 'Clisvi';
-  const link = config.URL_FRONTEND;
+  const linkFront = config.URL_FRONTEND;
 
   // Asegurar valores por defecto
   params.username = params.username ?? '';
@@ -27,7 +21,7 @@ export const bodyMail = async (action: MailActions, params: Params): Promise<str
       body = cedeAuth({
         name: params.name,
         firstname: params.firstname,
-        code: params.code,
+        code: params.code || '',
         company: company,
       });
       break;
@@ -36,16 +30,16 @@ export const bodyMail = async (action: MailActions, params: Params): Promise<str
         name: params.name,
         firstname: params.firstname,
         username: params.username,
-        code: params.code,
+        code: params.code || '',
         company: company,
-        link: link,
+        linkFront: linkFront,
       });
       break;
     case MailActions.NuevoDispositivo:
       body = newDevice({
         name: params.name,
         firstname: params.firstname,
-        code: params.code,
+        code: params.code || '',
         company: company,
       });
       break;
@@ -53,11 +47,13 @@ export const bodyMail = async (action: MailActions, params: Params): Promise<str
       body = recoveryPass({
         name: params.name,
         firstname: params.firstname,
-        code: params.code,
         company: company,
+        link: `${linkFront}/recoverypassword/${params.token}`
       });
       break;
     default:
+      console.log(`El el caso ${action} no se encuentra, Verifica el MailActions que envias`);
+      
       throw new Error('Action not supported');
   }
 

@@ -13,7 +13,7 @@ class AuthController extends AuthService {
     try {
       const { username, password } = req.params;
 
-      const findData = await this._findByUsername(String(username));
+      const findData = await this._ProtectedFindByUsername(String(username));
 
       if (findData) {
         const isMatch = await bcrypt.compare(password, findData?.Password);
@@ -36,6 +36,13 @@ class AuthController extends AuthService {
     }
   }
 
+  public recoveryPasswordValid = async (req: Request, res: Response): Promise<void> => {
+    try {
+      
+    } catch (error) {
+      
+    }
+  }
 }
 // interface 
 

@@ -1,12 +1,6 @@
-interface Params {
-    name:string
-    firstname:string
-    code:string
-    company:string
-}
+import { DataMail } from "../mail";
 
-
-export const cedeAuth = (param:Params):string =>  `
+export const cedeAuth = (param:DataMail):string =>  `
     <tr>
         <td>
             <table style='width: 100%; padding: 25px 50px;'>

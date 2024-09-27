@@ -9,6 +9,6 @@ userRoutes.put('/:id', userController.updateById);
 userRoutes.delete('/:id', userController.deleteById);
 userRoutes.post('/', userController.create);
 userRoutes.post('/mail', userController.sendMail);
+userRoutes.post('/recoverypassword', userController.recoveryPassword);
 
-export default userRoutes;
-  
+export default userRoutes;  

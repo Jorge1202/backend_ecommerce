@@ -1,21 +1,19 @@
-import { Main, Mail_DataObject } from './mail'; // Asegúrate de importar el enum desde el archivo correcto
-
-export interface MailServiceConfig {
-    accion: MailActions;
-    to: string;
-    subject: string;
-    name: string;
-    firstname: string;
-    code: string;
-    username: string;
-}
+import { Main, Mail_DataObject, DataMail } from './mail'; // Asegúrate de importar el enum desde el archivo correcto
 
 export enum MailActions {
     CodeAuth = 'codeAuth',
     BienvenidoAdmin = 'bienvenidoAdmin',
     NuevoDispositivo = 'nuevoDispositivo',
     RecoveryPass = 'recoveryPass',
-    FormularioContrato = 'formularioContrato'
+    FormularioContrato = 'formularioContrato',
+    recoveryPassword = 'recoveryPassword'
+}
+
+export interface MailServiceConfig {
+    accion: MailActions;
+    to: string;
+    subject: string;
+    dataMail: DataMail
 }
 
 export class MailService {
@@ -23,16 +21,18 @@ export class MailService {
 
     constructor(config: MailServiceConfig) {
         this.dataObject = {
-            accion: MailActions.CodeAuth,
+            accion: config.accion,
             message: {
                 to: config.to,
                 subject: config.subject,
             },
             dataMail: {
-                name: config.name,
-                firstname: config.firstname,
-                code: config.code,
-                username: config.username,
+                name: config.dataMail.name,
+                firstname: config.dataMail.firstname,
+                link: config.dataMail.link || '',
+                code: config.dataMail.code || '',
+                username: config.dataMail.username || '',
+                token: config.dataMail.token || '',
             }
         };
     }

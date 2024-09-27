@@ -36,17 +36,17 @@ const footer = (empresa: string): string => `
 `;
 
 export const template = (content: string, empresa: string): string =>  `
-    <html xmlns='http://www.w3.org/1999/xhtml'>
-      <head>
-        <meta http-equiv='Content-Type' content='text/html; charset=utf-8' /> 
-        <title></title>
-      </head>
-      <body bgcolor='#f6f8f1' style='margin: 0; padding: 0; min-width: 100%!important;'>
-        <table style='width: 100%; max-width: 600px; background-color: #fff; border: 1px solid #ccc; font: 15px/1.25em Helvetica Neue,Arial,Helvetica;' align='center' cellpadding='0' cellspacing='0' border='0'>
-          ${header(empresa)}
-          ${content}
-          ${footer(empresa)}
-        </table>
-      </body>
-    </html>
-`
+  <html xmlns='http://www.w3.org/1999/xhtml'>
+    <head>
+      <meta http-equiv='Content-Type' content='text/html; charset=utf-8' /> 
+      <title></title>
+    </head>
+    <body bgcolor='#f6f8f1' style='margin: 0; padding: 0; min-width: 100%!important;'>
+      <table style='width: 100%; max-width: 600px; background-color: #fff; border: 1px solid #ccc; font: 15px/1.25em Helvetica Neue,Arial,Helvetica;' align='center' cellpadding='0' cellspacing='0' border='0'>
+        ${header(empresa)}
+        ${content}
+        ${footer(empresa)}
+      </table>
+    </body>
+  </html>
+`;

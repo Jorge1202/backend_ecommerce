@@ -3,18 +3,6 @@ import { success, error } from '../../middlewares/response';
 
 import { HistoryRegisterService } from '../Services/historyRegister.service';
 
-interface Record {
-  register: {
-    Username: string;
-    Name: string;
-    Firstname: string;
-    Lastname?: string;
-    Email: string;
-    Phone: string;
-    Password: string;
-  };
-}
-
 class historyRegisterController extends HistoryRegisterService {
 
   constructor() {
@@ -26,7 +14,7 @@ class historyRegisterController extends HistoryRegisterService {
       let data = req.body;
 
       // 2. Llamar al servicio para crear registro 
-      const rsponse = await this._create(data);
+      const rsponse = await this._ProtectedCreate(data);
 
       success({ res, data: rsponse, status: 201 });
       
@@ -39,7 +27,7 @@ class historyRegisterController extends HistoryRegisterService {
   public getById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { email } = req.params;
-      const findData = await this._findByEmail(String(email));
+      const findData = await this._ProtectedFindByEmail(String(email));
       if (findData) {
         success({ res, data: findData, status: 200 });
       } else {
@@ -53,7 +41,7 @@ class historyRegisterController extends HistoryRegisterService {
   public updateById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { email } = req.params;
-      const updatedRecord = await this._update(String(email), req.body);
+      const updatedRecord = await this.updateByUsername(String(email), req.body);
       if (updatedRecord) {
         success({ res, data: updatedRecord, status: 200 });
       } else {
@@ -63,6 +51,8 @@ class historyRegisterController extends HistoryRegisterService {
       error({ res, data: 'Error updating record ', status: 500, details: err });
     }
   }
+
+
 
 
 }

@@ -10,7 +10,7 @@ class ProfileController extends ProfileService {
 
   public getAll = async (req: Request, res: Response): Promise<void> => {
     try {
-      const findList = await this._findAll();
+      const findList = await this._ProtectedFindAll();
       
       success({ req, res, data: findList, status: 200 });
     } catch (err) {
@@ -22,7 +22,7 @@ class ProfileController extends ProfileService {
     try {
       const { id } = req.params;
       
-      const findData = await this._findByPk(String(id));
+      const findData = await this._ProtectedFindByPk(String(id));
       if (findData) {
         success({ req, res, data: findData, status: 200 });
       } else {
@@ -36,7 +36,7 @@ class ProfileController extends ProfileService {
   public updateById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const updatedRecord = await this._update(String(id), req.body); // Llamada al servicio
+      const updatedRecord = await this._ProtectedUpdate(String(id), req.body); // Llamada al servicio
       if (updatedRecord) {
         success({ req, res, data: updatedRecord, status: 200 });
       } else {
@@ -50,7 +50,7 @@ class ProfileController extends ProfileService {
   public deleteById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const result = await this._destroy(String(id)); // Llamada al servicio
+      const result = await this._ProtectedDestroy(String(id)); // Llamada al servicio
       if (result) {
         success({ req, res, data: 'Record  deleted successfully', status: 200 });
       } else {

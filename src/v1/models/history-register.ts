@@ -8,15 +8,15 @@ export interface HistoryRegisterAttributes {
   Firstname?: string;
   Lastname?: string;
   Username?: string;
-  Password?: string;
   StatusRegister?: number;
   DateCreate?: Date;
   DateUpdate?: Date;
+  HasPassword?: boolean;
 }
 
 export type HistoryRegisterPk = "Id";
 export type HistoryRegisterId = HistoryRegister[HistoryRegisterPk];
-export type HistoryRegisterOptionalAttributes = "Id" | "Email" | "Name" | "Firstname" | "Lastname" | "Username" | "Password" | "StatusRegister" | "DateCreate" | "DateUpdate";
+export type HistoryRegisterOptionalAttributes = "Id" | "Email" | "Name" | "Firstname" | "Lastname" | "Username" | "StatusRegister" | "DateCreate" | "DateUpdate" | "HasPassword";
 export type HistoryRegisterCreationAttributes = Optional<HistoryRegisterAttributes, HistoryRegisterOptionalAttributes>;
 
 export class HistoryRegister extends Model<HistoryRegisterAttributes, HistoryRegisterCreationAttributes> implements HistoryRegisterAttributes {
@@ -26,10 +26,10 @@ export class HistoryRegister extends Model<HistoryRegisterAttributes, HistoryReg
   Firstname?: string;
   Lastname?: string;
   Username?: string;
-  Password?: string;
   StatusRegister?: number;
   DateCreate?: Date;
   DateUpdate?: Date;
+  HasPassword?: boolean;
 
 
   static initModel(sequelize: Sequelize.Sequelize): typeof HistoryRegister {
@@ -66,11 +66,6 @@ export class HistoryRegister extends Model<HistoryRegisterAttributes, HistoryReg
       allowNull: true,
       field: 'username'
     },
-    Password: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-      field: 'password'
-    },
     StatusRegister: {
       type: DataTypes.INTEGER,
       allowNull: true,
@@ -86,6 +81,12 @@ export class HistoryRegister extends Model<HistoryRegisterAttributes, HistoryReg
       type: DataTypes.DATE,
       allowNull: true,
       field: 'date_update'
+    },
+    HasPassword: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: false,
+      field: 'has_password'
     }
   }, {
     sequelize,

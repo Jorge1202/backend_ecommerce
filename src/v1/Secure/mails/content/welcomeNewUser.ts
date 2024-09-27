@@ -1,13 +1,6 @@
-interface Params {
-    name:string
-    firstname:string
-    username:string
-    code:string
-    company:string
-    link:string
-}
+import { DataMail } from "../mail";
 
-export const welcomeNewUser = (param:Params):string => `
+export const welcomeNewUser = (param:DataMail):string => `
     <tr>
         <td>
             <table style='width: 100%; padding: 25px 50px;'>

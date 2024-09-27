@@ -5,29 +5,11 @@ import { StatisticsProfileService } from './statics_profile.service';
 import { StatisticsProfile } from '../models/statistics-profile';
 
 export class ProfileService {
-  protected async _findAll(): Promise<Profile[]> {
-    try {      
-      const list = await Profile.findAll();
-      return list;
-    } catch (error) {
-      throw new Error(`Error obteniendo la lista: ${error}`);
-    }
-  }
-
-  protected async _findByPk(id: string): Promise<Profile | null> {
-    try {
-      const record = await Profile.findByPk(id); // Remover el include de User
-      return record;
-    } catch (error) {
-      throw new Error(`Error obteniendo el registro con id ${id}: ${error}`);
-    }
-  }
-  
   // Crear perfil de la página del usuario
-  public async _createProfile(profileData: ProfileCreationAttributes, transaction: Transaction): Promise<void> {
+  public async createProfile(profileData: ProfileCreationAttributes, transaction: Transaction): Promise<void> {
     try {
 
-      const profile = await this.createProfile(profileData, transaction);
+      const profile = await this._PrivateCreateProfile(profileData, transaction);
       
       const statisticsProfileService = new StatisticsProfileService()
       await statisticsProfileService._createStatics({
@@ -39,7 +21,25 @@ export class ProfileService {
     }
   }
 
-  private async createProfile(profileData: ProfileCreationAttributes, transaction: Transaction): Promise<Profile> {
+  protected async _ProtectedFindAll(): Promise<Profile[]> {
+    try {      
+      const list = await Profile.findAll();
+      return list;
+    } catch (error) {
+      throw new Error(`Error obteniendo la lista: ${error}`);
+    }
+  }
+
+  protected async _ProtectedFindByPk(id: string): Promise<Profile | null> {
+    try {
+      const record = await Profile.findByPk(id); // Remover el include de User
+      return record;
+    } catch (error) {
+      throw new Error(`Error obteniendo el registro con id ${id}: ${error}`);
+    }
+  }
+  
+  private async _PrivateCreateProfile(profileData: ProfileCreationAttributes, transaction: Transaction): Promise<Profile> {
     try {
       return await Profile.create(profileData, { transaction });
     } catch (error) {
@@ -47,7 +47,7 @@ export class ProfileService {
     }
   }
 
-  protected async _update(id: string, data: Partial<Profile>): Promise<Profile | null> {
+  protected async _ProtectedUpdate(id: string, data: Partial<Profile>): Promise<Profile | null> {
     try {
       const record = await Profile.findByPk(id);
       if (!record) {
@@ -60,7 +60,7 @@ export class ProfileService {
     }
   }
 
-  protected async _destroy(id: string): Promise<number> {
+  protected async _ProtectedDestroy(id: string): Promise<number> {
     const result = await Profile.destroy({
       where: { IdProfile: id },
     });

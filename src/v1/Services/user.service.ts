@@ -1,5 +1,5 @@
 import { Transaction } from 'sequelize';
-const bcrypt = require("bcrypt");
+import { generateToken } from '../Secure/generateToken';
 import { withTransaction } from '../../Utils/transaction_helper';
 import { handleServiceError } from '../../Utils/errorHandler_catch';
 import { MailService, MailServiceConfig, MailActions } from '../Secure/mails/sendMail';
@@ -10,6 +10,7 @@ import {AuthService} from './auth.service';
 import { UserPageService } from './user_page.service'
 import { ProfileService } from './profile.service';
 import { HistoryRegisterService } from './historyRegister.service';
+import { link } from 'fs';
 
 interface RegisterData {
   user: {
@@ -25,13 +26,13 @@ interface RegisterData {
 export class UserService {
 
   //Registro de usuarios
-  protected async registerUser(data: RegisterData): Promise<any> {
+  protected async _ProtectedRegisterUser(data: RegisterData): Promise<any> {
     await withTransaction(async (transaction)=>{
       try {
         const { user } = data;
   
         // 1. Crear usuario
-        const newUser = await this._createUser({
+        const newUser = await this._PrivateCreateUser({
           Username: user.Username,
           Name: user.Name,
           Firstname: user.Firstname,
@@ -42,7 +43,7 @@ export class UserService {
   
         // 2. Crear userPage
         const userPageService = new UserPageService();
-        const newUserPage = await userPageService._createUserPage({
+        const newUserPage = await userPageService.createUserPage({
           IdTypePage: 1,
           Username: user.Username,
           IdUser: newUser.IdUser,
@@ -50,7 +51,7 @@ export class UserService {
   
         // 3. Crear perfil de la página del usuario
         const profileService = new ProfileService();
-        await profileService._createProfile({
+        await profileService.createProfile({
           Name: user.Name,
           Firstname: user.Firstname,
           Lastname: user.Lastname,
@@ -59,13 +60,12 @@ export class UserService {
           IdUserPage: newUserPage.IdUserPage // Relación obligatoria
         }, transaction);
   
-        // 4. Crear autenticación
-        const hashedPassword = await bcrypt.hash(user.Password, 10);
+        // 4. Crear autenticación        
         const authService = new AuthService();
-        const resultAuth =  await authService._createAuth({
+        const resultAuth =  await authService.createAuth({
           IdUser: newUser.IdUser,
           Username: user.Username,
-          Password: hashedPassword, 
+          Password: user.Password, 
           Pw:user.Password
         }, transaction);
 
@@ -74,22 +74,21 @@ export class UserService {
         const mailConfig: MailServiceConfig = {
           accion:MailActions.CodeAuth,
           to: user.Email,
-          subject: 'Verifica tu cuenta',
-          name: user.Name,
-          firstname: user.Firstname,
-          code: resultAuth.codeAuth.Code ?? '',
-          username: user.Username
+          subject: 'Código de verificación',
+          dataMail: {
+            name: user.Name,
+            firstname: user.Firstname,
+            code: resultAuth.codeAuth.Code ?? '',
+            username: user.Username
+          }
         };
         const mailService = new MailService(mailConfig);
         const responseMail = await mailService.send();
         // if(responseMail){}
 
         // 4. Crear autenticación
-        const historyRegisterService = new HistoryRegisterService();
-        user.Password = hashedPassword
-        await historyRegisterService._update (user.Email, user, transaction);
-
-
+        const historyRegisterService = new HistoryRegisterService();          
+        await historyRegisterService.updateByUsername (user.Email, user, transaction); 
 
       } catch (err) {
         throw new Error(`Error registering user: ${err}`);
@@ -99,7 +98,7 @@ export class UserService {
     return 'Usuario registrado exitosamente. ¡Verifica tu cuenta!';
   }
 
-  protected async _pruebaMail(data: RegisterData): Promise<any> {
+  protected async _ProtectedPruebaMail(data: RegisterData): Promise<any> {
       try {
         const { user } = data;
 
@@ -107,10 +106,12 @@ export class UserService {
           accion:MailActions.CodeAuth,
           to: user.Email,
           subject: 'Verifica tu cuenta',
-          name: user.Name,
-          firstname: user.Firstname,
-          code: "456328",
-          username: user.Username
+          dataMail: {
+            name: user.Name,
+            firstname: user.Firstname,
+            code: "456328",
+            username: user.Username
+          }
         };
         const mailService = new MailService(mailConfig);
         // Envía el correo
@@ -125,8 +126,46 @@ export class UserService {
       }
   }
 
+  protected async _ProtectedRecoveryPassword(Email: string): Promise<string> {
+    try {
+      const user = await User.findOne({
+        where: { Email } 
+      });
+      if (!user) {
+        throw new Error(`Si existe una cuenta asociada con este correo, recibirás un email`);
+      }
+
+      const token = generateToken({
+        dataToken: {
+          userId: user.IdUser,
+        },
+        expiresIn: '30m',
+      });
+
+      // Envía el correo
+      const mailConfig: MailServiceConfig = {
+        accion:MailActions.recoveryPassword,
+        to: user.Email,
+        subject: 'Solicitud de Restablecimiento de Contraseña',
+        dataMail:{
+          name: user.Name,
+          firstname: user.Firstname,
+          token: token
+        }
+      };
+      const mailService = new MailService(mailConfig);
+      const responseMail = await mailService.send();
+      if(!responseMail.send) throw new Error(responseMail.response)        
+      
+      return `¡Solicitud aprovada!, Accede al correo (${Email}) para seguir el proceso`;
+
+    } catch (error) {
+      throw new Error('Se tuvo un problema en la solicitud, te sugerimos que te pongas en contacto con soporte')
+    }
+  }
+
   // Crear usuario
-  private async _createUser(userData: UserCreationAttributes, transaction: Transaction): Promise<User> {
+  private async _PrivateCreateUser(userData: UserCreationAttributes, transaction: Transaction): Promise<User> {
     try {
       return await User.create(userData, { transaction });
     } catch (error) {
@@ -135,7 +174,7 @@ export class UserService {
   }
 
   // Obtener todos los usuarios
-  protected async findAll(): Promise<User[]> {
+  protected async _ProtectedFindAll(): Promise<User[]> {
     try {
       return await User.findAll();
     } catch (error) {
@@ -144,7 +183,7 @@ export class UserService {
   }
 
   // Obtener usuario por ID
-  protected async findByPk(id: string): Promise<User | null> {
+  protected async _ProtectedFindByPk(id: string): Promise<User | null> {
     try {
       return await User.findByPk(id);
     } catch (error) {
@@ -153,7 +192,7 @@ export class UserService {
   }
 
   // Actualizar usuario
-  protected async update(id: string, data: Partial<User>): Promise<User | null> {
+  protected async _ProtectedUpdate(id: string, data: Partial<User>): Promise<User | null> {
     try {
       const user = await User.findByPk(id);
       if (!user) {
@@ -167,7 +206,7 @@ export class UserService {
   }
 
   // Eliminar usuario
-  protected async destroy(id: string): Promise<number> {
+  protected async _ProtectedDestroy(id: string): Promise<number> {
     try {
       return await User.destroy({ where: { IdUser: id } });
     } catch (error) {

@@ -26,11 +26,11 @@ class UserController extends UserService {
       let data = req.body;
 
       // 1. Validación de datos
-      const responseJson = await this.ValidDataCreate(res, data);
+      const responseJson = await this._privateValidDataCreate(res, data);
       if (!responseJson) return;
 
       // 2. Llamar al servicio para crear usuario 
-      const rsponse = await this.registerUser(data);
+      const rsponse = await this._ProtectedRegisterUser(data);
 
       // success({ res, data: 'Registro exitoso. El usuario se ha creado correctamente.', status: 201 });
       success({ res, data: rsponse, status: 201 });
@@ -41,73 +41,7 @@ class UserController extends UserService {
     }
   }
 
-  public sendMail = async (req: Request, res: Response): Promise<void> => {
-    try {
-      let data = req.body;
-
-      const rsponse = await this._pruebaMail(data);
-
-      success({ res, data: rsponse, status: 200 });
-      
-    } catch (err) {
-      // await transaction.rollback(); // Revertir las operaciones en caso de error
-    error({ res, data: 'Error creating record', status: 500, details: err });
-    }
-  }
-
-  public getAll = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const findList = await this.findAll();
-
-      success({ res, data: findList, status: 200 });
-    } catch (err) {
-      error({ res, data: 'Error fetching record ', details: err, status: 500 });
-    }
-  }
-
-  public getById = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { id } = req.params;
-      const findData = await this.findByPk(String(id));
-      if (findData) {
-        success({ res, data: findData, status: 200 });
-      } else {
-        error({ res, data: 'Record  not found', status: 204 });
-      }
-    } catch (err) {
-      error({ res, data: 'Error fetching record ', status: 500, details: err});
-    }
-  }
-  
-  public updateById = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { id } = req.params;
-      const updatedRecord = await this.update(String(id), req.body); // Llamada al servicio
-      if (updatedRecord) {
-        success({ res, data: updatedRecord, status: 200 });
-      } else {
-        error({ res, data: 'Record not found', status: 204, });
-      }
-    } catch (err) {
-      error({ res, data: 'Error updating record ', status: 500, details: err });
-    }
-  }
-
-  public deleteById = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { id } = req.params;
-      const result = await this.destroy(String(id)); // Llamada al servicio
-      if (result) {
-        success({ res, data: 'Record  deleted successfully', status: 200 });
-      } else {
-        error({ res, data: 'Record not found', status: 204,});
-      }
-    } catch (err) {
-      error({ res, data: 'Error deleting record ', status: 500, details: err });
-    }
-  }
-
-  private ValidDataCreate = async (res: Response, data: Record): Promise<boolean | null> => {
+  private _privateValidDataCreate = async (res: Response, data: Record): Promise<boolean | null> => {
     try {
       const { user } = data;
   
@@ -151,8 +85,84 @@ class UserController extends UserService {
       error({ res, data: 'Error validando los datos', status: 400, details: err });
       return null;
     }
-  };
+  }
+  
+  public recoveryPassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+      let data = req.body;
+      const {Email} = data
+      const response = await this._ProtectedRecoveryPassword(Email);
+      success({ res, data: response, status: 200 });
+    } catch(err) {
+      error({ res, data: 'Se tuvo un problema en la solicitud, te sugerimos que te pongas en contacto con soporte', status: 500, details: err });
+    }
+  }
 
+  public sendMail = async (req: Request, res: Response): Promise<void> => {
+    try {
+      let data = req.body;
+
+      const response = await this._ProtectedPruebaMail(data);
+
+      success({ res, data: response, status: 200 });
+      
+    } catch (err) {
+      // await transaction.rollback(); // Revertir las operaciones en caso de error
+    error({ res, data: 'Error al enviar el correo prueba', status: 500, details: err });
+    }
+  }
+
+  public getAll = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const findList = await this._ProtectedFindAll();
+
+      success({ res, data: findList, status: 200 });
+    } catch (err) {
+      error({ res, data: 'Error fetching record ', details: err, status: 500 });
+    }
+  }
+
+  public getById = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const findData = await this._ProtectedFindByPk(String(id));
+      if (findData) {
+        success({ res, data: findData, status: 200 });
+      } else {
+        error({ res, data: 'Record  not found', status: 204 });
+      }
+    } catch (err) {
+      error({ res, data: 'Error fetching record ', status: 500, details: err});
+    }
+  }
+  
+  public updateById = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const updatedRecord = await this._ProtectedUpdate(String(id), req.body); // Llamada al servicio
+      if (updatedRecord) {
+        success({ res, data: updatedRecord, status: 200 });
+      } else {
+        error({ res, data: 'Record not found', status: 204, });
+      }
+    } catch (err) {
+      error({ res, data: 'Error updating record ', status: 500, details: err });
+    }
+  }
+
+  public deleteById = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const result = await this._ProtectedDestroy(String(id)); // Llamada al servicio
+      if (result) {
+        success({ res, data: 'Record  deleted successfully', status: 200 });
+      } else {
+        error({ res, data: 'Record not found', status: 204,});
+      }
+    } catch (err) {
+      error({ res, data: 'Error deleting record ', status: 500, details: err });
+    }
+  }
 }
 
 
