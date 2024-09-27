@@ -21,7 +21,7 @@ export interface Mail_DataObject {
 }
 
 // Inicializa el transportador de nodemailer
-function createTransporter(): Transporter {
+async function createTransporter(): Promise<Transporter> {
     const transportOptions: SMTPTransport.Options = {
       host: config.mail._host,  // Host SMTP
       port: config.mail._port,  // Puerto (ej. 465 o 587)
@@ -32,14 +32,14 @@ function createTransporter(): Transporter {
       },
     };
   
-    return nodemailer.createTransport(transportOptions);
+    return await nodemailer.createTransport(transportOptions);
 }
 
 // Verifica que el transportador esté listo para enviar correos
 async function verifyTransporter(transporter: Transporter): Promise<void> {
   try {
     await transporter.verify();
-    console.log('El servicio de correo está listo para enviar correos');
+    console.log('El servicio de correo está listo');
   } catch (err) {
     console.error('Error verificando el transportador de correo', err);
     throw error('No se ha podido verificar el servicio de correo.',500);
@@ -74,18 +74,18 @@ async function prepareMail(dataObject: Mail_DataObject): Promise<SendMailOptions
     to: message.to,
     subject: message.subject,
     html: messagehtml,
-    attachments: [
-      {
-        cid: 'logoUnuspat@1.ee',
-        path: './assets/logos/logo-color.png',
-        filename: 'unuspat_black.png',
-      },
-      {
-        cid: 'logoUnuspat@2.ee',
-        path: './assets/logos/logo-blanco.png',
-        filename: 'unuspat_white.png',
-      },
-    ],
+    // attachments: [
+    //   {
+    //     cid: 'logoUnuspat@1.ee',
+    //     path: './assets/logos/logo-color.png',
+    //     filename: 'unuspat_black.png',
+    //   },
+    //   {
+    //     cid: 'logoUnuspat@2.ee',
+    //     path: './assets/logos/logo-blanco.png',
+    //     filename: 'unuspat_white.png',
+    //   },
+    // ],
   };
 
   // Agrega adjuntos específicos según la acción
@@ -103,7 +103,7 @@ async function prepareMail(dataObject: Mail_DataObject): Promise<SendMailOptions
 export async function Main(dataObject: Mail_DataObject): Promise<boolean> {
   try {
     // Inicializa el transportador y verifica que esté listo
-    const transporter = createTransporter();
+    const transporter = await createTransporter();
     await verifyTransporter(transporter);
 
     // Prepara el correo a enviar
@@ -114,7 +114,7 @@ export async function Main(dataObject: Mail_DataObject): Promise<boolean> {
 
     // Valida la respuesta del servicio de correo
     if (info.response.includes('OK')) {
-      console.log('Correo enviado exitosamente:', info.response);
+      console.log('Main response OK');
       return true;
     } else {
       throw error('No se ha podido enviar el correo.', 500);
@@ -124,3 +124,15 @@ export async function Main(dataObject: Mail_DataObject): Promise<boolean> {
     throw err;
   }
 }
+
+
+// 4577 1755
+// 5201 1659
+// 5742 5012
+// 9889 8610
+// 3005 7491
+// 8339 2064
+// 8925 0917
+// 8574 1963
+// 2264 0318
+// 4803 3277

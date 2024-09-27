@@ -42,17 +42,18 @@ export class MailService {
             // Llamada a la función main
             const success = await Main(this.dataObject);
             if (success) {
-                console.log('El correo se envió correctamente.');
+                return {send: true, response:'El correo se envió correctamente.'}
             } else {
-                console.log('Hubo un problema al enviar el correo.');
+                return {send: false, response:'Hubo un problema al enviar el correo.'} 
             }
         } catch (error) {
             console.error('Error en la llamada a main:', error);
+            return {send: false, response:`Error al enviar el correo`}  
         }
     };
 
     // Método público para enviar el correo
-    public send() {
-        this.sendMail();
+    public async send() {
+        return await this.sendMail();
     }
 }

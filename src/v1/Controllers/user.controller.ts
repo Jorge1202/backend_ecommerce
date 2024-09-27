@@ -41,6 +41,20 @@ class UserController extends UserService {
     }
   }
 
+  public sendMail = async (req: Request, res: Response): Promise<void> => {
+    try {
+      let data = req.body;
+
+      const rsponse = await this._pruebaMail(data);
+
+      success({ res, data: rsponse, status: 200 });
+      
+    } catch (err) {
+      // await transaction.rollback(); // Revertir las operaciones en caso de error
+    error({ res, data: 'Error creating record', status: 500, details: err });
+    }
+  }
+
   public getAll = async (req: Request, res: Response): Promise<void> => {
     try {
       const findList = await this.findAll();

@@ -70,6 +70,7 @@ export class UserService {
         }, transaction);
 
 
+        // Envía el correo
         const mailConfig: MailServiceConfig = {
           accion:MailActions.CodeAuth,
           to: user.Email,
@@ -80,8 +81,8 @@ export class UserService {
           username: user.Username
         };
         const mailService = new MailService(mailConfig);
-        // Envía el correo
-        mailService.send();
+        const responseMail = await mailService.send();
+        // if(responseMail){}
 
         // 4. Crear autenticación
         const historyRegisterService = new HistoryRegisterService();
@@ -97,6 +98,33 @@ export class UserService {
     })
     return 'Usuario registrado exitosamente. ¡Verifica tu cuenta!';
   }
+
+  protected async _pruebaMail(data: RegisterData): Promise<any> {
+      try {
+        const { user } = data;
+
+        const mailConfig: MailServiceConfig = {
+          accion:MailActions.CodeAuth,
+          to: user.Email,
+          subject: 'Verifica tu cuenta',
+          name: user.Name,
+          firstname: user.Firstname,
+          code: "456328",
+          username: user.Username
+        };
+        const mailService = new MailService(mailConfig);
+        // Envía el correo
+        const responseMail = await mailService.send();
+
+        console.log(responseMail);
+        
+        return 'Usuario registrado exitosamente. ¡Verifica tu cuenta!';
+
+      } catch (err) {
+        throw new Error(`Error registering user: ${err}`);
+      }
+  }
+
   // Crear usuario
   private async _createUser(userData: UserCreationAttributes, transaction: Transaction): Promise<User> {
     try {

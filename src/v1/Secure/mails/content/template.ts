@@ -25,7 +25,7 @@ const footer = (empresa: string): string => `
           <tr align='center'>
             <td>
               <table align='center' border='0' cellpadding='0' cellspacing='0' style='width: 100%; margin: 5px 0px; line-height: 22px; font-size: 12px;'>  
-                <tr style='text-align: center;'><td> © 2022 ${empresa} </td> </tr>
+                <tr style='text-align: center;'><td> © ${new Date().getFullYear()} ${empresa} </td> </tr>
               </table>
             </td>
           </tr>
