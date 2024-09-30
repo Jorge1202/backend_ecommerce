@@ -4,7 +4,7 @@ import authController from '../Controllers/auth.controller';
 const userRoutes = Router();
 
 userRoutes.get('/:username/:password', authController.getLogin); 
-userRoutes.get('/validtoken', authController.recoveryPasswordValid); 
+userRoutes.get('/validarUser', authController.recoveryPasswordValid); 
 userRoutes.put('/changePassword', authController.changePassword); 
 
 
