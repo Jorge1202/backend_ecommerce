@@ -30,7 +30,7 @@ class UserController extends UserService {
       if (!responseJson) return;
 
       // 2. Llamar al servicio para crear usuario 
-      const rsponse = await this._ProtectedRegisterUser(data);
+      const rsponse = await this._RegisterUser_Protected(data);
 
       // success({ res, data: 'Registro exitoso. El usuario se ha creado correctamente.', status: 201 });
       success({ res, data: rsponse, status: 201 });
@@ -91,7 +91,7 @@ class UserController extends UserService {
     try {
       let data = req.body;
       const {Email} = data
-      const response = await this._ProtectedRecoveryPassword(Email);
+      const response = await this._RecoveryPassword_Protected(Email);
       success({ res, data: response, status: 200 });
     } catch(err) {
       error({ res, data: 'Se tuvo un problema en la solicitud, te sugerimos que te pongas en contacto con soporte', status: 500, details: err });
@@ -102,7 +102,7 @@ class UserController extends UserService {
     try {
       let data = req.body;
 
-      const response = await this._ProtectedPruebaMail(data);
+      const response = await this._PruebaMail_Protected(data);
 
       success({ res, data: response, status: 200 });
       
@@ -114,7 +114,7 @@ class UserController extends UserService {
 
   public getAll = async (req: Request, res: Response): Promise<void> => {
     try {
-      const findList = await this._ProtectedFindAll();
+      const findList = await this._FindAll_Protected();
 
       success({ res, data: findList, status: 200 });
     } catch (err) {
@@ -125,7 +125,7 @@ class UserController extends UserService {
   public getById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const findData = await this._ProtectedFindByPk(String(id));
+      const findData = await this._FindByPk_Protected(String(id));
       if (findData) {
         success({ res, data: findData, status: 200 });
       } else {
@@ -139,7 +139,7 @@ class UserController extends UserService {
   public updateById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const updatedRecord = await this._ProtectedUpdate(String(id), req.body); // Llamada al servicio
+      const updatedRecord = await this._Update_Protected(String(id), req.body); // Llamada al servicio
       if (updatedRecord) {
         success({ res, data: updatedRecord, status: 200 });
       } else {

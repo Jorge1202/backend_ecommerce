@@ -13,7 +13,7 @@ class AuthController extends AuthService {
     try {
       const { username, password } = req.params;
 
-      const findData = await this._ProtectedFindByUsername(String(username));
+      const findData = await this._FindByUsernam_Protectede(String(username));
 
       if (findData) {
         const isMatch = await bcrypt.compare(password, findData.Password);
@@ -43,7 +43,7 @@ class AuthController extends AuthService {
       if (!token) {
         error({ req, res, data: 'Token invalido', status: 401 });
       } else {
-        const response = await this._ProtectedRecoveryPassword(token)
+        const response = await this._RecoveryPassword_Protected(token)
         success({ req, res, data: response, status: 200 });  
       }
     } catch (err: any) {
@@ -59,7 +59,7 @@ class AuthController extends AuthService {
         error({ req, res, data: 'Token invalido', status: 401 });
       } else {
         const {Password} = req.body        
-        const response = await this._changePasswordProtected(Password, token)
+        const response = await this._ChangePassword_Protected(Password, token)
 
         success({ req, res, data: response, status: 200 });  
       }

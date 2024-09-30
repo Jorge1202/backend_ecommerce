@@ -12,7 +12,7 @@ export class UserPageService {
     }
   }
 
-  protected async _ProtectedFindAll(): Promise<UserPage[]> {
+  protected async _FindAll_Protected(): Promise<UserPage[]> {
     try {      
       const list = await UserPage.findAll();
       return list;
@@ -21,7 +21,7 @@ export class UserPageService {
     }
   }
 
-  protected async _ProtectedFindByUsername(Username: string): Promise<UserPage | null> {
+  protected async _FindByUsername_Protected(Username: string): Promise<UserPage | null> {
     try {
       const record = await UserPage.findOne({
         where: { Username } // Busca donde el campo 'username' coincida
@@ -32,7 +32,7 @@ export class UserPageService {
     }
   }
 
-  protected async _ProtectedFindByPk(id: number): Promise<UserPage | null> {
+  protected async _FindByPk_Protected(id: number): Promise<UserPage | null> {
     try {
       const record = await UserPage.findByPk(id);
       return record;
@@ -41,7 +41,7 @@ export class UserPageService {
     }
   }
 
-  protected async _ProtectedUpdate(id: number, data: Partial<UserPage>): Promise<UserPage | null> {
+  protected async _Update_Protected(id: number, data: Partial<UserPage>): Promise<UserPage | null> {
     try {
       const record = await UserPage.findByPk(id);
       if (!record) {

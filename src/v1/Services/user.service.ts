@@ -26,13 +26,13 @@ interface RegisterData {
 export class UserService {
 
   //Registro de usuarios
-  protected async _ProtectedRegisterUser(data: RegisterData): Promise<any> {
+  protected async _RegisterUser_Protected(data: RegisterData): Promise<any> {
     await withTransaction(async (transaction)=>{
       try {
         const { user } = data;
   
         // 1. Crear usuario
-        const newUser = await this._PrivateCreateUser({
+        const newUser = await this._CreateUser_Private({
           Username: user.Username,
           Name: user.Name,
           Firstname: user.Firstname,
@@ -98,7 +98,7 @@ export class UserService {
     return 'Usuario registrado exitosamente. ¡Verifica tu cuenta!';
   }
 
-  protected async _ProtectedPruebaMail(data: RegisterData): Promise<any> {
+  protected async _PruebaMail_Protected(data: RegisterData): Promise<any> {
       try {
         const { user } = data;
 
@@ -126,7 +126,7 @@ export class UserService {
       }
   }
 
-  protected async _ProtectedRecoveryPassword(Email: string): Promise<string> {
+  protected async _RecoveryPassword_Protected(Email: string): Promise<string> {
     try {
       const user = await User.findOne({
         where: { Email } 
@@ -165,7 +165,7 @@ export class UserService {
   }
 
   // Crear usuario
-  private async _PrivateCreateUser(userData: UserCreationAttributes, transaction: Transaction): Promise<User> {
+  private async _CreateUser_Private(userData: UserCreationAttributes, transaction: Transaction): Promise<User> {
     try {
       return await User.create(userData, { transaction });
     } catch (error) {
@@ -174,7 +174,7 @@ export class UserService {
   }
 
   // Obtener todos los usuarios
-  protected async _ProtectedFindAll(): Promise<User[]> {
+  protected async _FindAll_Protected(): Promise<User[]> {
     try {
       return await User.findAll();
     } catch (error) {
@@ -183,7 +183,7 @@ export class UserService {
   }
 
   // Obtener usuario por ID
-  protected async _ProtectedFindByPk(id: string): Promise<User | null> {
+  protected async _FindByPk_Protected(id: string): Promise<User | null> {
     try {
       return await User.findByPk(id);
     } catch (error) {
@@ -192,7 +192,7 @@ export class UserService {
   }
 
   // Actualizar usuario
-  protected async _ProtectedUpdate(id: string, data: Partial<User>): Promise<User | null> {
+  protected async _Update_Protected(id: string, data: Partial<User>): Promise<User | null> {
     try {
       const user = await User.findByPk(id);
       if (!user) {

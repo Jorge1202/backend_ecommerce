@@ -10,7 +10,7 @@ class TypePageController extends TypePageService {
 
   public getAll = async (req: Request, res: Response): Promise<void> => {
     try {
-      const findList = await this._ProtectedFindAll();
+      const findList = await this._FindAll_Protected();
       success({ req, res, data: findList, status: 200 });
     } catch (err) {
       error({ req, res, data: 'Error fetching user ', details: err, status: 500 });
@@ -20,7 +20,7 @@ class TypePageController extends TypePageService {
   public getById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const findData = await this._ProtectedFindByPk(Number(id));
+      const findData = await this._FindByPk_Protected(Number(id));
       if (findData) {
         success({ req, res, data: findData, status: 200 });
       } else {
@@ -33,7 +33,7 @@ class TypePageController extends TypePageService {
 
   public  create = async (req: Request, res: Response): Promise<void> => {
     try {
-      const newRecord = await this._ProtectedCreate(req.body); // Llamada al servicio
+      const newRecord = await this._Create_Protected(req.body); // Llamada al servicio
       success({ req, res, data: newRecord, status: 201 });
     } catch (err) {
       error({ req, res, data: 'Error creating record ', status: 500, details: err });
@@ -43,7 +43,7 @@ class TypePageController extends TypePageService {
   public updateById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const updatedRecord = await this._ProtectedUpdate(Number(id), req.body); // Llamada al servicio
+      const updatedRecord = await this._Update_Protected(Number(id), req.body); // Llamada al servicio
       if (updatedRecord) {
         success({ req, res, data: updatedRecord, status: 200 });
       } else {
@@ -57,7 +57,7 @@ class TypePageController extends TypePageService {
   public deleteById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const result = await this._ProtectedDestroy(Number(id)); // Llamada al servicio
+      const result = await this._Destroy_Protected(Number(id)); // Llamada al servicio
       if (result) {
         success({ req, res, data: 'Record  deleted successfully', status: 200 });
       } else {

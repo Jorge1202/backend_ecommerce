@@ -8,7 +8,7 @@ export class CodeAutenticationService {
   public async createCodeAuthentication(codeData: CodeAutenticationCreationAttributes, transaction: Transaction): Promise<CodeAutentication> {
     try {
 
-      const codeAleatorio = await this._PrivateGenerarCodigoAleatorio();
+      const codeAleatorio = await this._GenerarCodigoAleatorio_Private();
       codeData = {...codeData, Code: codeAleatorio}
       const code = await CodeAutentication.create(codeData, { transaction });
       return code;
@@ -17,7 +17,7 @@ export class CodeAutenticationService {
       handleServiceError(error, 'Error creating authentication code', 500)
     }
   }
-  private async _PrivateGenerarCodigoAleatorio():Promise<string>{
+  private async _GenerarCodigoAleatorio_Private():Promise<string>{
     // Genera un número aleatorio entre 100000 y 999999
     const codigo = Math.floor(100000 + Math.random() * 900000);
     return codigo.toString()

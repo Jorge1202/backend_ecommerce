@@ -23,7 +23,7 @@ export class AuthService {
       const hashedPassword = await bcrypt.hash(authData.Password, 10);
       authData = {...authData, Password:hashedPassword}
 
-      const auth = await this._PrivateCreateAuth(authData, transaction);
+      const auth = await this._CreateAuth_Private(authData, transaction);
 
       const code_AutService = new CodeAutenticationService();
       const codeAuth = await code_AutService.createCodeAuthentication({
@@ -39,16 +39,7 @@ export class AuthService {
       handleServiceError(error, 'Error creating authentication', 500)
     }
   }
-
-  private async _PrivateCreateAuth(userData: AuthCreationAttributes, transaction: Transaction): Promise<Auth> {
-    try {
-      return await Auth.create(userData, { transaction });
-    } catch (error) {
-      handleServiceError(error, 'Error creating authentication', 500)
-    }
-  }
-
-  protected async _ProtectedFindByUsername(Username: string): Promise<Auth | null> {
+  protected async _FindByUsernam_Protectede(Username: string): Promise<Auth | null> {
     try {
       const record = await Auth.findOne({
         where: { Username } // Busca donde el campo 'username' coincida
@@ -58,29 +49,9 @@ export class AuthService {
       throw new Error(`Error obteniendo el registro con USERNAME ${Username}: ${error}`);
     }
   }
-  private hasPayload(response: { payload?: TokenPayload }): response is { payload: TokenPayload } {
-    return response.payload !== undefined;
-  }
-
-  private async _varifyTokenPrivate (token:string): Promise<any>{
+  protected async _RecoveryPassword_Protected (token: string): Promise<any> {
     try {
-      const response = await verifyToken(token)
-      if(!response.valid)
-        throw error(response.message, response.cade)
-      
-      if(!this.hasPayload(response))
-        throw error(response.message, response.cade)
-
-      return response
-    } catch (err: any) {
-      throw error(err.message, 409)      
-    }
-
-  }
-
-  protected async _ProtectedRecoveryPassword (token: string): Promise<any> {
-    try {
-      const response = await this._varifyTokenPrivate(token)
+      const response = await this._VarifyToken_Private(token)
 
       const {IdUser} = response.payload
       const authUser = await Auth.findOne({
@@ -99,10 +70,9 @@ export class AuthService {
       error(`${err.message}`, 500)
     }
   }
-
-  protected async _changePasswordProtected (Password: string, Token:string): Promise<any> {
+  protected async _ChangePassword_Protected (Password: string, Token:string): Promise<any> {
     try {
-      const response = await this._varifyTokenPrivate(Token)
+      const response = await this._VarifyToken_Private(Token)
       
       const {IdUser} = response.payload
       const authUser = await Auth.findOne({
@@ -121,6 +91,31 @@ export class AuthService {
 
     } catch (err: any) {
       throw error(`${err.message}`, 409)
+    }
+
+  }
+  private async _CreateAuth_Private(userData: AuthCreationAttributes, transaction: Transaction): Promise<Auth> {
+    try {
+      return await Auth.create(userData, { transaction });
+    } catch (error) {
+      handleServiceError(error, 'Error creating authentication', 500)
+    }
+  }
+  private _HasPayload_Private(response: { payload?: TokenPayload }): response is { payload: TokenPayload } {
+    return response.payload !== undefined;
+  }
+  private async _VarifyToken_Private (token:string): Promise<any>{
+    try {
+      const response = await verifyToken(token)
+      if(!response.valid)
+        throw error(response.message, response.cade)
+      
+      if(!this._HasPayload_Private(response))
+        throw error(response.message, response.cade)
+
+      return response
+    } catch (err: any) {
+      throw error(err.message, 409)      
     }
 
   }
