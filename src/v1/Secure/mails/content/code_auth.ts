@@ -6,7 +6,7 @@ export const cedeAuth = (param:DataMail):string =>  `
             <table style='width: 100%; padding: 25px 50px;'>
                 <tr>
                     <td style='font-size:18px; line-height: 22px; font-weight: bold; text-align: center; text-align: center;'>
-                        CÓDIGO DE VERIFICACIÓN 
+                        Verifica tu correo 
                     </td>
                 </tr>
             </table>
@@ -29,7 +29,7 @@ export const cedeAuth = (param:DataMail):string =>  `
                     <td>
                         <table align='left' border='0' cellpadding='0' cellspacing='0' style='width: 100%; margin: 15px 0px; line-height: 22px; font-size: 12px; text-align: justify;'>  
                             <tr><td>
-                                Para completar tu registro en ${param.company} y garantizar la seguridad de tu cuenta, necesitamos que verifiques tu información. 
+                                Para completar tu registro en ${param.company} y garantizar la seguridad de tu cuenta, necesitamos que verifiques tu correo. 
                                 Utiliza el siguiente código para hacerlo.
                             </td></tr>                           
                         </table>

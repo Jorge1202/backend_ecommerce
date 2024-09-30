@@ -1,6 +1,7 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
 import type { Auth, AuthId } from './auth';
+import type { TypeCode, TypeCodeId } from './type-code';
 
 export interface CodeAutenticationAttributes {
   IdCodeAutentication: number;
@@ -10,11 +11,12 @@ export interface CodeAutenticationAttributes {
   IdAuth: number;
   DateCreate?: Date;
   DateUpdate?: Date;
+  IdTypeCode?: number;
 }
 
 export type CodeAutenticationPk = "IdCodeAutentication";
 export type CodeAutenticationId = CodeAutentication[CodeAutenticationPk];
-export type CodeAutenticationOptionalAttributes = "IdCodeAutentication" | "Code" | "Description" | "IsActive" | "DateCreate" | "DateUpdate";
+export type CodeAutenticationOptionalAttributes = "IdCodeAutentication" | "Code" | "Description" | "IsActive" | "DateCreate" | "DateUpdate" | "IdTypeCode";
 export type CodeAutenticationCreationAttributes = Optional<CodeAutenticationAttributes, CodeAutenticationOptionalAttributes>;
 
 export class CodeAutentication extends Model<CodeAutenticationAttributes, CodeAutenticationCreationAttributes> implements CodeAutenticationAttributes {
@@ -25,12 +27,18 @@ export class CodeAutentication extends Model<CodeAutenticationAttributes, CodeAu
   IdAuth!: number;
   DateCreate?: Date;
   DateUpdate?: Date;
+  IdTypeCode?: number;
 
   // CodeAutentication belongsTo Auth via IdAuth
   IdAuthAuth!: Auth;
   getIdAuthAuth!: Sequelize.BelongsToGetAssociationMixin<Auth>;
   setIdAuthAuth!: Sequelize.BelongsToSetAssociationMixin<Auth, AuthId>;
   createIdAuthAuth!: Sequelize.BelongsToCreateAssociationMixin<Auth>;
+  // CodeAutentication belongsTo TypeCode via IdTypeCode
+  IdTypeCodeTypeCode!: TypeCode;
+  getIdTypeCodeTypeCode!: Sequelize.BelongsToGetAssociationMixin<TypeCode>;
+  setIdTypeCodeTypeCode!: Sequelize.BelongsToSetAssociationMixin<TypeCode, TypeCodeId>;
+  createIdTypeCodeTypeCode!: Sequelize.BelongsToCreateAssociationMixin<TypeCode>;
 
   static initModel(sequelize: Sequelize.Sequelize): typeof CodeAutentication {
     return CodeAutentication.init({
@@ -75,24 +83,21 @@ export class CodeAutentication extends Model<CodeAutenticationAttributes, CodeAu
       type: DataTypes.DATE,
       allowNull: true,
       field: 'date_update'
+    },
+    IdTypeCode: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'type_code',
+        key: 'id'
+      },
+      field: 'id_type_code'
     }
   }, {
     sequelize,
     tableName: 'code_autentication',
     schema: 'user',
-    timestamps: true,
-    createdAt: 'DateCreate',
-    updatedAt: 'DateUpdate',
-    hooks: {
-      beforeCreate: (codes: CodeAutentication) => {
-        const now = new Date();
-        codes.DateCreate = now;
-        codes.DateUpdate = now;
-      },
-      beforeUpdate: (codes: CodeAutentication) => {
-        codes.DateUpdate = new Date();
-      }
-    },
+    timestamps: false,
     indexes: [
       {
         name: "code_autentication_1_pkey",
@@ -112,4 +117,3 @@ export class CodeAutentication extends Model<CodeAutenticationAttributes, CodeAu
   });
   }
 }
-

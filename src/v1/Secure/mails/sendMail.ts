@@ -1,13 +1,14 @@
 import { Main, Mail_DataObject, DataMail } from './mail'; // Asegúrate de importar el enum desde el archivo correcto
 
 export enum MailActions {
-    CodeAuth = 'codeAuth',
+    CodeAuth = 'codeAuth_ValidEmail',
     BienvenidoAdmin = 'bienvenidoAdmin',
     NuevoDispositivo = 'nuevoDispositivo',
     FormularioContrato = 'formularioContrato',
-    recoveryPassword = 'recoveryPassword'
+    RecoveryPassword = 'recoveryPassword',
+    PasswordChangeSuccessful = 'PasswordChangeSuccessful',
 }
-
+ 
 export interface MailServiceConfig {
     accion: MailActions;
     to: string;

@@ -87,17 +87,6 @@ class UserController extends UserService {
     }
   }
   
-  public recoveryPassword = async (req: Request, res: Response): Promise<void> => {
-    try {
-      let data = req.body;
-      const {Email} = data
-      const response = await this._RecoveryPassword_Protected(Email);
-      success({ res, data: response, status: 200 });
-    } catch(err) {
-      error({ res, data: 'Se tuvo un problema en la solicitud, te sugerimos que te pongas en contacto con soporte', status: 500, details: err });
-    }
-  }
-
   public sendMail = async (req: Request, res: Response): Promise<void> => {
     try {
       let data = req.body;
@@ -114,6 +103,7 @@ class UserController extends UserService {
 
   public getAll = async (req: Request, res: Response): Promise<void> => {
     try {
+
       const findList = await this._FindAll_Protected();
 
       success({ res, data: findList, status: 200 });
@@ -125,7 +115,7 @@ class UserController extends UserService {
   public getById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const findData = await this._FindByPk_Protected(String(id));
+      const findData = await this.findByPk(String(id));
       if (findData) {
         success({ res, data: findData, status: 200 });
       } else {

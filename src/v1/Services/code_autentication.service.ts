@@ -5,11 +5,11 @@ import { handleServiceError } from '../../Utils/errorHandler_catch';
 export class CodeAutenticationService {
 
   // Crear código de autenticación
-  public async createCodeAuthentication(codeData: CodeAutenticationCreationAttributes, transaction: Transaction): Promise<CodeAutentication> {
+  public async createValidEmail(codeData: CodeAutenticationCreationAttributes, transaction: Transaction): Promise<CodeAutentication> {
     try {
 
       const codeAleatorio = await this._GenerarCodigoAleatorio_Private();
-      codeData = {...codeData, Code: codeAleatorio}
+      codeData = {...codeData, Code: codeAleatorio, IdTypeCode:1}
       const code = await CodeAutentication.create(codeData, { transaction });
       return code;
 

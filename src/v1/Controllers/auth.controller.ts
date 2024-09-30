@@ -36,14 +36,25 @@ class AuthController extends AuthService {
     }
   }
 
-  public recoveryPasswordValid = async (req: Request, res: Response): Promise<void> => {
+  public recoveryPassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+      let data = req.body;
+      const {Email} = data
+      const response = await this._RecoveryPassword_Protected(Email);
+      success({ res, data: response, status: 200 });
+    } catch(err) {
+      error({ res, data: 'Se tuvo un problema en la solicitud, te sugerimos que te pongas en contacto con soporte', status: 500, details: err });
+    }
+  }
+
+  public validDataUser = async (req: Request, res: Response): Promise<void> => {
     try {
       const authHeader  = req.headers['authorization'];
       const token = authHeader && authHeader.split(' ')[1];
       if (!token) {
         error({ req, res, data: 'Token invalido', status: 401 });
       } else {
-        const response = await this._RecoveryPassword_Protected(token)
+        const response = await this._ValidDataUser_Protected(token)
         success({ req, res, data: response, status: 200 });  
       }
     } catch (err: any) {

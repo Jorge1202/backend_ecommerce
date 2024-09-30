@@ -9,7 +9,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 //#region ROUTES
-
 app.get("/", (req: Request, res: Response) => {
     res.send("Api");
 });

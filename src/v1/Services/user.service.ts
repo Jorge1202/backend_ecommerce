@@ -1,5 +1,4 @@
 import { Transaction } from 'sequelize';
-import { generateToken } from '../Secure/tokenJWT';
 import { withTransaction } from '../../Utils/transaction_helper';
 import { handleServiceError } from '../../Utils/errorHandler_catch';
 import { MailService, MailServiceConfig, MailActions } from '../Secure/mails/sendMail';
@@ -10,7 +9,6 @@ import {AuthService} from './auth.service';
 import { UserPageService } from './user_page.service'
 import { ProfileService } from './profile.service';
 import { HistoryRegisterService } from './historyRegister.service';
-import { link } from 'fs';
 
 interface RegisterData {
   user: {
@@ -126,44 +124,6 @@ export class UserService {
       }
   }
 
-  protected async _RecoveryPassword_Protected(Email: string): Promise<string> {
-    try {
-      const user = await User.findOne({
-        where: { Email } 
-      });
-      if (!user) {
-        throw new Error(`Si existe una cuenta asociada con este correo, recibirás un email`);
-      }
-
-      const token = generateToken({
-        dataToken: {
-          IdUser: user.IdUser,
-        },
-        expiresIn: '30m',
-      });
-
-      // Envía el correo
-      const mailConfig: MailServiceConfig = {
-        accion:MailActions.recoveryPassword,
-        to: user.Email,
-        subject: 'Solicitud de Restablecimiento de Contraseña',
-        dataMail:{
-          name: user.Name,
-          firstname: user.Firstname,
-          token: token
-        }
-      };
-      const mailService = new MailService(mailConfig);
-      const responseMail = await mailService.send();
-      if(!responseMail.send) throw new Error(responseMail.response)        
-      
-      return `¡Solicitud aprovada!, Accede al correo (${Email}) para seguir el proceso`;
-
-    } catch (error) {
-      throw new Error('Se tuvo un problema en la solicitud, te sugerimos que te pongas en contacto con soporte')
-    }
-  }
-
   // Crear usuario
   private async _CreateUser_Private(userData: UserCreationAttributes, transaction: Transaction): Promise<User> {
     try {
@@ -183,7 +143,7 @@ export class UserService {
   }
 
   // Obtener usuario por ID
-  protected async _FindByPk_Protected(id: string): Promise<User | null> {
+  public async findByPk(id: string): Promise<User | null> {
     try {
       return await User.findByPk(id);
     } catch (error) {

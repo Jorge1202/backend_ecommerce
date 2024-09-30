@@ -1,12 +1,12 @@
 import { DataMail } from "../mail";
 
-export const recoveryPass = (param:DataMail):string => `
+export const PasswordChangeSuccessful = (param:DataMail):string => `
     <tr>
         <td>
             <table style='width: 100%; padding: 25px 50px;'>
                 <tr>
                     <td style='font-size:18px; line-height: 22px; font-weight: bold; text-align: center; text-align: center;'>
-                        Solicitud de cambio de Contraseña
+                        Cambio de Contraseña Exitoso
                     </td>
                 </tr>
             </table>
@@ -23,55 +23,28 @@ export const recoveryPass = (param:DataMail):string => `
                     </tr>
                     <tr>
                         <td style='font-size: 12px; text-align: justify; line-height: 22px;'>
-                            Hemos recibido una solicitud para cambiar la contraseña de tu cuenta. 
+                            Hemos recibido una solicitud para cambiar la contraseña de tu cuenta asociada a este correo.
+                        </td>   
+                    </tr>
+                    <tr>
+                        <td style='font-size: 12px; text-align: justify; line-height: 22px;'>
+                            Nos complace informarte que tu contraseña ha sido cambiada exitosamente.
                         </td>   
                     </tr>
 
                     <tr>
                         <td style='font-size: 12px; text-align: justify; line-height: 22px;'>
-                            Este enlace es válido durante los próximos <strong>30 minutos por razones de seguridad.</strong>. 
-                            Si no cambias tu contraseña dentro de este tiempo, deberás solicitarlo nuevanete.
+                           Si no realizaste este cambio, te recomendamos que restablezcas tu contraseña inmediatamente 
+                           y te pongas en contacto con nuestro soporte técnico.
                         </td>   
                     </tr>
-                    <tr>
-                        <td>
-                            <center>
-                                <table style='margin: 35px 0 0 0;'>
-                                    <tr>
-                                        <td style='font-size: 12px; text-align: center; line-height: 22px;'>
-                                            Da click en el siguinte enlace para cambiar tu contrase;a.
-                                        </td>   
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <a style='text-decoration: none; font-weight: bold;' href='${param.link}' target='_blank' data-saferedirecturl='${param.link}'>
-                                                <table border='0' cellpadding='14' cellspacing='0' style='background: #00916E; border-radius: 20px; width: 230px; height: 32px;'> 
-                                                    <tr> 
-                                                        <td align='center'>
-                                                            <font style='color:#ffffff;'>Cambiar mi conraseña</font>
-                                                        </td> 
-                                                    </tr>
-                                                </table> 
-                                            </a>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </center>
-                        </td>
-                    </tr>
-                    
+
                     <tr>
                         <td style='font-size: 12px; text-align: justify; line-height: 22px;'>
-                        ${param.link}
+                            Para mayor seguridad, asegúrate de utilizar una contraseña fuerte y única.
                         </td>   
                     </tr>
-                    <tr>
-                        <td style='font-size: 12px; text-align: justify; line-height: 22px;'>
-                            Si no has solicitado el restablecimiento de tu contraseña, 
-                            no te preocupes, simplemente ignora este correo. Tu cuenta sigue segura y no se realizarán cambios.
-                        </td>   
-                    </tr>
-                    
+
                     <tr>
                         <td>
                             <table align='left' border='0' cellpadding='0' cellspacing='0' style='width: 100%; margin: 2px 0px 6px 0px; line-height: 22px; font-size: 12px;'>  

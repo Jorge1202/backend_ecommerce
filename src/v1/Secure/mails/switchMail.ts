@@ -6,6 +6,7 @@ import { template } from './content/template';
 import { welcomeNewUser } from './content/welcomeNewUser';
 import { cedeAuth } from './content/code_auth';
 import { recoveryPass } from './content/recoveryPass';
+import { PasswordChangeSuccessful } from './content/PasswordChangeSuccessful';
 import { newDevice } from './content/newDevice';
 
 export const bodyMail = async (action: MailActions, params: DataMail): Promise<string> => {
@@ -43,12 +44,19 @@ export const bodyMail = async (action: MailActions, params: DataMail): Promise<s
         company: company,
       });
       break;
-    case MailActions.recoveryPassword:
+    case MailActions.RecoveryPassword:
       body = recoveryPass({
         name: params.name,
         firstname: params.firstname,
         company: company,
         link: `${linkFront}/recoverypassword/${params.token}`
+      });
+      break;
+    case MailActions.PasswordChangeSuccessful:
+      body = PasswordChangeSuccessful({
+        name: params.name,
+        firstname: params.firstname,
+        company: company,
       });
       break;
     default:
