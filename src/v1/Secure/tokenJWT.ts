@@ -5,8 +5,8 @@ import { config } from '../../Config';
 const JWT_SECRET = config.JWT_SECRET;
 
 // Interfaz para el payload del token, donde se puede extender según sea necesario.
-interface TokenPayload {
-  userId: string;
+export interface TokenPayload {
+  IdUser: string;
   email?: string;
   role?: string;
   iat?: number; // Opcional: Tiempo de emisión (se incluye automáticamente en el token)
@@ -38,14 +38,17 @@ interface Token {
 export const generateToken = ({dataToken, expiresIn = '30m'}: Token): string => {
   // Payload: Se puede agregar más información si es necesario
 
-  const { userId } = dataToken
+  const { IdUser } = dataToken
 
-  const payload: TokenPayload = { userId };
+  const payload: TokenPayload = { IdUser };
 
   // Generar el token con el payload y la llave secreta
   const token = jwt.sign(payload, JWT_SECRET, { expiresIn });
 
+  console.log(token);
+  
   return token;
+
 };
 
 // Función para verificar y decodificar el JWT

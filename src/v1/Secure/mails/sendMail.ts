@@ -4,7 +4,6 @@ export enum MailActions {
     CodeAuth = 'codeAuth',
     BienvenidoAdmin = 'bienvenidoAdmin',
     NuevoDispositivo = 'nuevoDispositivo',
-    RecoveryPass = 'recoveryPass',
     FormularioContrato = 'formularioContrato',
     recoveryPassword = 'recoveryPassword'
 }

@@ -43,7 +43,7 @@ export const bodyMail = async (action: MailActions, params: DataMail): Promise<s
         company: company,
       });
       break;
-    case MailActions.RecoveryPass:
+    case MailActions.recoveryPassword:
       body = recoveryPass({
         name: params.name,
         firstname: params.firstname,

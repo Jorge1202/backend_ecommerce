@@ -72,13 +72,6 @@ export const recoveryPass = (param:DataMail):string => `
                             no te preocupes, simplemente ignora este correo. Tu cuenta sigue segura y no se realizarán cambios.
                         </td>   
                     </tr>
-
-                    <tr>
-                        <td style='font-size: 12px; text-align: justify; line-height: 22px;'>
-                            Si no has solicitado el restablecimiento de tu contraseña, 
-                            no te preocupes, simplemente ignora este correo. Tu cuenta sigue segura y no se realizarán cambios.
-                        </td>   
-                    </tr>
                     
                     <tr>
                         <td>

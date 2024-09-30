@@ -1,5 +1,5 @@
 import { Transaction } from 'sequelize';
-import { generateToken } from '../Secure/generateToken';
+import { generateToken } from '../Secure/tokenJWT';
 import { withTransaction } from '../../Utils/transaction_helper';
 import { handleServiceError } from '../../Utils/errorHandler_catch';
 import { MailService, MailServiceConfig, MailActions } from '../Secure/mails/sendMail';
@@ -137,7 +137,7 @@ export class UserService {
 
       const token = generateToken({
         dataToken: {
-          userId: user.IdUser,
+          IdUser: user.IdUser,
         },
         expiresIn: '30m',
       });
