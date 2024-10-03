@@ -3,7 +3,7 @@ import { Transaction } from 'sequelize';
 import { handleServiceError } from '../../Utils/errorHandler_catch';
 
 export class StatisticsProfileService {
-    public async _createStatics(statics: StatisticsProfileCreationAttributes, transaction:Transaction):Promise<void>{
+    public async createStatics(statics: StatisticsProfileCreationAttributes, transaction:Transaction):Promise<void>{
         try {
             await StatisticsProfile.create(statics, {transaction})
           } catch (error) {

@@ -9,10 +9,10 @@ export class ProfileService {
   public async createProfile(profileData: ProfileCreationAttributes, transaction: Transaction): Promise<void> {
     try {
 
-      const profile = await this._CreateProfile_Private(profileData, transaction);
+      const profile = await this._createProfile(profileData, transaction);
       
       const statisticsProfileService = new StatisticsProfileService()
-      await statisticsProfileService._createStatics({
+      await statisticsProfileService.createStatics({
         IdProfile: profile.IdProfile,
       },transaction)
       
@@ -21,7 +21,7 @@ export class ProfileService {
     }
   }
 
-  protected async _FindAll_Protected(): Promise<Profile[]> {
+  protected async _findAllProfile(): Promise<Profile[]> {
     try {      
       const list = await Profile.findAll();
       return list;
@@ -30,7 +30,7 @@ export class ProfileService {
     }
   }
 
-  protected async _FindByPk_Protected(id: string): Promise<Profile | null> {
+  protected async _findByPk(id: string): Promise<Profile | null> {
     try {
       const record = await Profile.findByPk(id); // Remover el include de User
       return record;
@@ -39,7 +39,7 @@ export class ProfileService {
     }
   }
   
-  private async _CreateProfile_Private(profileData: ProfileCreationAttributes, transaction: Transaction): Promise<Profile> {
+  private async _createProfile(profileData: ProfileCreationAttributes, transaction: Transaction): Promise<Profile> {
     try {
       return await Profile.create(profileData, { transaction });
     } catch (error) {
@@ -47,7 +47,7 @@ export class ProfileService {
     }
   }
 
-  protected async _Update_Protected(id: string, data: Partial<Profile>): Promise<Profile | null> {
+  protected async _updateProfile(id: string, data: Partial<Profile>): Promise<Profile | null> {
     try {
       const record = await Profile.findByPk(id);
       if (!record) {
@@ -60,7 +60,7 @@ export class ProfileService {
     }
   }
 
-  protected async _Destroy_Protected(id: string): Promise<number> {
+  protected async _destroyProfile(id: string): Promise<number> {
     const result = await Profile.destroy({
       where: { IdProfile: id },
     });

@@ -1,7 +1,7 @@
 import { TypePage } from '../models/type-page'; 
 
 export class TypePageService {
-  protected async _FindAll_Protected(): Promise<TypePage[]> {
+  protected async _findAll(): Promise<TypePage[]> {
     try {      
       const list = await TypePage.findAll();
       return list;
@@ -10,7 +10,7 @@ export class TypePageService {
     }
   }
 
-  protected async _FindByPk_Protected(id: number): Promise<TypePage | null> {
+  protected async _findByPk(id: number): Promise<TypePage | null> {
     try {
       const record = await TypePage.findByPk(id); // Remover el include de User
       return record;
@@ -20,7 +20,7 @@ export class TypePageService {
   }
   
 
-  protected async _Create_Protected(data: TypePage): Promise<TypePage> {
+  protected async _createTypePage(data: TypePage): Promise<TypePage> {
     try {
       const newRecord = await TypePage.create(data);
       return newRecord;
@@ -29,7 +29,7 @@ export class TypePageService {
     }
   }
 
-  protected async _Update_Protected(id: number, data: Partial<TypePage>): Promise<TypePage | null> {
+  protected async _updateTypePage(id: number, data: Partial<TypePage>): Promise<TypePage | null> {
     try {
       const record = await TypePage.findByPk(id);
       if (!record) {
@@ -42,7 +42,7 @@ export class TypePageService {
     }
   }
 
-  protected async _Destroy_Protected(id: number): Promise<number> {
+  protected async _destroyTypePage(id: number): Promise<number> {
     const result = await TypePage.destroy({
       where: { IdTypePage: id },
     });

@@ -1,7 +1,7 @@
 //Configuración principal de la aplicación
 import express, { Request, Response } from 'express';
 import routes from './routes';
-import error from '../middlewares/errors'; 
+import error from '../middlewares/errors_app'; 
 
 const app = express();
 

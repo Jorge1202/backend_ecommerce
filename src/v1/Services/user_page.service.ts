@@ -1,6 +1,8 @@
 import { UserPage, UserPageCreationAttributes } from '../models/user-page';
 import { Transaction } from 'sequelize';
 import { handleServiceError } from '../../Utils/errorHandler_catch';
+import error from '../../middlewares/error';
+
 
 export class UserPageService {
 
@@ -12,7 +14,7 @@ export class UserPageService {
     }
   }
 
-  protected async _FindAll_Protected(): Promise<UserPage[]> {
+  protected async _findAll(): Promise<UserPage[]> {
     try {      
       const list = await UserPage.findAll();
       return list;
@@ -21,18 +23,18 @@ export class UserPageService {
     }
   }
 
-  protected async _FindByUsername_Protected(Username: string): Promise<UserPage | null> {
+  protected async _findByUsername(Username: string): Promise<UserPage | null> {
     try {
       const record = await UserPage.findOne({
         where: { Username } // Busca donde el campo 'username' coincida
       });
       return record;
-    } catch (error) {
-      throw new Error(`Error obteniendo el registro con USERNAME ${Username}: ${error}`);
+    } catch (err) {
+      throw error(`Error obteniendo el registro con USERNAME ${Username}: ${err}`);
     }
   }
 
-  protected async _FindByPk_Protected(id: number): Promise<UserPage | null> {
+  protected async _findByPk(id: number): Promise<UserPage | null> {
     try {
       const record = await UserPage.findByPk(id);
       return record;
@@ -41,17 +43,17 @@ export class UserPageService {
     }
   }
 
-  protected async _Update_Protected(id: number, data: Partial<UserPage>): Promise<UserPage | null> {
+  protected async _updateUserPage(id: number, data: Partial<UserPage>): Promise<UserPage | null> {
     try {
       const record = await UserPage.findByPk(id);
       if (!record) {
-        throw new Error(`Record with id ${id} not found`);
+        throw error(`Record with id ${id} not found`);
       }
 
       await record.update(data);
       return record;
-    } catch (error) {
-      throw new Error(`Error actualizando registro con id ${id}: ${error}`);
+    } catch (err) {
+      throw error(`Error actualizando registro con id ${id}: ${error}`);
     }
   }
 

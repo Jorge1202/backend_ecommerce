@@ -67,7 +67,8 @@ async function prepareMail(dataObject: Mail_DataObject): Promise<SendMailOptions
 
     // Asegúrate de que la acción sea un valor de MailActions
     if (!Object.values(MailActions).includes(accion)) {
-        throw new Error('Acción no válida');
+      throw error('Acción no válida', 409)
+         
     } 
 
     // Genera el contenido HTML basado en la acción

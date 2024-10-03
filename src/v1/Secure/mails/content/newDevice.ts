@@ -35,7 +35,8 @@ export const newDevice = (param:DataMail):string =>  `
                 </tr>
                 <tr>
                     <td style='font:15px/1.25em Helvetica Neue,Arial,Helvetica; font-size: 12px; text-align: justify; line-height: 22px;'>
-                        Si no has accedido al sistema, es posible que otra persona esté intentando acceder a tu cuenta de ${param.company}. Por seguridad no reenvíes ni proporciones este código a otra persona.
+                        Si no has accedido al sistema, es posible que otra persona esté intentando acceder a tu cuenta de ${param.company}. 
+                        Por seguridad no reenvíes ni proporciones este código a otra persona.
                     </td>   
                 </tr>
                 <tr>

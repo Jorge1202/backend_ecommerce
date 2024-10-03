@@ -4,7 +4,9 @@ import historyRegisterController from '../Controllers//historyRegister.controlle
 const registerRoutes = Router();
 
 registerRoutes.post('/', historyRegisterController.create);
+
 registerRoutes.put('/:email', historyRegisterController.updateById);
+
 registerRoutes.get('/:email', historyRegisterController.getById);
 
 export default registerRoutes;

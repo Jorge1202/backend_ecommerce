@@ -9,8 +9,10 @@ import { TypePage } from '../v1/models/type-page';
 import { Profile } from '../v1/models/profile';
 import { StatisticsProfile } from '../v1/models/statistics-profile';
 import { HistoryRegister } from '../v1/models/history-register';
-
+import { Login } from '../../models/login';
+import { StatusAuth } from '../../models/status-auth';
 import { PageStore } from '../v1/models/page-store';
+import { Devices } from '../../models/devices';
 
 const initModel = (sequelize: Sequelize) => {
     
@@ -25,6 +27,9 @@ const initModel = (sequelize: Sequelize) => {
     UserPage.initModel(sequelize)
     Profile.initModel(sequelize)
     StatisticsProfile.initModel(sequelize)
+    StatusAuth.initModel(sequelize)
+    Login.initModel(sequelize)
+    Devices.initModel(sequelize)
     //#endregion ######################### Create User
     
     //#region ######################### Create Store

@@ -2,6 +2,7 @@ import { Transaction } from 'sequelize';
 import { withTransaction } from '../../Utils/transaction_helper';
 import { handleServiceError } from '../../Utils/errorHandler_catch';
 import { MailService, MailServiceConfig, MailActions } from '../Secure/mails/sendMail';
+import error from '../../middlewares/error';
 
 import { User, UserCreationAttributes } from '../models/user';
 
@@ -9,28 +10,42 @@ import {AuthService} from './auth.service';
 import { UserPageService } from './user_page.service'
 import { ProfileService } from './profile.service';
 import { HistoryRegisterService } from './historyRegister.service';
+import { generateToken } from '../Secure/tokenJWT';
 
+
+interface inUser {
+  Username: string;
+  Name: string;
+  Firstname: string;
+  Lastname?: string;
+  Email: string;
+  Phone: string;
+  Password: string;
+}
 interface RegisterData {
-  user: {
-    Username: string;
-    Name: string;
-    Firstname: string;
-    Lastname?: string;
-    Email: string;
-    Phone: string;
-    Password: string;
-  };
+  user: inUser;
 }
 export class UserService {
+  
+  // Obtener usuario por ID
+  public async findByPkUser(id: string): Promise<User | null> {
+    try {
+      return await User.findByPk(id);
+    } catch (error) {
+      throw new Error(`Error fetching user with id ${id}: ${error}`);
+    }
+  }
 
   //Registro de usuarios
-  protected async _RegisterUser_Protected(data: RegisterData): Promise<any> {
-    await withTransaction(async (transaction)=>{
+  protected async _registerUser(data: RegisterData): Promise<any> {
+    return await withTransaction(async (transaction)=>{
       try {
         const { user } = data;
-  
+
+        await this._validExite(user)
+        
         // 1. Crear usuario
-        const newUser = await this._CreateUser_Private({
+        const newUser = await this._createUser({
           Username: user.Username,
           Name: user.Name,
           Firstname: user.Firstname,
@@ -38,7 +53,8 @@ export class UserService {
           Email: user.Email,
           Phone: user.Phone,
         }, transaction);
-  
+
+        
         // 2. Crear userPage
         const userPageService = new UserPageService();
         const newUserPage = await userPageService.createUserPage({
@@ -67,7 +83,6 @@ export class UserService {
           Pw:user.Password
         }, transaction);
 
-
         // Envía el correo
         const mailConfig: MailServiceConfig = {
           accion:MailActions.CodeAuth,
@@ -77,7 +92,6 @@ export class UserService {
             name: user.Name,
             firstname: user.Firstname,
             code: resultAuth.codeAuth.Code ?? '',
-            username: user.Username
           }
         };
         const mailService = new MailService(mailConfig);
@@ -88,15 +102,43 @@ export class UserService {
         const historyRegisterService = new HistoryRegisterService();          
         await historyRegisterService.updateByUsername (user.Email, user, transaction); 
 
+        return {
+          message: 'Usuario registrado exitosamente. ¡Verifica tu cuenta!',
+          email: newUser.Email
+        };
+
       } catch (err) {
         throw new Error(`Error registering user: ${err}`);
-      }
-      
+      }      
     })
-    return 'Usuario registrado exitosamente. ¡Verifica tu cuenta!';
+
   }
 
-  protected async _PruebaMail_Protected(data: RegisterData): Promise<any> {
+  private async _validExite(user:inUser):Promise<boolean | string>{
+    try {
+      const userExit = await User.findOne({
+        where: {Username: user.Username}
+      })
+
+      //validar si tiene codigo enviado
+      
+      if(userExit){
+        throw error('El usuario ya existe')
+      }
+      
+      const emailExit = await User.findOne({
+        where: {Email: user.Email}
+      })
+      if(emailExit){
+        throw error('El email ya existe')
+      }            
+      return true
+    } catch (err) {
+      throw error('El usuario ya existe')
+    }
+  }
+
+  protected async _pruebaMail(data: RegisterData): Promise<any> {
       try {
         const { user } = data;
 
@@ -125,7 +167,7 @@ export class UserService {
   }
 
   // Crear usuario
-  private async _CreateUser_Private(userData: UserCreationAttributes, transaction: Transaction): Promise<User> {
+  private async _createUser(userData: UserCreationAttributes, transaction: Transaction): Promise<User> {
     try {
       return await User.create(userData, { transaction });
     } catch (error) {
@@ -134,7 +176,7 @@ export class UserService {
   }
 
   // Obtener todos los usuarios
-  protected async _FindAll_Protected(): Promise<User[]> {
+  protected async _findAll(): Promise<User[]> {
     try {
       return await User.findAll();
     } catch (error) {
@@ -142,17 +184,9 @@ export class UserService {
     }
   }
 
-  // Obtener usuario por ID
-  public async findByPk(id: string): Promise<User | null> {
-    try {
-      return await User.findByPk(id);
-    } catch (error) {
-      throw new Error(`Error fetching user with id ${id}: ${error}`);
-    }
-  }
 
   // Actualizar usuario
-  protected async _Update_Protected(id: string, data: Partial<User>): Promise<User | null> {
+  protected async _updateUser(id: string, data: Partial<User>): Promise<User | null> {
     try {
       const user = await User.findByPk(id);
       if (!user) {
@@ -166,7 +200,7 @@ export class UserService {
   }
 
   // Eliminar usuario
-  protected async _ProtectedDestroy(id: string): Promise<number> {
+  protected async _destroyUser(id: string): Promise<number> {
     try {
       return await User.destroy({ where: { IdUser: id } });
     } catch (error) {

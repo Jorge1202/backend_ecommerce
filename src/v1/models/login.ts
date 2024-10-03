@@ -4,25 +4,25 @@ import type { Auth, AuthId } from './auth';
 
 export interface LoginAttributes {
   IdLogin: number;
-  Status: boolean;
-  DateCreate: string;
-  DateUpdate?: string;
-  IdAuth: number;
-  IdDevice: number;
+  Active?: boolean;
+  DateCreate?: Date;
+  DateUpdate?: Date;
+  IdAuth?: number;
+  IdDevice?: number;
 }
 
 export type LoginPk = "IdLogin";
 export type LoginId = Login[LoginPk];
-export type LoginOptionalAttributes = "IdLogin" | "DateUpdate";
+export type LoginOptionalAttributes = "IdLogin" | "Active" | "DateCreate" | "DateUpdate" | "IdAuth" | "IdDevice";
 export type LoginCreationAttributes = Optional<LoginAttributes, LoginOptionalAttributes>;
 
 export class Login extends Model<LoginAttributes, LoginCreationAttributes> implements LoginAttributes {
   IdLogin!: number;
-  Status!: boolean;
-  DateCreate!: string;
-  DateUpdate?: string;
-  IdAuth!: number;
-  IdDevice!: number;
+  Active?: boolean;
+  DateCreate?: Date;
+  DateUpdate?: Date;
+  IdAuth?: number;
+  IdDevice?: number;
 
   // Login belongsTo Auth via IdAuth
   IdAuthAuth!: Auth;
@@ -39,24 +39,25 @@ export class Login extends Model<LoginAttributes, LoginCreationAttributes> imple
       primaryKey: true,
       field: 'id_login'
     },
-    Status: {
+    Active: {
       type: DataTypes.BOOLEAN,
-      allowNull: false,
-      field: 'status'
+      allowNull: true,
+      defaultValue: true,
+      field: 'active'
     },
     DateCreate: {
-      type: DataTypes.DATEONLY,
-      allowNull: false,
+      type: DataTypes.DATE,
+      allowNull: true,
       field: 'date_create'
     },
     DateUpdate: {
-      type: DataTypes.DATEONLY,
+      type: DataTypes.DATE,
       allowNull: true,
       field: 'date_update'
     },
     IdAuth: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: 'auth',
         key: 'id_auth'
@@ -65,14 +66,26 @@ export class Login extends Model<LoginAttributes, LoginCreationAttributes> imple
     },
     IdDevice: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       field: 'id_device'
     }
   }, {
     sequelize,
     tableName: 'login',
     schema: 'user',
-    timestamps: false,
+    timestamps: true, // Utiliza timestamps automáticos
+    createdAt: 'DateCreate',
+    updatedAt: 'DateUpdate',
+    hooks: {
+      beforeCreate: (login: Login) => {
+        const now = new Date();
+        login.DateCreate = now;
+        login.DateUpdate = now;
+      },
+      beforeUpdate: (login: Login) => {
+        login.DateUpdate = new Date();
+      }
+    },
     indexes: [
       {
         name: "login_pkey",

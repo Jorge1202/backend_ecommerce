@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { success, error } from '../../middlewares/response';
 
 import { UserService } from '../Services/user.service';
-import UserPageController from './user_page.controller';
 interface Record {
   user: {
     Username: string;
@@ -26,11 +25,11 @@ class UserController extends UserService {
       let data = req.body;
 
       // 1. Validación de datos
-      const responseJson = await this._privateValidDataCreate(res, data);
+      const responseJson = await this._validDataCreate(res, data);
       if (!responseJson) return;
 
       // 2. Llamar al servicio para crear usuario 
-      const rsponse = await this._RegisterUser_Protected(data);
+      const rsponse = await this._registerUser(data);
 
       // success({ res, data: 'Registro exitoso. El usuario se ha creado correctamente.', status: 201 });
       success({ res, data: rsponse, status: 201 });
@@ -41,22 +40,16 @@ class UserController extends UserService {
     }
   }
 
-  private _privateValidDataCreate = async (res: Response, data: Record): Promise<boolean | null> => {
+  private _validDataCreate = async (res: Response, data: Record): Promise<boolean | null> => {
     try {
       const { user } = data;
   
       if (!user) {
-        error({ res, data: 'Faltan datos de usuario o autenticación', details:'(Controller.ValidDataCreate)', status: 400 });
+        error({ res, data: 'Faltan datos de usuario ', details:'(Controller.ValidDataCreate)', status: 400 });
         return false;
       }
 
       // Validación de campos obligatorios del usuario
-      const newUserPage = await UserPageController.getByUsername(user.Username);
-      if(newUserPage){
-        error({ res, data: 'El username ya se encuentra en uso', status: 409 });
-        return false;
-      }
-
       if (!user.Email) {
         error({ res, data: 'Ingresa el Email', details:'(Controller.ValidDataCreate)', status: 422, });
         return false;
@@ -78,7 +71,7 @@ class UserController extends UserService {
         error({ res, data: 'Ingresa la contraseña', details:'(Controller.ValidDataCreate)', status: 422, });
         return false;
       }
-  
+
       // Si todo está bien, retornamos los datos
       return true;
     } catch (err) {
@@ -91,7 +84,7 @@ class UserController extends UserService {
     try {
       let data = req.body;
 
-      const response = await this._PruebaMail_Protected(data);
+      const response = await this._pruebaMail(data);
 
       success({ res, data: response, status: 200 });
       
@@ -104,7 +97,7 @@ class UserController extends UserService {
   public getAll = async (req: Request, res: Response): Promise<void> => {
     try {
 
-      const findList = await this._FindAll_Protected();
+      const findList = await this._findAll();
 
       success({ res, data: findList, status: 200 });
     } catch (err) {
@@ -115,7 +108,7 @@ class UserController extends UserService {
   public getById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const findData = await this.findByPk(String(id));
+      const findData = await this.findByPkUser(String(id));
       if (findData) {
         success({ res, data: findData, status: 200 });
       } else {
@@ -129,7 +122,7 @@ class UserController extends UserService {
   public updateById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const updatedRecord = await this._Update_Protected(String(id), req.body); // Llamada al servicio
+      const updatedRecord = await this._updateUser(String(id), req.body); // Llamada al servicio
       if (updatedRecord) {
         success({ res, data: updatedRecord, status: 200 });
       } else {
@@ -143,7 +136,7 @@ class UserController extends UserService {
   public deleteById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const result = await this._ProtectedDestroy(String(id)); // Llamada al servicio
+      const result = await this._destroyUser(String(id)); // Llamada al servicio
       if (result) {
         success({ res, data: 'Record  deleted successfully', status: 200 });
       } else {

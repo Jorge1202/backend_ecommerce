@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import {getTokenForDevice, getToken} from './auth.middleware'; 
+import error from '../../middlewares/error';
 
 type ActionType = 'token' | 'dispositivo' | 'get';
 
@@ -32,7 +33,7 @@ export function checkAuth(action: ActionType) {
           break;
 
         default:
-          return next(new Error('Invalid action type'));
+          return next(error('Invalid action type'));
       }
       
       // Continúa al siguiente middleware o ruta

@@ -14,7 +14,7 @@ class historyRegisterController extends HistoryRegisterService {
       let data = req.body;
 
       // 2. Llamar al servicio para crear registro 
-      const rsponse = await this._Create_Protected(data);
+      const rsponse = await this._createHistory(data);
 
       success({ res, data: rsponse, status: 201 });
       
@@ -27,7 +27,7 @@ class historyRegisterController extends HistoryRegisterService {
   public getById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { email } = req.params;
-      const findData = await this._FindByEmail_Protected(String(email));
+      const findData = await this._findByEmail(String(email));
       if (findData) {
         success({ res, data: findData, status: 200 });
       } else {

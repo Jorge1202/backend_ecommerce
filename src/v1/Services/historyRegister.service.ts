@@ -6,13 +6,13 @@ import { Transaction } from 'sequelize';
 export class HistoryRegisterService {
   
   // Crear historial de registro
-  protected async _Create_Protected(userData: HistoryRegister): Promise<HistoryRegister> {
+  protected async _createHistory(userData: HistoryRegister): Promise<HistoryRegister> {
     try {
       if(!userData.Email) {
         throw err('El correo ya se encuentra registrado', 409);
       }
 
-      const existingRecord = await this._FindByEmail_Protected(userData.Email);
+      const existingRecord = await this._findByEmail(userData.Email);
       if (existingRecord) {
         throw err('El correo ya está registrado', 409);
       }
@@ -25,7 +25,7 @@ export class HistoryRegisterService {
   }
 
   // Obtener historial de registro por Email
-  protected async _FindByEmail_Protected(Email: string): Promise<HistoryRegister | null> {
+  protected async _findByEmail(Email: string): Promise<HistoryRegister | null> {
     try {
       return await HistoryRegister.findOne({
         where: { Email } // Busca donde el campo 'Email' coincida
@@ -38,15 +38,14 @@ export class HistoryRegisterService {
   // Actualizar historial de registro (con o sin transacción)
   public async updateByUsername(Email: string, data: Partial<HistoryRegister>, transaction?: Transaction): Promise<HistoryRegister | null> {
     try {
-      const register = await this._FindByEmail_Protected(Email);
+      const register = await this._findByEmail(Email);
 
       if (!register) {
         throw new Error(`Register with Email ${Email} not found`);
       }
       
       if (transaction) {
-        data = { ...data, StatusRegister: 6};
-        await register.update(data, { transaction });
+        await register.update({ ...data, StatusRegister: 6}, { transaction });
       } else {
         await register.update(data);
       }

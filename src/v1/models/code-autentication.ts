@@ -97,7 +97,19 @@ export class CodeAutentication extends Model<CodeAutenticationAttributes, CodeAu
     sequelize,
     tableName: 'code_autentication',
     schema: 'user',
-    timestamps: false,
+    timestamps: true, // Utiliza timestamps automáticos
+    createdAt: 'DateCreate',
+    updatedAt: 'DateUpdate',
+    hooks: {
+      beforeCreate: (code: CodeAutentication) => {
+        const now = new Date();
+        code.DateCreate = now;
+        code.DateUpdate = now;
+      },
+      beforeUpdate: (code: CodeAutentication) => {
+        code.DateUpdate = new Date();
+      }
+    },
     indexes: [
       {
         name: "code_autentication_1_pkey",

@@ -11,7 +11,7 @@ class UserPageController extends UserPageService {
 
   public getAll = async (req: Request, res: Response): Promise<void> => {
     try {
-      const userPages = await this._FindAll_Protected();
+      const userPages = await this._findAll();
       success({ req, res, data: userPages, status: 200 });
     } catch (err) {
       error({ req, res, data: 'Error fetching user pages', details: err, status: 500 });
@@ -21,7 +21,7 @@ class UserPageController extends UserPageService {
   public getById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const userPage = await this._FindByPk_Protected(Number(id));
+      const userPage = await this._findByPk(Number(id));
       
       if (userPage) {
         success({ req, res, data: userPage, status: 200 });
@@ -36,7 +36,7 @@ class UserPageController extends UserPageService {
 
   public getByUsername = async (username:string): Promise<UserPage | null> => {
     try {
-      const userPage = await this._FindByUsername_Protected(String(username));
+      const userPage = await this._findByUsername(String(username));
       return userPage
     } catch (err) {
       throw new Error(`Error obteniendo el registro con USERNAME ${username}: ${error}`);
@@ -46,7 +46,7 @@ class UserPageController extends UserPageService {
   public updateById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const updatedUserPage = await this._Update_Protected(Number(id), req.body); // Llamada al servicio
+      const updatedUserPage = await this._updateUserPage(Number(id), req.body); // Llamada al servicio
       if (updatedUserPage) {
         success({ req, res, data: updatedUserPage, status: 200 });
       } else {
