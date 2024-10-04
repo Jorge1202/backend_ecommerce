@@ -10,8 +10,6 @@ import {AuthService} from './auth.service';
 import { UserPageService } from './user_page.service'
 import { ProfileService } from './profile.service';
 import { HistoryRegisterService } from './historyRegister.service';
-import { generateToken } from '../Secure/tokenJWT';
-
 
 interface inUser {
   Username: string;
@@ -31,8 +29,8 @@ export class UserService {
   public async findByPkUser(id: string): Promise<User | null> {
     try {
       return await User.findByPk(id);
-    } catch (error) {
-      throw new Error(`Error fetching user with id ${id}: ${error}`);
+    } catch (err) {
+      throw error(`Error fetching user with id ${id}: ${err}`);
     }
   }
 
@@ -108,7 +106,7 @@ export class UserService {
         };
 
       } catch (err) {
-        throw new Error(`Error registering user: ${err}`);
+        throw error(`Error registering user: ${err}`);
       }      
     })
 
@@ -162,7 +160,7 @@ export class UserService {
         return 'Usuario registrado exitosamente. ¡Verifica tu cuenta!';
 
       } catch (err) {
-        throw new Error(`Error registering user: ${err}`);
+        throw error(`Error registering user: ${err}`);
       }
   }
 
@@ -170,7 +168,7 @@ export class UserService {
   private async _createUser(userData: UserCreationAttributes, transaction: Transaction): Promise<User> {
     try {
       return await User.create(userData, { transaction });
-    } catch (error) {
+    } catch (err) {
       handleServiceError(error, 'Error creando usuario', 500)
     }
   }
@@ -179,7 +177,7 @@ export class UserService {
   protected async _findAll(): Promise<User[]> {
     try {
       return await User.findAll();
-    } catch (error) {
+    } catch (err) {
       handleServiceError(error, 'Error fetching users', 500)
     }
   }
@@ -190,12 +188,12 @@ export class UserService {
     try {
       const user = await User.findByPk(id);
       if (!user) {
-        throw new Error(`User with id ${id} not found`);
+        throw error(`User with id ${id} not found`);
       }
       await user.update(data);
       return user;
-    } catch (error) {
-      throw new Error(`Error updating user: ${error}`);
+    } catch (err) {
+      throw error(`Error updating user: ${err}`);
     }
   }
 
@@ -203,8 +201,8 @@ export class UserService {
   protected async _destroyUser(id: string): Promise<number> {
     try {
       return await User.destroy({ where: { IdUser: id } });
-    } catch (error) {
-      throw new Error(`Error deleting user: ${error}`);
+    } catch (err) {
+      throw error(`Error deleting user: ${err}`);
     }
   }
 }

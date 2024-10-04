@@ -54,9 +54,9 @@ export type AllToken = TokenLogin | TokenDevice;
 export const generateToken = ({dataToken, expiresIn='1d'}: Token): string => {
   // Payload: Se puede agregar más información si es necesario
 
-  const { IdUser } = dataToken
+  // const { IdUser } = dataToken
 
-  const payload: TokenPayload = { IdUser };
+  const payload: TokenPayload = dataToken;
 
   // Generar el token con el payload y la llave secreta
   const token = jwt.sign(payload, JWT_SECRET, { expiresIn });  

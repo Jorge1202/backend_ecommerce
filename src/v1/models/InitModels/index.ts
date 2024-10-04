@@ -1,23 +1,21 @@
 import { Sequelize } from 'sequelize-typescript';
 
-
-import { User } from '../v1/models/user';
-import { Auth } from '../v1/models/auth';
-import { CodeAutentication } from '../v1/models/code-autentication';
-import { UserPage } from '../v1/models/user-page';
-import { TypePage } from '../v1/models/type-page';
-import { Profile } from '../v1/models/profile';
-import { StatisticsProfile } from '../v1/models/statistics-profile';
-import { HistoryRegister } from '../v1/models/history-register';
-import { Login } from '../../models/login';
-import { StatusAuth } from '../../models/status-auth';
-import { PageStore } from '../v1/models/page-store';
-import { Devices } from '../../models/devices';
+import { User } from '../user';
+import { Auth } from '../auth';
+import { CodeAutentication } from '../code-autentication';
+import { UserPage } from '../user-page';
+import { TypePage } from '../type-page';
+import { Profile } from '../profile';
+import { StatisticsProfile } from '../statistics-profile';
+import { HistoryRegister } from '../history-register';
+import { PageStore } from '../page-store';
+import { StatusAuth } from '../status-auth';
+import { Login } from '../login';
+import { Devices } from '../devices';
 
 const initModel = (sequelize: Sequelize) => {
     
     TypePage.initModel(sequelize)
-
     
     //#region ######################### Create User
     HistoryRegister.initModel(sequelize)

@@ -11,7 +11,7 @@ userRoutes.put('/changePassword', authController.changePassword);
 
 userRoutes.get('/validarUser', authController.validDataUser); 
 userRoutes.get('/generateCodeEmail/:email', authController.generateCodeEmail); 
-userRoutes.get('/:username/:password', authController.getLogin); 
+// userRoutes.get('/:username/:password', authController.getLogin); 
 
 export default userRoutes;
   

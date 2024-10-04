@@ -9,10 +9,10 @@ import { MailActions, MailServiceConfig, MailService } from '../Secure/mails/sen
 import { Auth, AuthCreationAttributes } from '../models/auth'; 
 import { CodeAutentication } from '../models/code-autentication';
 import { User } from '../models/user';
+import { UserPage } from '../models/user-page';
 import { StatusAuth } from '../models/status-auth';
 import { Login } from '../models/login';
 import { Devices, DevicesCreationAttributes } from '../models/devices';
-import { UserPage } from '../models/user-page';
 
 import { CodeAutenticationService } from './code_autentication.service';
 import { UserService } from './user.service';
@@ -26,8 +26,6 @@ interface LoginParams {
   Password: string;
 }
 
-
-
 export interface ParamsLogin {
   Login: LoginParams
   withToken: boolean;
@@ -36,6 +34,7 @@ export interface ParamsLogin {
 }
 
 export class AuthService {
+
   //#region ######################################### CREATION ACOUNT
   public async createAuth(authData: AuthCreationAttributes, transaction: Transaction): Promise<AuthResult> {
     try {
@@ -155,15 +154,15 @@ export class AuthService {
 
         //obtiene lista de login
         const IdAuth = dataAuth.IdAuth;        
-        // const listLogin = await Login.findAll({
-        //   where: { IdAuth }
-        // });
-        const listLogin = await Login.findAll();
+        const listLogin = await Login.findAll({
+          where: { IdAuth }
+        });
+        
 
         //VALIDA LOGIN Y TOKEN
         if(listLogin.length === 0){ //########### PRIMER LOGIN
           if (!deviceInfo) {
-            throw error('El token del dispositivo es requerido pero no se proporcionó.', 400); 
+            throw error('Los datos del dispositivo no se encuentran.', 400); 
           }
 
           //* Crear registro en tabla Device con token
@@ -179,6 +178,9 @@ export class AuthService {
           const tokenLogin = await this._generateToken({ IdAuth: dataAuth.IdAuth, IdUserPage: userPage.IdUserPage }, 'Login');
           const tokenDevice = await this._generateToken({ IdDevice: device.IdDevices, IdAuth: dataAuth.IdAuth, IdUser: dataAuth.IdUser }, 'Device');
           
+          device.Token = tokenDevice
+          await this._updateDevice(device, transaction)
+
           return {
             message: '¡Inicio de sesión exitoso! Bienvenido.',
             tokenDevice,
@@ -199,16 +201,41 @@ export class AuthService {
               IdAuth: dataAuth.IdAuth,
               IdTypeCode: 6
             });
+            if(!codeAuth){
+              throw error('No se genero código')
+            }
+            const code = codeAuth.Code
 
-            await this._sendMailVerifyDevice('', '', '', '');
+            const userData = await User.findByPk(dataAuth.IdUser)
+            if(!userData){
+              throw error('No se encontro usuario')
+            }
+
+
+            await this._sendMailVerifyDevice(userData.Email, userData.Name, userData.Firstname, code||'');
 
             const tokenDevice = await this._generateToken({ IdDevice: device.IdDevices, IdAuth: dataAuth.IdAuth, IdUser: dataAuth.IdUser }, 'Device');
+            device.Token = tokenDevice
+            await this._updateDevice(device, transaction)
+            
             return {
               message: '¡Correo enviado con éxito! Hemos enviado un código para verificar tu nuevo dispositivo.',
               tokenDevice
             }
  
           }else if(withToken){  //########### EXISTE TOKEN del Dispositivo 
+
+            // Validar si no tiene codigos pendientes que verificar en esttus 6
+            const dataActivo = await CodeAutentication.findOne({
+              where:{
+                IdAuth:dataAuth.IdAuth,
+                IsActive: true
+              }
+            })
+
+            if(dataActivo){
+              throw error('Por favor, ingresa el código de verificación para completar el inicio de sesión.')
+            }
 
             if (!deviceToken) {
                 throw error('El token del dispositivo es requerido pero no se proporcionó.', 400); 
@@ -232,7 +259,6 @@ export class AuthService {
               tokenLogin
             }
           }
-
         } 
 
       } catch (err: any) {
@@ -268,7 +294,17 @@ export class AuthService {
 
   private async _createDevice(deviceInfo:DevicesCreationAttributes,  transaction: Transaction):Promise<Devices>{
     try {
-      return await Devices.create(deviceInfo, { transaction });
+      const devices = await Devices.create(deviceInfo, { transaction });
+      return devices
+    } catch (error) {
+      handleServiceError(error, 'Error Creando Device', 500)
+    }
+  }
+
+  private async _updateDevice(deviceInfo:Devices,  transaction: Transaction):Promise<Devices>{
+    try {
+      const devices = await deviceInfo.update({ ...deviceInfo, Token:deviceInfo.Token}, { transaction });
+      return devices
     } catch (error) {
       handleServiceError(error, 'Error Creando Device', 500)
     }
@@ -323,7 +359,7 @@ export class AuthService {
       // Generamos el token utilizando la función `generateToken`
       const token = generateToken({
           dataToken: contentToken,
-          expiresIn: '30m', // o el tiempo que sea apropiado para tu caso
+          expiresIn: '7d', // o el tiempo que sea apropiado para tu caso
       });
   
       return token;
@@ -331,8 +367,7 @@ export class AuthService {
     } catch (err: any) {
       throw error(`${err.message}`) 
     }
-}
-
+  }
 
   private async _sendMailVerifyDevice(Email: string, Name:string,Firstname:string, Code:string ):Promise<any>{
     try {

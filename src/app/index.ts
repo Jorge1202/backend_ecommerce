@@ -2,7 +2,7 @@
 import express, { Request, Response } from 'express';
 import routes from './routes';
 import error from '../middlewares/errors_app'; 
-
+import cookieParser from 'cookie-parser';
 const app = express();
 
 app.use(express.json());
@@ -17,6 +17,7 @@ app.get("/api", (req: Request, res: Response) => {
     res.send("Api documentacion...");
 });
 
+app.use(cookieParser());
 
 routes(app)
 //#endregion ROUTES

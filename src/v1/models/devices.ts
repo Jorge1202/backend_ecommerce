@@ -1,10 +1,9 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
+import type { Login, LoginId } from './login';
 import type { User, UserId } from './user';
 
 export interface DevicesAttributes {
-  IdDevices: number;
-  IsActive?: number;
   UserAgent?: string;
   Plataform?: string;
   IdUser?: string;
@@ -17,16 +16,16 @@ export interface DevicesAttributes {
   VersionPlataform?: string;
   Cpu?: string;
   Browser?: string;
+  IdDevices: number;
+  IsActive?: boolean;
 }
 
 export type DevicesPk = "IdDevices";
 export type DevicesId = Devices[DevicesPk];
-export type DevicesOptionalAttributes = "IdDevices" | "IsActive" | "UserAgent" | "Plataform" | "IdUser" | "Token" | "Mobile" | "Ip" | "Location" | "DateCreate" | "DateUpdate" | "VersionPlataform" | "Cpu" | "Browser";
+export type DevicesOptionalAttributes = "UserAgent" | "Plataform" | "IdUser" | "Token" | "Mobile" | "Ip" | "Location" | "DateCreate" | "DateUpdate" | "VersionPlataform" | "Cpu" | "Browser" | "IdDevices" | "IsActive";
 export type DevicesCreationAttributes = Optional<DevicesAttributes, DevicesOptionalAttributes>;
 
 export class Devices extends Model<DevicesAttributes, DevicesCreationAttributes> implements DevicesAttributes {
-  IdDevices!: number;
-  IsActive?: number;
   UserAgent?: string;
   Plataform?: string;
   IdUser?: string;
@@ -39,7 +38,21 @@ export class Devices extends Model<DevicesAttributes, DevicesCreationAttributes>
   VersionPlataform?: string;
   Cpu?: string;
   Browser?: string;
+  IdDevices!: number;
+  IsActive?: boolean;
 
+  // Devices hasMany Login via IdDevice
+  Logins!: Login[];
+  getLogins!: Sequelize.HasManyGetAssociationsMixin<Login>;
+  setLogins!: Sequelize.HasManySetAssociationsMixin<Login, LoginId>;
+  addLogin!: Sequelize.HasManyAddAssociationMixin<Login, LoginId>;
+  addLogins!: Sequelize.HasManyAddAssociationsMixin<Login, LoginId>;
+  createLogin!: Sequelize.HasManyCreateAssociationMixin<Login>;
+  removeLogin!: Sequelize.HasManyRemoveAssociationMixin<Login, LoginId>;
+  removeLogins!: Sequelize.HasManyRemoveAssociationsMixin<Login, LoginId>;
+  hasLogin!: Sequelize.HasManyHasAssociationMixin<Login, LoginId>;
+  hasLogins!: Sequelize.HasManyHasAssociationsMixin<Login, LoginId>;
+  countLogins!: Sequelize.HasManyCountAssociationsMixin;
   // Devices belongsTo User via IdUser
   IdUserUser!: User;
   getIdUserUser!: Sequelize.BelongsToGetAssociationMixin<User>;
@@ -48,11 +61,15 @@ export class Devices extends Model<DevicesAttributes, DevicesCreationAttributes>
 
   static initModel(sequelize: Sequelize.Sequelize): typeof Devices {
     return Devices.init({
-    IdDevices: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      primaryKey: true,
-      field: 'id_devices'
+    UserAgent: {
+      type: DataTypes.STRING(160),
+      allowNull: true,
+      field: 'user_agent'
+    },
+    Plataform: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      field: 'plataform'
     },
     IdUser: {
       type: DataTypes.STRING(50),
@@ -64,30 +81,9 @@ export class Devices extends Model<DevicesAttributes, DevicesCreationAttributes>
       field: 'id_user'
     },
     Token: {
-      type: DataTypes.STRING(100),
+      type: DataTypes.STRING(255),
       allowNull: true,
-      defaultValue: DataTypes.UUIDV4,
       field: 'token'
-    },
-    IsActive: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      field: 'isActive'
-    },
-    UserAgent: {
-      type: DataTypes.STRING(160),
-      allowNull: true,
-      field: 'user_agent'
-    },
-    Plataform: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-      field: 'plataform'
-    },
-    VersionPlataform: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-      field: 'version_plataform'
     },
     Mobile: {
       type: DataTypes.BOOLEAN,
@@ -105,16 +101,6 @@ export class Devices extends Model<DevicesAttributes, DevicesCreationAttributes>
       allowNull: true,
       field: 'location'
     },
-    Cpu: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-      field: 'cpu'
-    },
-    Browser: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-      field: 'browser'
-    },
     DateCreate: {
       type: DataTypes.DATE,
       allowNull: true,
@@ -125,6 +111,34 @@ export class Devices extends Model<DevicesAttributes, DevicesCreationAttributes>
       allowNull: true,
       field: 'date_update'
     },
+    VersionPlataform: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      field: 'version_plataform'
+    },
+    Cpu: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      field: 'cpu'
+    },
+    Browser: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      field: 'browser'
+    },
+    IdDevices: {
+      autoIncrement: true,
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      primaryKey: true,
+      field: 'id_devices'
+    },
+    IsActive: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: true,
+      field: 'isActive'
+    }
   }, {
     sequelize,
     tableName: 'devices',
@@ -144,7 +158,7 @@ export class Devices extends Model<DevicesAttributes, DevicesCreationAttributes>
     },
     indexes: [
       {
-        name: "dispositivos_pkey",
+        name: "devices_pkey",
         unique: true,
         fields: [
           { name: "id_devices" },

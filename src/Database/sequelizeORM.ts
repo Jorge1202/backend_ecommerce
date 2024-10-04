@@ -1,7 +1,8 @@
 // sequelize.config.ts
 import { Sequelize } from 'sequelize-typescript';
 import * as dotenv from 'dotenv';
-import { initModel } from './initModel';
+// import { initModel } from './initModel';
+import { initModel } from '../v1/models/InitModels';
 
 dotenv.config(); // Carga las variables de entorno desde un archivo .env
 

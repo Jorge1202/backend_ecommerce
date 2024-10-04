@@ -4,6 +4,7 @@ import { success, error } from '../../middlewares/response';
 import { DevicesCreationAttributes } from '../models/devices';
 import _error from '../../middlewares/error';
 
+
 import { ParamsLogin } from '../Services/auth.service';
 const UAParser = require('ua-parser-js');
 
@@ -12,33 +13,6 @@ class AuthController extends AuthService {
 
   constructor() {
     super(); 
-  }
-
-  public getLogin = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { username, password } = req.params;
-
-      const findData = await this._findByUsername(String(username));
-
-      if (findData) {
-        const isMatch = await bcrypt.compare(password, findData.Password);
-        
-        bcrypt.compare(password, findData.Password, (err: Error | undefined, result: boolean) => {
-            if (err) {
-              success({ req, res, data: '¡Contraseña incorrecta!', status: 204 });
-            } else if (result) {
-              success({ req, res, data: '¡Contraseña correcta!', status: 200 });
-            } else {
-                console.log('Contraseña incorrecta. El usuario no puede iniciar sesión.');
-            }
-        });
-
-      } else {
-        success({ req, res, data: 'Usuario incorrecto', status: 204 });            
-      }
-    } catch (err) {
-      error({ req, res, data: 'Error fetching record ', status: 500, details: err });
-    }
   }
 
   public recoveryPassword = async (req: Request, res: Response): Promise<void> => {
@@ -84,7 +58,6 @@ class AuthController extends AuthService {
     }
   }
 
-
   public validCodeByEmail = async (req: Request, res: Response): Promise<void> => {
     try {
       const {Code, Email} = req.body
@@ -124,8 +97,11 @@ class AuthController extends AuthService {
         throw _error('La contraseña es requerida',409 );
       }
 
+      
+      
+
       // Inicializar la variable para saber si se utilizará un token
-      const deviceToken = req.headers['deviceToken'] as string | undefined;
+      const deviceToken = req.headers['device-token'] as string | undefined;
       let deviceInfo: DevicesCreationAttributes | undefined;
 
       // Si no hay token, obtener la información del dispositivo
@@ -144,6 +120,21 @@ class AuthController extends AuthService {
         deviceInfo,
       };
       const response = await this._login(loginParams);
+
+      const {tokenLogin, tokenDevice} = response
+
+      // console.log(tokenLogin); 
+      // console.log(tokenDevice);
+
+      // const token = req.cookies.token;
+      // // console.log(token);
+      // Establecer la cookie HttpOnly con el token
+      res.cookie('token', tokenLogin, {
+        httpOnly: true, // Protege contra ataques XSS
+        secure: process.env.NODE_ENV === 'production', // Solo en HTTPS si estás en producción
+        maxAge: 3600000, // La duración de la cookie (1 hora en milisegundos)
+        sameSite: 'strict', // Ayuda a prevenir ataques CSRF
+      });
 
       success({ req, res, data: response, status: 200 }); 
 

@@ -14,7 +14,7 @@ export const cedeAuth = (param:DataMail):string =>  `
     </tr>
     <tr>
         <td>
-            <table style='width: 100%; padding: 0px 90px 25px 90px;'>
+            <table style='width: 100%; padding: 0px 60px 25px 60px;'>
                 <tr>
                     <td style='font-size:12px; line-height: 40px;'>
                         Hola <strong>${param.name} ${param.firstname}</strong>.
