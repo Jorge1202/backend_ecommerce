@@ -15,45 +15,15 @@ class AuthController extends AuthService {
     super(); 
   }
 
-  public recoveryPassword = async (req: Request, res: Response): Promise<void> => {
+  public generateCodeEmail = async (req: Request, res: Response):Promise<void> => {
     try {
-      let data = req.body;
-      const {Email} = data
-      const response = await this._recoveryPassword(Email);
+      const { email } = req.params;
+
+      const response = await this._generateCodeEmail(String(email));
+      
       success({ res, data: response, status: 200 });
-    } catch(err) {
-      error({ res, data: 'Se tuvo un problema en la solicitud, te sugerimos que te pongas en contacto con soporte', status: 500, details: err });
-    }
-  }
 
-  public validDataUser = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const authHeader  = req.headers['authorization'];
-      const token = authHeader && authHeader.split(' ')[1];
-      if (!token) {
-        error({ req, res, data: 'Token invalido', status: 401 });
-      } else {
-        const response = await this._validDataUser(token)
-        success({ req, res, data: response, status: 200 });  
-      }
-    } catch (err: any) {
-      error({ req, res, data: err.message , status: 409, details: err });
-    }
-  }
-
-  public changePassword = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const authHeader  = req.headers['authorization'];
-      const token = authHeader && authHeader.split(' ')[1];
-      if (!token) {
-        error({ req, res, data: 'Token invalido', status: 401 });
-      } else {
-        const {Password} = req.body        
-        const response = await this._changePassword(Password, token)
-
-        success({ req, res, data: response, status: 200 });  
-      }
-    } catch (err: any) {
+    } catch (err:any) {
       error({ req, res, data: err.message , status: 409, details: err });
     }
   }
@@ -71,21 +41,10 @@ class AuthController extends AuthService {
     }
   }
 
-  public generateCodeEmail = async (req: Request, res: Response):Promise<void> => {
-    try {
-      const { email } = req.params;
-
-      const response = await this._generateCodeEmail(String(email));
-      
-      success({ res, data: response, status: 200 });
-
-    } catch (err:any) {
-      error({ req, res, data: err.message , status: 409, details: err });
-    }
-  }
 
   public login = async (req: Request, res: Response):Promise<void> => {
-    const { Username, Password } = req.body;
+    // const { Username, Password } = req.body;
+    const { Username, Password } = req.params;
 
     try {
       // Validar que username y password están presentes
@@ -96,9 +55,6 @@ class AuthController extends AuthService {
       if (!Password || Password.trim() === "") {
         throw _error('La contraseña es requerida',409 );
       }
-
-      
-      
 
       // Inicializar la variable para saber si se utilizará un token
       const deviceToken = req.headers['device-token'] as string | undefined;
@@ -129,12 +85,15 @@ class AuthController extends AuthService {
       // const token = req.cookies.token;
       // // console.log(token);
       // Establecer la cookie HttpOnly con el token
-      res.cookie('token', tokenLogin, {
-        httpOnly: true, // Protege contra ataques XSS
-        secure: process.env.NODE_ENV === 'production', // Solo en HTTPS si estás en producción
-        maxAge: 3600000, // La duración de la cookie (1 hora en milisegundos)
-        sameSite: 'strict', // Ayuda a prevenir ataques CSRF
-      });
+
+      if(tokenLogin){
+        res.cookie('token', tokenLogin, {
+          httpOnly: true, // Protege contra ataques XSS
+          secure: process.env.NODE_ENV === 'production', // Solo en HTTPS si estás en producción
+          maxAge: 3600000, // La duración de la cookie (1 hora en milisegundos)
+          sameSite: 'strict', // Ayuda a prevenir ataques CSRF
+        });
+      }
 
       success({ req, res, data: response, status: 200 }); 
 
@@ -143,6 +102,78 @@ class AuthController extends AuthService {
     }
 
   }
+
+  public validCodeDevice = async (req: Request, res: Response):Promise<void> => {
+    try {
+      // Inicializar la variable para saber si se utilizará un token
+      const deviceToken = req.headers['device-token'] as string | undefined;
+      const { code } = req.params;
+
+      if(!code){
+        throw _error('Código no exite');
+      }
+
+      if(!deviceToken){
+        throw _error('Falta la cabecera device-token');
+      }
+
+      const response = await this._validCodeDevice(code, deviceToken)
+
+      success({ req, res, data: response, status: 200 }); 
+    } catch (err: any) {
+      error({ req, res, data: err.message , status: 409, details: err });
+    }
+  }
+
+  public logout = async (req: Request, res: Response):Promise<void> => {
+
+  }
+
+
+
+  public recoveryPassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+      let data = req.body;
+      const {Email} = data
+      const response = await this._recoveryPassword(Email);
+      success({ res, data: response, status: 200 });
+    } catch(err) {
+      error({ res, data: 'Se tuvo un problema en la solicitud, te sugerimos que te pongas en contacto con soporte', status: 500, details: err });
+    }
+  }
+
+  public changePassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const authHeader  = req.headers['authorization'];
+      const token = authHeader && authHeader.split(' ')[1];
+      if (!token) {
+        error({ req, res, data: 'Token invalido', status: 401 });
+      } else {
+        const {Password} = req.body        
+        const response = await this._changePassword(Password, token)
+
+        success({ req, res, data: response, status: 200 });  
+      }
+    } catch (err: any) {
+      error({ req, res, data: err.message , status: 409, details: err });
+    }
+  }
+
+  public validDataUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const authHeader  = req.headers['authorization'];
+      const token = authHeader && authHeader.split(' ')[1];
+      if (!token) {
+        error({ req, res, data: 'Token invalido', status: 401 });
+      } else {
+        const response = await this._validDataUser(token)
+        success({ req, res, data: response, status: 200 });  
+      }
+    } catch (err: any) {
+      error({ req, res, data: err.message , status: 409, details: err });
+    }
+  }
+
   
   private _getDataDevice = async (req: Request): Promise<DevicesCreationAttributes> => {
     const userAgent = req.headers['user-agent'];

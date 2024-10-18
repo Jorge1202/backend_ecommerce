@@ -16,6 +16,15 @@ import { Devices, DevicesCreationAttributes } from '../models/devices';
 
 import { CodeAutenticationService } from './code_autentication.service';
 import { UserService } from './user.service';
+
+
+interface RequestLogin {
+  message:string
+  deviceVerify: boolean
+  tokenDevice?: string
+  tokenLogin?: string
+}
+
 interface AuthResult {
   auth: Auth; // Asumiendo que 'Auth' es el tipo que devuelve 'createAuth'
   codeAuth: CodeAutentication; // Asumiendo que 'CodeAuthentication' es el tipo que devuelve '_createCodeAuthentication'
@@ -121,17 +130,21 @@ export class AuthService {
       if(!userData){
         throw error('El correo es incorrecto', 409)
       }
+
+      const authData = await Auth.findOne({
+        where:{IdUser: userData.IdUser}
+      })
+      if(!authData){
+        throw error('El correo es incorrecto', 409)
+      }
     
       const code_AutService = new CodeAutenticationService();
-      const dataCode = await code_AutService.validCodeEmail(Code);
+      const dataCode = await code_AutService.validCode(Code, authData.IdAuth);
 
-      await Auth.update({Status: 2}, {
-        where: {
-          IdAuth: dataCode.IdAuth 
-        }
-      });
-
+      authData.Status = 2;
+      authData.save();
       return 'Código valido, ya puedes inicia sesion'
+
     } catch (err: any) {
       throw error(`${err.message}`)
     }
@@ -146,10 +159,13 @@ export class AuthService {
         const {withToken, deviceToken, deviceInfo} = params
         
         //Valida parametros
-        const dataAuth = await this._validParams(params.Login);
-        
+        const dataAuth = await this._validParams(params.Login);        
         if(!dataAuth){
-          error('dataAuth es null o undefined')
+          throw error('Error al iniciar sesión')
+        }
+        //verifica el status que este activo el user
+        if(dataAuth.Status != 2 && dataAuth.Status != 3){
+          throw error('Error al iniciar sesión')
         }
 
         //obtiene lista de login
@@ -175,17 +191,21 @@ export class AuthService {
             throw error('No existe registro en tabla userPage')
           }
 
-          const tokenLogin = await this._generateToken({ IdAuth: dataAuth.IdAuth, IdUserPage: userPage.IdUserPage }, 'Login');
+          const tokenLogin = await this._generateToken({ IdAuth: dataAuth.IdAuth, IdUserPage: userPage.IdUserPage, IdLogin: login.IdLogin }, 'Login');
           const tokenDevice = await this._generateToken({ IdDevice: device.IdDevices, IdAuth: dataAuth.IdAuth, IdUser: dataAuth.IdUser }, 'Device');
           
           device.Token = tokenDevice
           await this._updateDevice(device, transaction)
 
-          return {
+          const response: RequestLogin = {
             message: '¡Inicio de sesión exitoso! Bienvenido.',
+            deviceVerify: true, 
             tokenDevice,
             tokenLogin
-          }
+          };
+
+          return response;
+       
 
         } else if(listLogin.length >= 1){  //########### MÁS DE UN LOGUEO
 
@@ -218,10 +238,12 @@ export class AuthService {
             device.Token = tokenDevice
             await this._updateDevice(device, transaction)
             
-            return {
+            const response: RequestLogin = {
               message: '¡Correo enviado con éxito! Hemos enviado un código para verificar tu nuevo dispositivo.',
-              tokenDevice
-            }
+              deviceVerify: false, 
+              tokenDevice,
+            };
+            return response;
  
           }else if(withToken){  //########### EXISTE TOKEN del Dispositivo 
 
@@ -241,9 +263,11 @@ export class AuthService {
                 throw error('El token del dispositivo es requerido pero no se proporcionó.', 400); 
             }
 
-            const response = await this._varifyToken(deviceToken)
-            const {IdDevice} = response.payload
 
+            const getToken = await this._varifyToken(deviceToken)
+            const {IdDevice, IdAuth, IdLogin} = getToken.payload
+
+          
             //* Actualiza en tabla login todos los registros en el campo activo=false donde el idDevice sea el del token
             await this._updateLoginToInactive(IdDevice)
             //* se crea un registro en tabla login con (IdAuth, IdDevice) con activo true
@@ -253,11 +277,15 @@ export class AuthService {
             if(!userPage){
               throw error('No existe registro en tabla userPage')
             }
-            const tokenLogin = await this._generateToken({ IdAuth: dataAuth.IdAuth, IdUserPage: userPage.IdUserPage }, 'Login');
-            return {
+            const tokenLogin = await this._generateToken({ IdAuth: dataAuth.IdAuth, IdUserPage: userPage.IdUserPage, IdLogin: login.IdLogin }, 'Login');
+
+            const response: RequestLogin = {
               message: '¡Inicio de sesión exitoso! Bienvenido de nuevo.',
-              tokenLogin
-            }
+              deviceVerify: true, 
+              tokenLogin,
+            };
+            return response;
+
           }
         } 
 
@@ -400,46 +428,45 @@ export class AuthService {
        
   }
 
-  protected async _validCodeDevice(Email:string, Code:string, deviceToken:string):Promise<any>{
+  protected async _validCodeDevice(Code:string, deviceToken:string):Promise<any>{
     try {
 
       if (!deviceToken) {
           throw error('El token del dispositivo es requerido pero no se proporcionó.', 400); 
       }
 
-      const response = await this._varifyToken(deviceToken)
-      const {IdDevice, IdUser, IdAuth} = response.payload
+      const getToken = await this._varifyToken(deviceToken)
+      const {IdDevice, IdUser, IdAuth} = getToken.payload
 
-
-      const userData = await User.findOne({
-        where: {Email}
-      })    
+      const userData = await User.findByPk(IdUser)    
       if(!userData){
         throw error('El correo es incorrecto', 409)
       }
     
       const code_AutService = new CodeAutenticationService();
-      await code_AutService.validCodeEmail(Code);
+      await code_AutService.validCode(Code, IdAuth);
 
       //* se crea un registro en tabla login con (IdAuth, IdDevice) con activo true  
-      this._createLogin(IdAuth, IdDevice)
+      const login = await this._createLogin(IdAuth, IdDevice)
 
       //* se genera un token con idUsuario y idUserPage   
       const userPage = await UserPage.findOne({where:{IdUser: IdUser} });
       if(!userPage){
         throw error('No existe registro en tabla userPage')
       }   
-      const tokenLogin = await this._generateToken({ IdAuth: IdAuth, IdUserPage: userPage.IdUserPage }, 'Login');
-      return{
+      const tokenLogin = await this._generateToken({ IdAuth: IdAuth, IdUserPage: userPage.IdUserPage, IdLogin: login.IdLogin }, 'Login');
+
+      const response: RequestLogin = {
         message: '¡Dispositivo verificado con éxito! Ahora puedes acceder a tu cuenta de manera segura.',
-        tokenLogin
-      }
+        deviceVerify: true, 
+        tokenLogin,
+      };
+      return response;
+
     } catch (err: any) {
       throw error(`${err.message}`)
     }
 
-
-    return ''
   }
   //#endregion ######################################### LOGIN
 

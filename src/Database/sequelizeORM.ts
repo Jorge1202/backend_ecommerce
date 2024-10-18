@@ -2,7 +2,7 @@
 import { Sequelize } from 'sequelize-typescript';
 import * as dotenv from 'dotenv';
 // import { initModel } from './initModel';
-import { initModel } from '../v1/models/InitModels';
+import { initModel } from '../v1/models/InitModels/';
 
 dotenv.config(); // Carga las variables de entorno desde un archivo .env
 
@@ -46,11 +46,11 @@ const sequelize = new Sequelize({
   database: config.database,
   username: config.username,
   password: config.password,
-  models: [__dirname + '/src/models'], // Ruta a los modelos
+  models: [__dirname + '/models'], // Ruta a los modelos
   
   // Opciones adicionales de Sequelize
-  // logging: environment === 'development', // Habilitar logging solo en desarrollo
-  logging: false, // Habilitar logging solo en desarrollo
+  //logging: environment === 'development', // Habilitar logging solo en desarrollo (Base de datos sincronizada)
+   logging: false, // Habilitar logging solo en desarrollo
 });
 
 

@@ -101,8 +101,7 @@ export class UserService {
         await historyRegisterService.updateByUsername (user.Email, user, transaction); 
 
         return {
-          message: 'Usuario registrado exitosamente. ¡Verifica tu cuenta!',
-          email: newUser.Email
+          message: 'Usuario registrado exitosamente. ¡Verifica tu cuenta!'
         };
 
       } catch (err) {
@@ -132,7 +131,7 @@ export class UserService {
       }            
       return true
     } catch (err) {
-      throw error('El usuario ya existe')
+      throw error('Error al crear registro')
     }
   }
 

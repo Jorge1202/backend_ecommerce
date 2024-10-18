@@ -25,6 +25,7 @@ interface Token {
 export interface TokenLogin{
   IdAuth: number;
   IdUserPage: number;
+  IdLogin: number;
 }
 
 export interface TokenDevice{

@@ -48,19 +48,23 @@ export class CodeAutenticationService {
     return codigo.toString()
   }
 
-  public async validCodeEmail (code: string):Promise<any> {
+  public async validCode (Code: string, IdAuth?:number):Promise<any> {
     try {
-      const fineCode = await this.findByCode(code) 
+
+      const fineCode = await CodeAutentication.update({IsActive: false},{
+        where:{
+          Code,
+          IsActive: true,
+          IdAuth        
+        }
+      })
       if(!fineCode) {throw error('Codigo invalido', 409)}
-  
-      await fineCode.update({IsActive: false});
 
       return fineCode 
     } catch (err) {
       error(`${err}`, 400)
     }
   }
-
   public async findByCode(Code:string):Promise<CodeAutentication | null> {
     try {
       return await CodeAutentication.findOne({
