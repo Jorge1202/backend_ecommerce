@@ -4,7 +4,7 @@ interface ApiConfig {
 }
 
 interface CORSConfig {
-    origin: string;
+    origin: string | [string, string];
 }
 interface MailConfig {
     _host: string;
@@ -34,7 +34,10 @@ const config: Config = {
         PORT: Number(process.env.PORT) || 3005, // Convertimos a número para mayor seguridad
     },
     CORS: {
-        origin: process.env.SRV_HOST || "http://localhost:3005",
+        origin: process.env.SRV_HOST || [
+          "http://localhost:3000",
+          "http://192.168.1.70:3000",
+        ],
     },
     mail: {
         _host: process.env.MAIL_SRV_HOST || "smtp.gmail.com",

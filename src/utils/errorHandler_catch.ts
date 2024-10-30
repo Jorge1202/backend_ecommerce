@@ -18,11 +18,8 @@ export function handleServiceError(error: any, customMessage: string, statusCode
   } else if (error instanceof DatabaseError) {
     errorMessage = 'Error en la base de datos al crear autenticación';
   } else {
-    errorMessage = `Error: ${error.message}`;
+    errorMessage = `${error.message}`;
   }
-
-  // Log para desarrollo
-  console.error(`Service error: ${errorMessage}`);
 
   // Lanza un error personalizado para el cliente
   throw new CustomError(`${customMessage}: ${errorMessage}`, statusCode);
