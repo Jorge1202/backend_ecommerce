@@ -9,7 +9,7 @@ class CustomError extends Error {
     }
   }
   
-  export default function error(message: string, code?: number): CustomError {    
+  export function errorCatch(message: string, code?: number): CustomError {    
     return new CustomError(message, code);
   }
   

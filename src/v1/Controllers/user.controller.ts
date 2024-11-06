@@ -30,9 +30,9 @@ class UserController extends UserService {
 
       // 2. Llamar al servicio para crear usuario 
       const rsponse = await this._registerUser(data);
+      const {code, message, isError} = rsponse
+      success({ res, data: message, status: code, isError});
 
-      // success({ res, data: 'Registro exitoso. El usuario se ha creado correctamente.', status: 201 });
-      success({ res, data: rsponse, status: 201 });
       
     } catch (err) {
       // await transaction.rollback(); // Revertir las operaciones en caso de error

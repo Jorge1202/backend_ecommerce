@@ -1,7 +1,8 @@
 import nodemailer, { Transporter, SendMailOptions } from 'nodemailer';
+import { handleServiceError } from '../../../Utils/errorHandler_catch';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import {config} from '../../../Config';
-import error from '../../../middlewares/error';
+import { errorCatch } from '../../../middlewares/error';
 import {bodyMail} from './switchMail';
 import { MailActions } from './sendMail';
 
@@ -46,9 +47,13 @@ async function verifyTransporter(transporter: Transporter): Promise<void> {
   try {
     await transporter.verify();
     console.log('El servicio de correo está listo');
-  } catch (err) {
-    console.error('Error verificando el transportador de correo', err);
-    throw error('No se ha podido verificar el servicio de correo.',500);
+  } 
+  // catch (err) {
+  //   console.error('Error verificando el transportador de correo', err);
+  //   throw error('No se ha podido verificar el servicio de correo.',500);
+  // }
+  catch (err: any) {
+    handleServiceError(err, '_registerUser', err.statusCode);
   }
 }
 
@@ -58,22 +63,21 @@ async function prepareMail(dataObject: Mail_DataObject): Promise<SendMailOptions
 
   // Validaciones básicas
   if (!message.to || !message.subject) {
-    throw error('Faltan campos necesarios como destinatario o asunto', 400);
+    throw errorCatch('Faltan campos necesarios como destinatario o asunto', 400);
   }
 
   if (!message.from) {
     message.from = '"Clisvi" <jorge010.b@gmail.com>';
   }
 
-    // Asegúrate de que la acción sea un valor de MailActions
-    if (!Object.values(MailActions).includes(accion)) {
-      throw error('Acción no válida', 409)
-         
-    } 
+  // Asegúrate de que la acción sea un valor de MailActions
+  if (!Object.values(MailActions).includes(accion)) {
+    throw errorCatch('Acción no válida', 409)
+        
+  } 
 
-    // Genera el contenido HTML basado en la acción
-    const messagehtml = await bodyMail(accion, dataMail); 
-
+  // Genera el contenido HTML basado en la acción
+  const messagehtml = await bodyMail(accion, dataMail); 
 
   // Configuración del correo
   const infoMail: SendMailOptions = {
@@ -124,7 +128,7 @@ export async function Main(dataObject: Mail_DataObject): Promise<boolean> {
       console.log('Main response OK');
       return true;
     } else {
-      throw error('No se ha podido enviar el correo.', 500);
+      throw errorCatch('No se ha podido enviar el correo.', 500);
     }
   } catch (err) {
     console.error('Error al enviar el correo:', err);

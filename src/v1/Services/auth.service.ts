@@ -1,6 +1,6 @@
 import { Transaction, where } from 'sequelize';
 const bcrypt = require("bcrypt");
-import error from '../../middlewares/error';
+import { errorCatch } from '../../middlewares/error';
 import { withTransaction } from '../../Utils/transaction_helper';
 import { handleServiceError } from '../../Utils/errorHandler_catch';
 import { generateToken, verifyToken, TokenPayload, TokenLogin, TokenDevice} from '../Secure/tokenJWT';
@@ -62,11 +62,11 @@ export class AuthService {
       return {
         auth,
         codeAuth,
-      };
+      }; 
 
-    } catch (error) {
-      handleServiceError(error, 'Error creating authentication', 500)
-    }
+    } catch (error:any) {
+      handleServiceError(error, 'createAuth', error.statusCode)
+    } 
   }  
   protected async _generateCodeEmail(Email:string): Promise<any>{
     try {
@@ -75,18 +75,18 @@ export class AuthService {
         where: {Email}
       })    
       if(!userData){
-        throw error('El correo es incorrecto', 409)
+        throw errorCatch('El correo es incorrecto', 409)
       }
 
       const auth = await Auth.findOne({
         where:{IdUser: userData.IdUser}
       })
       if(!auth){
-        throw error('El usuario no se encuentra',409)
+        throw errorCatch('El usuario no se encuentra',409)
       }
 
       if(auth.Status == 2){
-        throw error('La cuenta ya se encuentra activa', 500)
+        throw errorCatch('La cuenta ya se encuentra activa', 500)
       }
 
       const code_AutService = new CodeAutenticationService();
@@ -110,15 +110,15 @@ export class AuthService {
 
       return '¡Código generado! Te llegará a tu correo electrónico.'
 
-    } catch (err: any) {
-      throw error(`${err.message}`)
+    } catch (error:any) {
+      handleServiceError(error, '_generateCodeEmail', error.statusCode)
     }
   }  
   private async _createAuth(userData: AuthCreationAttributes, transaction: Transaction): Promise<Auth> {
     try {
       return await Auth.create(userData, { transaction });
-    } catch (error) {
-      handleServiceError(error, 'Error creating authentication', 500)
+    } catch (error:any) {
+      handleServiceError(error, '_createAuth', error.statusCode)
     }
   }
   
@@ -128,14 +128,14 @@ export class AuthService {
         where: {Email}
       })    
       if(!userData){
-        throw error('El correo es incorrecto', 409)
+        throw errorCatch('El correo es incorrecto', 409)
       }
 
       const authData = await Auth.findOne({
         where:{IdUser: userData.IdUser}
       })
       if(!authData){
-        throw error('El correo es incorrecto', 409)
+        throw errorCatch('El correo es incorrecto', 409)
       }
     
       const code_AutService = new CodeAutenticationService();
@@ -145,8 +145,8 @@ export class AuthService {
       authData.save();
       return 'Código valido, ya puedes inicia sesion'
 
-    } catch (err: any) {
-      throw error(`${err.message}`)
+    } catch (error:any) {
+      handleServiceError(error, '_validCodeByEmail', error.statusCode)
     }
   }
   //#endregion ######################################### CREATION ACOUNT
@@ -161,11 +161,11 @@ export class AuthService {
         //Valida parametros
         const dataAuth = await this._validParams(params.Login);        
         if(!dataAuth){
-          throw error('Error al iniciar sesión')
+          throw errorCatch('Error al iniciar sesión', 409)
         }
         //verifica el status que este activo el user
         if(dataAuth.Status != 2 && dataAuth.Status != 3){
-          throw error('Error al iniciar sesión')
+          throw errorCatch('Error al iniciar sesión', 409)
         }
 
         //obtiene lista de login
@@ -178,7 +178,7 @@ export class AuthService {
         //VALIDA LOGIN Y TOKEN
         if(listLogin.length === 0){ //########### PRIMER LOGIN
           if (!deviceInfo) {
-            throw error('Los datos del dispositivo no se encuentran.', 400); 
+            throw errorCatch('Los datos del dispositivo no se encuentran.', 400); 
           }
 
           //* Crear registro en tabla Device con token
@@ -188,7 +188,7 @@ export class AuthService {
 
           const userPage = await UserPage.findOne({where:{IdUser: dataAuth.IdUser} });
           if(!userPage){
-            throw error('No existe registro en tabla userPage')
+            throw errorCatch('No existe registro en tabla userPage', 409)
           }
 
           const tokenLogin = await this._generateToken({ IdAuth: dataAuth.IdAuth, IdUserPage: userPage.IdUserPage, IdLogin: login.IdLogin }, 'Login');
@@ -211,7 +211,7 @@ export class AuthService {
 
           if(!withToken){  //########### NO EXISTE TOKEN VALIDAR Dispositivo (NUEVO DISPOSITIVO)
             if (!deviceInfo) {
-              throw error('El token del dispositivo es requerido pero no se proporcionó.', 400); 
+              throw errorCatch('El token del dispositivo es requerido pero no se proporcionó.', 400); 
             }
             //Crear registro en tabla Device con token
             const device = await this._createDevice(deviceInfo, transaction)
@@ -222,13 +222,13 @@ export class AuthService {
               IdTypeCode: 6
             });
             if(!codeAuth){
-              throw error('No se genero código')
+              throw errorCatch('No se genero código', 409)
             }
             const code = codeAuth.Code
 
             const userData = await User.findByPk(dataAuth.IdUser)
             if(!userData){
-              throw error('No se encontro usuario')
+              throw errorCatch('No se encontro usuario', 409)
             }
 
 
@@ -256,11 +256,11 @@ export class AuthService {
             })
 
             if(dataActivo){
-              throw error('Por favor, ingresa el código de verificación para completar el inicio de sesión.')
+              throw errorCatch('Por favor, ingresa el código de verificación para completar el inicio de sesión.', 409)
             }
 
             if (!deviceToken) {
-                throw error('El token del dispositivo es requerido pero no se proporcionó.', 400); 
+                throw errorCatch('El token del dispositivo es requerido pero no se proporcionó.', 400); 
             }
 
 
@@ -275,7 +275,7 @@ export class AuthService {
             //* se genera un token con idUsuario y idUserPage
             const userPage = await UserPage.findOne({where:{IdUser: dataAuth.IdUser} });
             if(!userPage){
-              throw error('No existe registro en tabla userPage')
+              throw errorCatch('No existe registro en tabla userPage', 409)
             }
             const tokenLogin = await this._generateToken({ IdAuth: dataAuth.IdAuth, IdUserPage: userPage.IdUserPage, IdLogin: login.IdLogin }, 'Login');
 
@@ -290,7 +290,7 @@ export class AuthService {
         } 
 
       } catch (err: any) {
-        throw error(`${err.message}`)
+        handleServiceError(err, 'withTransaction', err.statusCode);
       }
 
     })      
@@ -301,22 +301,22 @@ export class AuthService {
 
       const dataAuth = await Auth.findOne({where: {Username} })
       if(!dataAuth){
-        throw error('Datos incorrectos ¡Intentelo nuevamente!', 409)
+        throw errorCatch('Datos incorrectos ¡Intentelo nuevamente!', 409)
       }
       
       if(dataAuth.Status !== 2){
         const status = await StatusAuth.findByPk(dataAuth.Status)
-        throw error(`${status?.Description}`)
+        throw errorCatch(`${status?.Description}`)
       }
 
       const isPasswordValid =await bcrypt.compare(Password, dataAuth.Password);
       if (!isPasswordValid) {
-        throw error('Datos incorrectos ¡Intentelo nuevamente!', 409)
+        throw errorCatch('Datos incorrectos ¡Intentelo nuevamente!', 409)
       }
 
       return dataAuth
     } catch (err: any) {
-      throw error(`${err.message}`)
+      handleServiceError(err, '_validParams', err.statusCode);
     }
   }
 
@@ -324,8 +324,8 @@ export class AuthService {
     try {
       const devices = await Devices.create(deviceInfo, { transaction });
       return devices
-    } catch (error) {
-      handleServiceError(error, 'Error Creando Device', 500)
+    } catch (err: any) {
+      handleServiceError(err, '_createDevice', err.statusCode);
     }
   }
 
@@ -333,8 +333,8 @@ export class AuthService {
     try {
       const devices = await deviceInfo.update({ ...deviceInfo, Token:deviceInfo.Token}, { transaction });
       return devices
-    } catch (error) {
-      handleServiceError(error, 'Error Creando Device', 500)
+    } catch (err: any) {
+      handleServiceError(err, '_updateDevice', err.statusCode);
     }
   }
 
@@ -345,8 +345,8 @@ export class AuthService {
         IdAuth,
         IdDevice
       }, { transaction });
-    } catch (error) {
-      handleServiceError(error, 'Error Creando Device', 500)
+    } catch (err: any) {
+      handleServiceError(err, '_createLogin', err.statusCode);
     }
   }
 
@@ -359,7 +359,7 @@ export class AuthService {
               // Aseguramos que `data` es de tipo `TokenLogin`
               const loginData = data as TokenLogin;
               if (!loginData.IdAuth || !loginData.IdUserPage) {
-                  throw error('Faltan datos para generar el token de Login');
+                  throw errorCatch('Faltan datos para generar el token de Login');
               }
               contentToken = {
                   IdAuth: loginData.IdAuth,
@@ -371,7 +371,7 @@ export class AuthService {
               // Aseguramos que `data` es de tipo `TokenDevice`
               const deviceData = data as TokenDevice;
               if (!deviceData.IdAuth || !deviceData.IdDevice || !deviceData.IdUser) {
-                  throw error('Faltan datos para generar el token de Dispositivo');
+                  throw errorCatch('Faltan datos para generar el token de Dispositivo');
               }
               contentToken = {
                   IdDevice: deviceData.IdDevice,
@@ -381,7 +381,7 @@ export class AuthService {
               break;
   
           default:
-              throw error('Tipo de token no válido');
+              throw errorCatch('Tipo de token no válido');
       }
   
       // Generamos el token utilizando la función `generateToken`
@@ -393,7 +393,7 @@ export class AuthService {
       return token;
       
     } catch (err: any) {
-      throw error(`${err.message}`) 
+      handleServiceError(err, '_generateToken', err.statusCode);
     }
   }
 
@@ -412,7 +412,7 @@ export class AuthService {
       const mailService = new MailService(mailConfig);
       const responseMail = await mailService.send();      
     } catch (err: any) {
-      throw error(`${err.message}`) 
+      handleServiceError(err, '_sendMailVerifyDevice', err.statusCode);
     }
     
   }
@@ -423,7 +423,7 @@ export class AuthService {
         where:{IdDevice}
       }) 
     } catch (err: any) {
-      throw error(`${err.message}`)
+      handleServiceError(err, '_updateLoginToInactive', err.statusCode);
     }
        
   }
@@ -432,7 +432,7 @@ export class AuthService {
     try {
 
       if (!deviceToken) {
-          throw error('El token del dispositivo es requerido pero no se proporcionó.', 400); 
+          throw errorCatch('El token del dispositivo es requerido pero no se proporcionó.', 400); 
       }
 
       const getToken = await this._varifyToken(deviceToken)
@@ -440,7 +440,7 @@ export class AuthService {
 
       const userData = await User.findByPk(IdUser)    
       if(!userData){
-        throw error('El correo es incorrecto', 409)
+        throw errorCatch('El correo es incorrecto', 409)
       }
     
       const code_AutService = new CodeAutenticationService();
@@ -452,7 +452,7 @@ export class AuthService {
       //* se genera un token con idUsuario y idUserPage   
       const userPage = await UserPage.findOne({where:{IdUser: IdUser} });
       if(!userPage){
-        throw error('No existe registro en tabla userPage')
+        throw errorCatch('No existe registro en tabla userPage', 409)
       }   
       const tokenLogin = await this._generateToken({ IdAuth: IdAuth, IdUserPage: userPage.IdUserPage, IdLogin: login.IdLogin }, 'Login');
 
@@ -464,7 +464,7 @@ export class AuthService {
       return response;
 
     } catch (err: any) {
-      throw error(`${err.message}`)
+      handleServiceError(err, '_validCodeDevice', err.statusCode);
     }
 
   }
@@ -478,7 +478,7 @@ export class AuthService {
         where: { Email } 
       });
       if (!user) {
-        throw error('Si existe una cuenta asociada con este correo, recibirás un email', 409)        
+        throw errorCatch('Si existe una cuenta asociada con este correo, recibirás un email', 409)        
       }
 
       const token = generateToken({
@@ -502,12 +502,12 @@ export class AuthService {
 
       const mailService = new MailService(mailConfig);
       const responseMail = await mailService.send();
-      if(!responseMail.send) throw error(responseMail.response)        
+      if(!responseMail.send) throw errorCatch(responseMail.response)        
       
       return `¡Solicitud aprovada!, Accede al correo (${Email}) para seguir el proceso`;
 
     } catch (err: any) {
-      throw error(`${err.message}`)
+      handleServiceError(err, '_recoveryPassword', err.statusCode);
     }
   } 
   protected async _validDataUser (token: string): Promise<any> {
@@ -520,15 +520,15 @@ export class AuthService {
       })
 
       if(!authUser) 
-        throw error('No existe usuario', 404)
+        throw errorCatch('No existe usuario', 404)
       
       if(authUser.Status != 2 && authUser.Status != 3)
-        throw error('El estatus de usuario no se encuentra en condiciones para solicitar el cambio de contraseña', 409)
+        throw errorCatch('El estatus de usuario no se encuentra en condiciones para solicitar el cambio de contraseña', 409)
 
       return 'Solicitud aprovada';
 
     } catch (err: any) {
-      throw error(`${err.message}`)
+      handleServiceError(err, '_validDataUser', err.statusCode);
     }
   } 
   protected async _changePassword (Password: string, Token:string): Promise<any> {
@@ -540,14 +540,14 @@ export class AuthService {
       const userService = new UserService()
       const userData = await userService.findByPkUser(IdUser)
       if (!userData) {
-        throw error(`Si existe una cuenta asociada con este correo, recibirás un email`);
+        throw errorCatch(`Si existe una cuenta asociada con este correo, recibirás un email`, 409);
       }
 
       const authUser = await Auth.findOne({
         where: {IdUser}
       })
       if (!authUser) {
-        throw error('No existe usuario', 404)
+        throw errorCatch('No existe usuario', 404)
       }
       
       const hashedPassword = await bcrypt.hash(Password, 10);
@@ -568,13 +568,13 @@ export class AuthService {
       };
       const mailService = new MailService(mailConfig);
       const responseMail = await mailService.send();
-      if(!responseMail.send) throw error(responseMail.response) 
+      if(!responseMail.send) throw errorCatch(responseMail.response) 
       
       
       return '¡Contraseña actualizada! Ahora inicia sesión con tu nueva contraseña';
 
     } catch (err: any) {
-      throw error(`${err.message}`, 409)
+      handleServiceError(err, '_changePassword', err.statusCode);
     }
 
   }
@@ -586,14 +586,14 @@ export class AuthService {
     try {
       const response = await verifyToken(token)
       if(!response.valid)
-        throw error(response.message, response.cade)
+        throw errorCatch(response.message, response.cade)
       
       if(!this._HasPayload_Private(response))
-        throw error(response.message, response.cade)
+        throw errorCatch(response.message, response.cade)
 
       return response
     } catch (err: any) {
-      throw error(err.message, 409)      
+      handleServiceError(err, '_varifyToken', err.statusCode);
     }
   }
   private _HasPayload_Private(response: { payload?: TokenPayload }): response is { payload: TokenPayload } {
@@ -608,8 +608,8 @@ export class AuthService {
         where: { Username } // Busca donde el campo 'username' coincida
       });
       return record;
-    } catch (err) {
-      throw error(`Error obteniendo el registro con USERNAME ${Username}: ${err}`);
+    } catch (err: any) {
+      handleServiceError(err, '_findByUsername', err.statusCode);
     }
   }
 }

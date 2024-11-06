@@ -15,45 +15,76 @@ class historyRegisterController extends HistoryRegisterService {
 
       // 2. Llamar al servicio para crear registro 
       const rsponse = await this._createHistory(data);
-
-      success({ res, data: rsponse, status: 201 });
+      const {code, message, isError} = rsponse
       
-    } catch (err) {
-      error({ res, data: 'Error creating record', status: 500, details: err });
+      success({ res, data: message, status: code, isError});
+
+      
+    } catch (err: any) {
+      error({ res, data: err.message, status: 409, details: err });
     }
   }
 
-
-  public getById = async (req: Request, res: Response): Promise<void> => {
+  public validEmail = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { email } = req.params;
-      const findData = await this._findByEmail(String(email));
-      if (findData) {
-        success({ res, data: findData, status: 200 });
+      const { Email, Id } = req.query;
+
+      if(Id){
+        const rsponse = await this.valid_EmailwhithID(String(Email), Number(Id));
+        const {code, message, isError} = rsponse
+        success({ res, data: message, status: code, isError});
+        
       } else {
-        error({ res, data: 'Record  not found', status: 204 });
+        const rsponse = await this.valid_Email(String(Email));
+        const {code, message, isError} = rsponse
+        
+        success({ res, data: message, status: code, isError});
       }
-    } catch (err) {
-      error({ res, data: 'Error fetching record ', status: 500, details: err});
+
+
+      
+    } catch (err: any) {
+      error({ res, data: err.message, status: 409, details: err });
     }
   }
-  
-  public updateById = async (req: Request, res: Response): Promise<void> => {
+
+  public validUsername = async (req: Request, res: Response): Promise<void> => {
     try {
-      const { email } = req.params;
-      const updatedRecord = await this.updateByUsername(String(email), req.body);
+      const { Username, Id } = req.query;
+
+      if(Id){
+        const rsponse = await this.valid_UsernamewhithID(String(Username), Number(Id));
+        const {code, message, isError} = rsponse
+        success({ res, data: message, status: code, isError});
+        
+      } else {
+        const rsponse = await this.valid_Username(String(Username));
+        const {code, message, isError} = rsponse
+        success({ res, data: message, status: code, isError});
+      }
+      
+      
+
+      
+    } catch (err: any) {
+      error({ res, data: err.message, status: 409, details: err });
+    }
+  }
+
+  
+  public updataRegister = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const updatedRecord = await this.updateByRegister(req.body);
       if (updatedRecord) {
-        success({ res, data: updatedRecord, status: 200 });
+        const {code, message, isError} = updatedRecord
+        success({ res, data: message, status: code, isError});
       } else {
         error({ res, data: 'Record not found', status: 204, });
       }
-    } catch (err) {
-      error({ res, data: 'Error updating record ', status: 500, details: err });
+    } catch (err: any) {
+      error({ res, data: err.message, status: 404, details: err });
     }
   }
-
-
-
 
 }
 

@@ -1,7 +1,7 @@
 import { CodeAutentication, CodeAutenticationCreationAttributes } from '../models/code-autentication';
 import { Transaction } from 'sequelize';
 import { handleServiceError } from '../../Utils/errorHandler_catch';
-import error from '../../middlewares/error';
+import { errorCatch } from '../../middlewares/error';
 
 export class CodeAutenticationService {
 
@@ -16,9 +16,9 @@ export class CodeAutenticationService {
       const code = await CodeAutentication.create(codeData, { transaction });
       return code;
 
-    } catch (err) {
-      handleServiceError(err, 'Error creating authentication code', 500)
-    }
+    } catch (error:any) {
+      handleServiceError(error, 'createCodeEmail', error.statusCode)
+    } 
   }
 
   private async _changeToInactive (codeData: CodeAutenticationCreationAttributes): Promise<any> {
@@ -28,7 +28,7 @@ export class CodeAutenticationService {
         where: {
           IdAuth:codeData.IdAuth,
           IdTypeCode:codeData.IdTypeCode
-        },
+        },              
         returning: true
       });
 
@@ -36,9 +36,9 @@ export class CodeAutenticationService {
       //   throw error('No users found with the specified role');
       // }
       return updatedUsers
-     } catch (err) {
-      error(`${err}`, 500)
-     } 
+    } catch (error:any) {
+      handleServiceError(error, '_changeToInactive', error.statusCode)
+    } 
   }
 
 
@@ -58,21 +58,21 @@ export class CodeAutenticationService {
           IdAuth        
         }
       })
-      if(!fineCode) {throw error('Codigo invalido', 409)}
+      if(!fineCode) {throw errorCatch('Codigo invalido', 409)}
 
       return fineCode 
-    } catch (err) {
-      error(`${err}`, 400)
-    }
+    } catch (error:any) {
+      handleServiceError(error, 'validCode', error.statusCode)
+    } 
   }
   public async findByCode(Code:string):Promise<CodeAutentication | null> {
     try {
       return await CodeAutentication.findOne({
         where:{Code}
       })
-    } catch (err) {
-      throw error(`${err}`)      
-    }
+    } catch (error:any) {
+      handleServiceError(error, 'findByCode', error.statusCode)
+    } 
   }
 
 

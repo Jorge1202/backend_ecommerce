@@ -2,7 +2,7 @@ import { Transaction } from 'sequelize';
 import { withTransaction } from '../../Utils/transaction_helper';
 import { handleServiceError } from '../../Utils/errorHandler_catch';
 import { MailService, MailServiceConfig, MailActions } from '../Secure/mails/sendMail';
-import error from '../../middlewares/error';
+import {errorCatch} from '../../middlewares/error';
 
 import { User, UserCreationAttributes } from '../models/user';
 
@@ -30,7 +30,7 @@ export class UserService {
     try {
       return await User.findByPk(id);
     } catch (err) {
-      throw error(`Error fetching user with id ${id}: ${err}`);
+      throw errorCatch(`Error fetching user with id ${id}: ${err}`, 409);
     }
   }
 
@@ -98,40 +98,45 @@ export class UserService {
 
         // 4. Crear autenticación
         const historyRegisterService = new HistoryRegisterService();          
-        await historyRegisterService.updateByUsername (user.Email, user, transaction); 
+        await historyRegisterService.updateByRegister (user, transaction); 
 
         return {
+          code: 201,
+          isError: false,
           message: 'Usuario registrado exitosamente. ¡Verifica tu cuenta!'
         };
 
-      } catch (err) {
-        throw error(`Error registering user: ${err}`);
+      } catch (err: any) {
+        handleServiceError(err, '_registerUser', err.statusCode);
       }      
     })
 
   }
 
-  private async _validExite(user:inUser):Promise<boolean | string>{
+  private async _validExite(user:inUser):Promise<any>{
     try {
       const userExit = await User.findOne({
         where: {Username: user.Username}
       })
 
-      //validar si tiene codigo enviado
+      //Hace falta validar si tiene un codigo enviado o si se encuentra en estatus 
       
       if(userExit){
-        throw error('El usuario ya existe')
+        return {message: 'El usuario ya existe', isError:true}
       }
       
       const emailExit = await User.findOne({
         where: {Email: user.Email}
       })
       if(emailExit){
-        throw error('El email ya existe')
-      }            
-      return true
-    } catch (err) {
-      throw error('Error al crear registro')
+        return {message: 'El email ya existe', isError:true}
+      }  
+
+      return {message: 'Los datos son validos', isError:false}
+      
+    } 
+    catch (err: any) {
+      handleServiceError(err, '_validExite', err.statusCode);
     }
   }
 
@@ -158,8 +163,8 @@ export class UserService {
         
         return 'Usuario registrado exitosamente. ¡Verifica tu cuenta!';
 
-      } catch (err) {
-        throw error(`Error registering user: ${err}`);
+      } catch (err:any) {
+        handleServiceError(err, '_pruebaMail', err.statusCode)
       }
   }
 
@@ -167,8 +172,8 @@ export class UserService {
   private async _createUser(userData: UserCreationAttributes, transaction: Transaction): Promise<User> {
     try {
       return await User.create(userData, { transaction });
-    } catch (err) {
-      handleServiceError(error, 'Error creando usuario', 500)
+    } catch (err:any) {
+      handleServiceError(err, '_createUser', err.statusCode)
     }
   }
 
@@ -176,8 +181,8 @@ export class UserService {
   protected async _findAll(): Promise<User[]> {
     try {
       return await User.findAll();
-    } catch (err) {
-      handleServiceError(error, 'Error fetching users', 500)
+    } catch (err:any) {
+      handleServiceError(err, '_findAll', err.statusCode)
     }
   }
 
@@ -187,12 +192,12 @@ export class UserService {
     try {
       const user = await User.findByPk(id);
       if (!user) {
-        throw error(`User with id ${id} not found`);
+        throw errorCatch(`User with id ${id} not found`, 409);
       }
       await user.update(data);
       return user;
-    } catch (err) {
-      throw error(`Error updating user: ${err}`);
+    } catch (err:any) {
+      handleServiceError(err, '_updateUser', err.statusCode)
     }
   }
 
@@ -200,8 +205,8 @@ export class UserService {
   protected async _destroyUser(id: string): Promise<number> {
     try {
       return await User.destroy({ where: { IdUser: id } });
-    } catch (err) {
-      throw error(`Error deleting user: ${err}`);
+    } catch (err:any) {
+      handleServiceError(err, '_destroyUser', err.statusCode)
     }
   }
 }

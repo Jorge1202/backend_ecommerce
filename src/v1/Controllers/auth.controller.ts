@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { AuthService } from '../Services/auth.service';
 import { success, error } from '../../middlewares/response';
 import { DevicesCreationAttributes } from '../models/devices';
-import _error from '../../middlewares/error';
+import { errorCatch } from '../../middlewares/error';
 
 
 import { ParamsLogin } from '../Services/auth.service';
@@ -49,11 +49,11 @@ class AuthController extends AuthService {
     try {
       // Validar que username y password están presentes
       if (!Username || Username.trim() === "") {
-        throw _error('El nombre de usuario es requerido',409 );
+        throw errorCatch('El nombre de usuario es requerido',409 );
       }
     
       if (!Password || Password.trim() === "") {
-        throw _error('La contraseña es requerida',409 );
+        throw errorCatch('La contraseña es requerida',409 );
       }
 
       // Inicializar la variable para saber si se utilizará un token
@@ -110,11 +110,11 @@ class AuthController extends AuthService {
       const { code } = req.params;
 
       if(!code){
-        throw _error('Código no exite');
+        throw errorCatch('Código no exite');
       }
 
       if(!deviceToken){
-        throw _error('Falta la cabecera device-token');
+        throw errorCatch('Falta la cabecera device-token');
       }
 
       const response = await this._validCodeDevice(code, deviceToken)
@@ -179,7 +179,7 @@ class AuthController extends AuthService {
     const userAgent = req.headers['user-agent'];
     
     const parser = new UAParser();
-    const result = parser.setUA(userAgent).getResult();
+    const result = parser.setUA(userAgent).getResult(); 
     
     const _ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
     return {

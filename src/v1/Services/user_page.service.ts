@@ -1,7 +1,7 @@
 import { UserPage, UserPageCreationAttributes } from '../models/user-page';
 import { Transaction } from 'sequelize';
 import { handleServiceError } from '../../Utils/errorHandler_catch';
-import error from '../../middlewares/error';
+import { errorCatch } from '../../middlewares/error';
 
 
 export class UserPageService {
@@ -29,8 +29,8 @@ export class UserPageService {
         where: { Username } // Busca donde el campo 'username' coincida
       });
       return record;
-    } catch (err) {
-      throw error(`Error obteniendo el registro con USERNAME ${Username}: ${err}`);
+    } catch (error) {
+      throw new Error(`Error obteniendo el registro con USERNAME ${Username}: ${error}`);
     }
   }
 
@@ -47,13 +47,13 @@ export class UserPageService {
     try {
       const record = await UserPage.findByPk(id);
       if (!record) {
-        throw error(`Record with id ${id} not found`);
+        throw errorCatch(`Record with id ${id} not found`, 409);
       }
 
       await record.update(data);
       return record;
-    } catch (err) {
-      throw error(`Error actualizando registro con id ${id}: ${error}`);
+    } catch (error) {
+      throw new Error(`Error actualizando registro con id ${id}: ${error}`);
     }
   }
 

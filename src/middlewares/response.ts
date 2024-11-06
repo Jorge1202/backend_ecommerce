@@ -31,7 +31,7 @@ export function success({
   // Preparar la respuesta con status dinámico
   res.status(200).json({
       status,
-      error: isError ? `Error: ${message}` : null,
+      error: isError ? `${message}` : null,
       body: !isError ? data : null,
   });
 }
@@ -52,7 +52,7 @@ export function error({
     // details && console.error(`[response details] ${details}`)
     // data && console.error(`[response error] ${data}`)
 
-    debugger
+  
     const message = data || statusMessage[status] || 'Error';
     res.status(status).json({
       status,
