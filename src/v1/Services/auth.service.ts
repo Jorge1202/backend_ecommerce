@@ -16,6 +16,7 @@ import { Devices, DevicesCreationAttributes } from '../models/devices';
 
 import { CodeAutenticationService } from './code_autentication.service';
 import { UserService } from './user.service';
+import { ServiceResponse } from '../../Utils/ServiceResponse';
 
 
 interface RequestLogin {
@@ -68,25 +69,39 @@ export class AuthService {
       handleServiceError(error, 'createAuth', error.statusCode)
     } 
   }  
-  protected async _generateCodeEmail(Email:string): Promise<any>{
+
+  
+  protected async _generateCodeEmail(Email:string): Promise<ServiceResponse<any>>{
     try {
       
       const userData = await User.findOne({
         where: {Email}
       })    
       if(!userData){
-        throw errorCatch('El correo es incorrecto', 409)
+        return {
+          code: 409,
+          isError: true,
+          message: 'El correo es incorrecto'
+        };
       }
 
       const auth = await Auth.findOne({
         where:{IdUser: userData.IdUser}
       })
       if(!auth){
-        throw errorCatch('El usuario no se encuentra',409)
+        return {
+          code: 409,
+          isError: true,
+          message: 'El correo es incorrecto'
+        };
       }
 
       if(auth.Status == 2){
-        throw errorCatch('La cuenta ya se encuentra activa', 500)
+        return {
+          code: 409,
+          isError: true,
+          message: 'La cuenta ya se encuentra activa'
+        };
       }
 
       const code_AutService = new CodeAutenticationService();
@@ -108,7 +123,11 @@ export class AuthService {
       const mailService = new MailService(mailConfig);
       const responseMail = await mailService.send();
 
-      return '¡Código generado! Te llegará a tu correo electrónico.'
+      return {
+        code: 200,
+        isError: false,
+        message: '¡Código generado! Te llegará a tu correo electrónico.'
+      };
 
     } catch (error:any) {
       handleServiceError(error, '_generateCodeEmail', error.statusCode)
@@ -128,22 +147,59 @@ export class AuthService {
         where: {Email}
       })    
       if(!userData){
-        throw errorCatch('El correo es incorrecto', 409)
+         return {
+          code: 409,
+          isError: true,
+          message: 'El correo es incorrecto',
+        };
       }
 
       const authData = await Auth.findOne({
         where:{IdUser: userData.IdUser}
       })
       if(!authData){
-        throw errorCatch('El correo es incorrecto', 409)
+        return {
+          code: 409,
+          isError: true,
+          message: 'El correo es incorrecto',
+        };
       }
     
       const code_AutService = new CodeAutenticationService();
       const dataCode = await code_AutService.validCode(Code, authData.IdAuth);
 
+      if(dataCode == 0){
+        return {
+          code: 409,
+          isError: true,
+          message: 'El Cóodigo es incorrecto',
+        };
+      }
+
       authData.Status = 2;
       authData.save();
-      return 'Código valido, ya puedes inicia sesion'
+
+      // 6. Crea code para Iniciar sesión 
+      const codeAuth = await code_AutService.createCodeEmail({
+        IdAuth: authData.IdAuth,
+        IdTypeCode: 5
+      });
+
+      console.log(codeAuth);
+      
+
+      //retornar un codigo para poderme loguear
+      //se ingresa el codigo y el email para poderme loguear
+
+
+      return {
+        code: 200,
+        isError: false,
+        message: {
+          Email,
+          Code: codeAuth.Code
+        },
+      };
 
     } catch (error:any) {
       handleServiceError(error, '_validCodeByEmail', error.statusCode)
@@ -153,13 +209,67 @@ export class AuthService {
 
 
   //#region ######################################### LOGIN
-  protected async _login(params: ParamsLogin): Promise<any> {
+  protected async loginAfterRegister(params: ParamsLogin): Promise<any> {
+    
+    try {
+      const {Login} = params
+      const _Login:LoginParams = Login
+      const { Username: Email, Password: Code } = _Login; //Cambio de nombre de variables
+ 
+      const user = await User.findOne({
+        where: { Email }
+      });
+      if(!user){
+        throw errorCatch('Datos incorrectos ¡Intentelo nuevamente!', 409)
+      }
+
+      const authData = await Auth.findOne({
+        where: { IdUser: user.IdUser }
+      });
+      if(!authData){
+        throw errorCatch('Datos incorrectos ¡Intentelo nuevamente!', 409)
+      }
+
+      const codeValid = await CodeAutentication.findOne({
+        where: { Code, IdAuth:authData.IdAuth }
+      });
+      if(!codeValid){
+        throw errorCatch('Datos incorrectos ¡Intentelo nuevamente!', 409)
+      }
+      if(!codeValid.IsActive){
+        throw errorCatch('Datos incorrectos ¡Intentelo nuevamente!', 409)
+      }
+
+      
+      await codeValid.update({IsActive:false}) 
+      
+      const modifiedParams: ParamsLogin = {
+        ...params,
+        Login: {
+          Username: authData.Username, 
+          Password: '', 
+        },
+      };
+
+      // Llamar al servicio de login con los datos correspondientes     
+      const loginWhithCode = true
+      return await this._login(modifiedParams, loginWhithCode);
+      
+
+    } catch (err:any) {
+        handleServiceError(err, 'loginAfterRegister', err.statusCode);
+    }
+
+  }
+
+
+  protected async _login(params: ParamsLogin, whithCode:boolean=false): Promise<any> {
     return await withTransaction(async (transaction)=>{
       try {
         const {withToken, deviceToken, deviceInfo} = params
         
         //Valida parametros
-        const dataAuth = await this._validParams(params.Login);        
+        const dataAuth = await this._validParams(params.Login, whithCode);        
         if(!dataAuth){
           throw errorCatch('Error al iniciar sesión', 409)
         }
@@ -295,7 +405,7 @@ export class AuthService {
 
     })      
   }
-  private async _validParams(params: LoginParams):Promise<Auth>{
+  private async _validParams(params: LoginParams, whithCode:boolean):Promise<Auth>{
     try {
       const {Username, Password} = params;
 
@@ -309,10 +419,13 @@ export class AuthService {
         throw errorCatch(`${status?.Description}`)
       }
 
-      const isPasswordValid =await bcrypt.compare(Password, dataAuth.Password);
-      if (!isPasswordValid) {
-        throw errorCatch('Datos incorrectos ¡Intentelo nuevamente!', 409)
-      }
+      if(!whithCode){
+        const isPasswordValid =await bcrypt.compare(Password, dataAuth.Password);
+        if (!isPasswordValid) {
+          throw errorCatch('Datos incorrectos ¡Intentelo nuevamente!', 409)
+        }
+      } 
+
 
       return dataAuth
     } catch (err: any) {
@@ -379,7 +492,7 @@ export class AuthService {
                   IdUser: deviceData.IdUser,
               };
               break;
-  
+            
           default:
               throw errorCatch('Tipo de token no válido');
       }
@@ -428,7 +541,7 @@ export class AuthService {
        
   }
 
-  protected async _validCodeDevice(Code:string, deviceToken:string):Promise<any>{
+  protected async _validCodeDevice(Code:string, deviceToken:string):Promise<ServiceResponse<RequestLogin>>{
     try {
 
       if (!deviceToken) {
@@ -461,7 +574,12 @@ export class AuthService {
         deviceVerify: true, 
         tokenLogin,
       };
-      return response;
+
+      return {
+        code: 200,
+        isError: false,
+        message: response
+      };
 
     } catch (err: any) {
       handleServiceError(err, '_validCodeDevice', err.statusCode);
@@ -472,7 +590,7 @@ export class AuthService {
 
 
   //#region ######################################### CHANGE PASSWORD  
-  protected async _recoveryPassword(Email: string): Promise<string> {
+  protected async _recoveryPassword(Email: string): Promise<ServiceResponse<string>> {
     try {
       const user = await User.findOne({
         where: { Email } 
@@ -504,13 +622,17 @@ export class AuthService {
       const responseMail = await mailService.send();
       if(!responseMail.send) throw errorCatch(responseMail.response)        
       
-      return `¡Solicitud aprovada!, Accede al correo (${Email}) para seguir el proceso`;
-
+      return {
+        code: 200,
+        isError: false,
+        message: `¡Solicitud aprovada!, Accede al correo (${Email}) para seguir el proceso`
+      };
+        
     } catch (err: any) {
       handleServiceError(err, '_recoveryPassword', err.statusCode);
     }
   } 
-  protected async _validDataUser (token: string): Promise<any> {
+  protected async _validDataUser (token: string): Promise<ServiceResponse<any>> {
     try {
       const response = await this._varifyToken(token)
 
@@ -522,32 +644,49 @@ export class AuthService {
       if(!authUser) 
         throw errorCatch('No existe usuario', 404)
       
-      if(authUser.Status != 2 && authUser.Status != 3)
-        throw errorCatch('El estatus de usuario no se encuentra en condiciones para solicitar el cambio de contraseña', 409)
+      if(authUser.Status != 2 && authUser.Status != 3){
+        return {
+          code: 409,
+          isError: true,
+          message: 'El estatus de usuario no se encuentra en condiciones para solicitar el cambio de contraseña'
+        };
+      }
 
-      return 'Solicitud aprovada';
+      return {
+        code: 200,
+        isError: false,
+        message: 'Solicitud aprovada'
+      };
 
     } catch (err: any) {
       handleServiceError(err, '_validDataUser', err.statusCode);
     }
   } 
-  protected async _changePassword (Password: string, Token:string): Promise<any> {
+  protected async _changePassword (Password: string, Token:string): Promise<ServiceResponse<any>> {
     try {
       const response = await this._varifyToken(Token)
       const {IdUser} = response.payload
       
 
       const userService = new UserService()
-      const userData = await userService.findByPkUser(IdUser)
+      const userData = await userService.findByPkUser_forAuth(IdUser)
       if (!userData) {
-        throw errorCatch(`Si existe una cuenta asociada con este correo, recibirás un email`, 409);
+        return {
+          code: 409,
+          isError: true,
+          message: `Si existe una cuenta asociada con este correo, recibirás un email`
+        };
       }
 
       const authUser = await Auth.findOne({
         where: {IdUser}
       })
       if (!authUser) {
-        throw errorCatch('No existe usuario', 404)
+        return {
+          code: 404,
+          isError: true,
+          message: 'No existe usuario'
+        };
       }
       
       const hashedPassword = await bcrypt.hash(Password, 10);
@@ -569,9 +708,13 @@ export class AuthService {
       const mailService = new MailService(mailConfig);
       const responseMail = await mailService.send();
       if(!responseMail.send) throw errorCatch(responseMail.response) 
+
+      return {
+        code: 200,
+        isError: false,
+        message: '¡Contraseña actualizada! Ahora inicia sesión con tu nueva contraseña'
+      };
       
-      
-      return '¡Contraseña actualizada! Ahora inicia sesión con tu nueva contraseña';
 
     } catch (err: any) {
       handleServiceError(err, '_changePassword', err.statusCode);

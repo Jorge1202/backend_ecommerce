@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { TypePageService } from '../Services/type_page.service';
 import { success, error } from '../../middlewares/response';
+import { ServiceResponse } from '../../Utils/ServiceResponse';
 
 class TypePageController extends TypePageService {
 
@@ -10,8 +11,12 @@ class TypePageController extends TypePageService {
 
   public getAll = async (req: Request, res: Response): Promise<void> => {
     try {
-      const findList = await this._findAll();
-      success({ req, res, data: findList, status: 200 });
+      const response = await this._findAll();
+      const {code, message, isError} = response
+      success({ res, data: message, status: code, isError});
+
+
+
     } catch (err) {
       error({ req, res, data: 'Error fetching user ', details: err, status: 500 });
     }
@@ -20,12 +25,10 @@ class TypePageController extends TypePageService {
   public getById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const findData = await this._findByPk(Number(id));
-      if (findData) {
-        success({ req, res, data: findData, status: 200 });
-      } else {
-        error({ req, res, data: 'Record not found', status: 204 });
-      }
+      const response = await this._findByPk(Number(id));
+      const {code, message, isError} = response
+      success({ res, data: message, status: code, isError});
+
     } catch (err) {
       error({ req, res, data: 'Error fetching record ', status: 500, details: err });
     }
@@ -33,8 +36,11 @@ class TypePageController extends TypePageService {
 
   public  create = async (req: Request, res: Response): Promise<void> => {
     try {
-      const newRecord = await this._createTypePage(req.body); // Llamada al servicio
-      success({ req, res, data: newRecord, status: 201 });
+      const response = await this._createTypePage(req.body); // Llamada al servicio
+      const {code, message, isError} = response
+      success({ res, data: message, status: code, isError});
+
+
     } catch (err) {
       error({ req, res, data: 'Error creating record ', status: 500, details: err });
     }
@@ -43,12 +49,10 @@ class TypePageController extends TypePageService {
   public updateById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const updatedRecord = await this._updateTypePage(Number(id), req.body); // Llamada al servicio
-      if (updatedRecord) {
-        success({ req, res, data: updatedRecord, status: 200 });
-      } else {
-        error({ req, res, data: 'Record  not found', status: 204, });
-      }
+      const response = await this._updateTypePage(Number(id), req.body); // Llamada al servicio
+      const {code, message, isError} = response
+      success({ res, data: message, status: code, isError});
+
     } catch (err) {
       error({ req, res, data: 'Error updating record ', status: 500, details: err });
     }
@@ -57,12 +61,10 @@ class TypePageController extends TypePageService {
   public deleteById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const result = await this._destroyTypePage(Number(id)); // Llamada al servicio
-      if (result) {
-        success({ req, res, data: 'Record  deleted successfully', status: 200 });
-      } else {
-        error({ req, res, data: 'Record  not found', status: 204, });
-      }
+      const response = await this._destroyTypePage(Number(id)); // Llamada al servicio
+      const {code, message, isError} = response
+      success({ res, data: message, status: code, isError});
+
     } catch (err) {
       error({ req, res, data: 'Error deleting record ', status: 500, details: err });
     }

@@ -10,9 +10,16 @@ interface ResponseParams {
     res: Response;
     data?: any;
     status?: number;
-    isError?: any;
-    details?: any;
-  }
+    isError: boolean;
+}
+
+interface ResponseErrorParams {
+  req?: Request;
+  res: Response;
+  data?: any;
+  status?: number;
+  details?: any;
+}
 
 /**
  * Respuestas exitosas
@@ -48,7 +55,7 @@ export function error({
     data = 'Error', // Valor por defecto
     status = 500,   // Valor por defecto
     details
-  }: ResponseParams): void {
+  }: ResponseErrorParams): void {
     // details && console.error(`[response details] ${details}`)
     // data && console.error(`[response error] ${data}`)
 
@@ -59,4 +66,4 @@ export function error({
       error: message,
       body: ''
     });
-}
+} 

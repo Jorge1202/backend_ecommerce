@@ -3,7 +3,6 @@ import { success, error } from '../../middlewares/response';
 
 import { UserService } from '../Services/user.service';
 interface Record {
-  user: {
     Username: string;
     Name: string;
     Firstname: string;
@@ -11,7 +10,6 @@ interface Record {
     Email: string;
     Phone: string;
     Password: string;
-  };
 }
 
 class UserController extends UserService {
@@ -29,20 +27,19 @@ class UserController extends UserService {
       if (!responseJson) return;
 
       // 2. Llamar al servicio para crear usuario 
-      const rsponse = await this._registerUser(data);
-      const {code, message, isError} = rsponse
+      const response = await this._registerUser(data);
+      const {code, message, isError} = response
       success({ res, data: message, status: code, isError});
 
       
     } catch (err) {
       // await transaction.rollback(); // Revertir las operaciones en caso de error
-    error({ res, data: 'Error creating record', status: 500, details: err });
+      error({ res, data: 'Error creating record', status: 500, details: err });
     }
   }
 
-  private _validDataCreate = async (res: Response, data: Record): Promise<boolean | null> => {
+  private _validDataCreate = async (res: Response, user: Record): Promise<boolean | null> => {
     try {
-      const { user } = data;
   
       if (!user) {
         error({ res, data: 'Faltan datos de usuario ', details:'(Controller.ValidDataCreate)', status: 400 });
@@ -85,8 +82,8 @@ class UserController extends UserService {
       let data = req.body;
 
       const response = await this._pruebaMail(data);
-
-      success({ res, data: response, status: 200 });
+      const {code, message, isError} = response
+      success({ res, data: message, status: code, isError});
       
     } catch (err) {
       // await transaction.rollback(); // Revertir las operaciones en caso de error
@@ -97,9 +94,10 @@ class UserController extends UserService {
   public getAll = async (req: Request, res: Response): Promise<void> => {
     try {
 
-      const findList = await this._findAll();
+      const response = await this._findAll();
+      const {code, message, isError} = response
+      success({ res, data: message, status: code, isError});
 
-      success({ res, data: findList, status: 200 });
     } catch (err) {
       error({ res, data: 'Error fetching record ', details: err, status: 500 });
     }
@@ -108,12 +106,11 @@ class UserController extends UserService {
   public getById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const findData = await this.findByPkUser(String(id));
-      if (findData) {
-        success({ res, data: findData, status: 200 });
-      } else {
-        error({ res, data: 'Record  not found', status: 204 });
-      }
+      const response = await this.findByPkUser(String(id));
+      const {code, message, isError} = response
+      success({ res, data: message, status: code, isError});
+
+    
     } catch (err) {
       error({ res, data: 'Error fetching record ', status: 500, details: err});
     }
@@ -122,12 +119,10 @@ class UserController extends UserService {
   public updateById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const updatedRecord = await this._updateUser(String(id), req.body); // Llamada al servicio
-      if (updatedRecord) {
-        success({ res, data: updatedRecord, status: 200 });
-      } else {
-        error({ res, data: 'Record not found', status: 204, });
-      }
+      const response = await this._updateUser(String(id), req.body); // Llamada al servicio
+      const {code, message, isError} = response
+      success({ res, data: message, status: code, isError});
+
     } catch (err) {
       error({ res, data: 'Error updating record ', status: 500, details: err });
     }
@@ -136,12 +131,10 @@ class UserController extends UserService {
   public deleteById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const result = await this._destroyUser(String(id)); // Llamada al servicio
-      if (result) {
-        success({ res, data: 'Record  deleted successfully', status: 200 });
-      } else {
-        error({ res, data: 'Record not found', status: 204,});
-      }
+      const response = await this._destroyUser(String(id)); // Llamada al servicio
+      const {code, message, isError} = response
+      success({ res, data: message, status: code, isError});
+
     } catch (err) {
       error({ res, data: 'Error deleting record ', status: 500, details: err });
     }

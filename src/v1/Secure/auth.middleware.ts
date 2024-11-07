@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 
 import { config } from '../../Config';  // Archivo de configuración
 
-const secret = config.jwt.secret;
+const secret = config.JWT_SECRET;
 
 /**
  * Función para firmar un token con los datos del usuario.

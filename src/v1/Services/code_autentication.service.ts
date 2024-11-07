@@ -5,6 +5,7 @@ import { errorCatch } from '../../middlewares/error';
 
 export class CodeAutenticationService {
 
+  //#region ######################################### Metodos Public
   // Crear código de autenticación
   public async createCodeEmail(codeData: CodeAutenticationCreationAttributes, transaction?: Transaction): Promise<CodeAutentication> {
     try {
@@ -19,35 +20,7 @@ export class CodeAutenticationService {
     } catch (error:any) {
       handleServiceError(error, 'createCodeEmail', error.statusCode)
     } 
-  }
-
-  private async _changeToInactive (codeData: CodeAutenticationCreationAttributes): Promise<any> {
-     try {
-
-      const [updatedCount, updatedUsers] = await CodeAutentication.update({IsActive: false}, {
-        where: {
-          IdAuth:codeData.IdAuth,
-          IdTypeCode:codeData.IdTypeCode
-        },              
-        returning: true
-      });
-
-      // if (updatedCount === 0) {
-      //   throw error('No users found with the specified role');
-      // }
-      return updatedUsers
-    } catch (error:any) {
-      handleServiceError(error, '_changeToInactive', error.statusCode)
-    } 
-  }
-
-
-  private async _generarCodigoAleatorio():Promise<string>{
-    // Genera un número aleatorio entre 100000 y 999999
-    const codigo = Math.floor(100000 + Math.random() * 900000);
-    return codigo.toString()
-  }
-
+  } 
   public async validCode (Code: string, IdAuth?:number):Promise<any> {
     try {
 
@@ -58,7 +31,6 @@ export class CodeAutenticationService {
           IdAuth        
         }
       })
-      if(!fineCode) {throw errorCatch('Codigo invalido', 409)}
 
       return fineCode 
     } catch (error:any) {
@@ -74,6 +46,49 @@ export class CodeAutenticationService {
       handleServiceError(error, 'findByCode', error.statusCode)
     } 
   }
+  //#endregion ######################################### Metodos Public
+
+  //#region ######################################### Metodos Protected
+  //#endregion ######################################### Metodos Protected
+  
+  //#region ######################################### Metodos Private
+  private async _changeToInactive (codeData: CodeAutenticationCreationAttributes): Promise<any> {
+    try {
+
+     const [updatedCount, updatedUsers] = await CodeAutentication.update({IsActive: false}, {
+       where: {
+         IdAuth:codeData.IdAuth,
+         IdTypeCode:codeData.IdTypeCode
+       },              
+       returning: true
+     });
+
+     // if (updatedCount === 0) {
+     //   throw error('No users found with the specified role');
+     // }
+     return updatedUsers
+   } catch (error:any) {
+     handleServiceError(error, '_changeToInactive', error.statusCode)
+   } 
+ }
+
+ private async _generarCodigoAleatorio():Promise<string>{
+   // Genera un número aleatorio entre 100000 y 999999
+   const codigo = Math.floor(100000 + Math.random() * 900000);
+   return codigo.toString()
+ }
+  //#endregion ######################################### Metodos Private
+  
+  
+  
+  
+  
+  
+ 
+
+
+
+
 
 
 }

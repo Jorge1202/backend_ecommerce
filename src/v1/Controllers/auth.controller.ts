@@ -14,14 +14,56 @@ class AuthController extends AuthService {
   constructor() {
     super(); 
   }
+  public loginAfetr = async (req: Request, res: Response):Promise<void> => {
+    // const { Username, Password } = req.body;
+    const { Email, Code } = req.query
+    try {
+      if (!Email || (typeof Email === 'string' && Email.trim() === "")) {
+        throw errorCatch('El nombre de usuario es requerido', 409);
+      }
+  
+      if (!Code || (typeof Code === 'string' && Code.trim() === "")) {
+        throw errorCatch('El código es requerido', 409);
+      }
+
+      // Inicializar la variable para saber si se utilizará un token
+      const deviceToken = req.headers['device-token'] as string | undefined;
+      let deviceInfo: DevicesCreationAttributes | undefined;
+
+      // Si no hay token, obtener la información del dispositivo
+      if (!deviceToken) {
+          deviceInfo = await this._getDataDevice(req);
+      }
+
+      // Llamar al servicio de login con los datos correspondientes
+      const loginParams: ParamsLogin = {
+        Login: {
+          Username: String(Email),
+          Password:String(Code)
+        },
+        withToken: !!deviceToken,
+        deviceToken,
+        deviceInfo,
+      };
+
+      const response = await this.loginAfterRegister(loginParams);
+      const {code, message, isError} = response
+      success({ res, data: message, status: code, isError});
+
+    } catch (err:any) {
+      error({ req, res, data: err.message , status: 409 });
+    }
+
+
+  }
 
   public generateCodeEmail = async (req: Request, res: Response):Promise<void> => {
     try {
       const { email } = req.params;
 
       const response = await this._generateCodeEmail(String(email));
-      
-      success({ res, data: response, status: 200 });
+      const {code, message, isError} = response
+      success({ res, data: message, status: code, isError});
 
     } catch (err:any) {
       error({ req, res, data: err.message , status: 409, details: err });
@@ -30,10 +72,11 @@ class AuthController extends AuthService {
 
   public validCodeByEmail = async (req: Request, res: Response): Promise<void> => {
     try {
-      const {Code, Email} = req.body
+      const {Code, Email} = req.query
 
-      const response = await this._validCodeByEmail(Email, Code)
-      success({ req, res, data: response, status: 200 });  
+      const response = await this._validCodeByEmail(String(Email), String(Code))
+      const {code, message, isError} = response
+      success({ res, data: message, status: code, isError});
 
  
     } catch (err: any) {
@@ -95,7 +138,8 @@ class AuthController extends AuthService {
         });
       }
 
-      success({ req, res, data: response, status: 200 }); 
+      const {code, message, isError} = response
+      success({ res, data: message, status: code, isError});
 
     } catch (err:any) {
       error({ req, res, data: err.message , status: 409 });
@@ -118,8 +162,9 @@ class AuthController extends AuthService {
       }
 
       const response = await this._validCodeDevice(code, deviceToken)
+      const {code:codeResponse, message, isError} = response
+      success({ res, data: message, status: codeResponse, isError});
 
-      success({ req, res, data: response, status: 200 }); 
     } catch (err: any) {
       error({ req, res, data: err.message , status: 409, details: err });
     }
@@ -129,14 +174,14 @@ class AuthController extends AuthService {
 
   }
 
-
-
   public recoveryPassword = async (req: Request, res: Response): Promise<void> => {
     try {
       let data = req.body;
       const {Email} = data
       const response = await this._recoveryPassword(Email);
-      success({ res, data: response, status: 200 });
+      const {code:codeResponse, message, isError} = response
+      success({ res, data: message, status: codeResponse, isError});
+      
     } catch(err) {
       error({ res, data: 'Se tuvo un problema en la solicitud, te sugerimos que te pongas en contacto con soporte', status: 500, details: err });
     }
@@ -149,10 +194,12 @@ class AuthController extends AuthService {
       if (!token) {
         error({ req, res, data: 'Token invalido', status: 401 });
       } else {
+
         const {Password} = req.body        
         const response = await this._changePassword(Password, token)
+        const {code:codeResponse, message, isError} = response
+        success({ res, data: message, status: codeResponse, isError});  
 
-        success({ req, res, data: response, status: 200 });  
       }
     } catch (err: any) {
       error({ req, res, data: err.message , status: 409, details: err });
@@ -167,13 +214,13 @@ class AuthController extends AuthService {
         error({ req, res, data: 'Token invalido', status: 401 });
       } else {
         const response = await this._validDataUser(token)
-        success({ req, res, data: response, status: 200 });  
+        const {code:codeResponse, message, isError} = response
+        success({ res, data: message, status: codeResponse, isError}); 
       }
     } catch (err: any) {
       error({ req, res, data: err.message , status: 409, details: err });
     }
   }
-
   
   private _getDataDevice = async (req: Request): Promise<DevicesCreationAttributes> => {
     const userAgent = req.headers['user-agent'];

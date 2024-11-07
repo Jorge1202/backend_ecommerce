@@ -6,12 +6,13 @@ const userRoutes = Router();
 
 //#region  ################ Generar cuenta 
 userRoutes.get('/generateCodeEmail/:email', authController.generateCodeEmail); 
-userRoutes.post('/validCodeByEmail', authController.validCodeByEmail); 
+userRoutes.get('/validCodeByEmail', authController.validCodeByEmail); 
 //#endregion  ################ Generar codigo al crear cuenta 
 
 //#region ################ Iniciar y cerrar sesión 
 // userRoutes.post('/login', authController.login);
 userRoutes.get('/login/:Username/:Password', authController.login);
+userRoutes.get('/loginAfterRegister', authController.loginAfetr);
 userRoutes.get('/validCodeDevice/:code', authController.validCodeDevice); 
 userRoutes.get('/logout/', authController.logout); 
 //#endregion ################ Iniciar y cerrar sesión

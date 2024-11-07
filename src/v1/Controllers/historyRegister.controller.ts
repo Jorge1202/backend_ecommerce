@@ -14,9 +14,8 @@ class historyRegisterController extends HistoryRegisterService {
       let data = req.body;
 
       // 2. Llamar al servicio para crear registro 
-      const rsponse = await this._createHistory(data);
-      const {code, message, isError} = rsponse
-      
+      const response = await this._createHistory(data);
+      const {code, message, isError} = response
       success({ res, data: message, status: code, isError});
 
       
@@ -30,13 +29,13 @@ class historyRegisterController extends HistoryRegisterService {
       const { Email, Id } = req.query;
 
       if(Id){
-        const rsponse = await this.valid_EmailwhithID(String(Email), Number(Id));
-        const {code, message, isError} = rsponse
+        const response = await this.valid_EmailwhithID(String(Email), Number(Id));
+        const {code, message, isError} = response
         success({ res, data: message, status: code, isError});
         
       } else {
-        const rsponse = await this.valid_Email(String(Email));
-        const {code, message, isError} = rsponse
+        const response = await this.valid_Email(String(Email));
+        const {code, message, isError} = response
         
         success({ res, data: message, status: code, isError});
       }
@@ -53,13 +52,13 @@ class historyRegisterController extends HistoryRegisterService {
       const { Username, Id } = req.query;
 
       if(Id){
-        const rsponse = await this.valid_UsernamewhithID(String(Username), Number(Id));
-        const {code, message, isError} = rsponse
+        const response = await this.valid_UsernamewhithID(String(Username), Number(Id));
+        const {code, message, isError} = response
         success({ res, data: message, status: code, isError});
         
       } else {
-        const rsponse = await this.valid_Username(String(Username));
-        const {code, message, isError} = rsponse
+        const response = await this.valid_Username(String(Username));
+        const {code, message, isError} = response
         success({ res, data: message, status: code, isError});
       }
       

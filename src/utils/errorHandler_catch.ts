@@ -20,6 +20,8 @@ export function handleServiceError(error: any, customMessage: string, statusCode
   } else {
     errorMessage = `${error.message}`;
   }
+  console.log(`${customMessage}: ${errorMessage}`);
+  
 
   // Lanza un error personalizado para el cliente
   throw new CustomError(`${customMessage}: ${errorMessage}`, statusCode);

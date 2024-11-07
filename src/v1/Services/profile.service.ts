@@ -3,8 +3,12 @@ import { Profile, ProfileCreationAttributes  } from '../models/profile';
 import { handleServiceError } from '../../Utils/errorHandler_catch';
 import { StatisticsProfileService } from './statics_profile.service';
 import { StatisticsProfile } from '../models/statistics-profile';
+import { ServiceResponse } from '../../Utils/ServiceResponse';
+
 
 export class ProfileService {
+  
+  //#region ######################################### Metodos Public
   // Crear perfil de la página del usuario
   public async createProfile(profileData: ProfileCreationAttributes, transaction: Transaction): Promise<void> {
     try {
@@ -20,51 +24,108 @@ export class ProfileService {
       handleServiceError(error, 'Error creating profile', 500)
     }
   }
+  //#endregion ######################################### Metodos Public
 
-  protected async _findAllProfile(): Promise<Profile[]> {
+
+  //#region ######################################### Metodos Protected
+  protected async _findAllProfile(): Promise<ServiceResponse<Profile[]>> {
     try {      
       const list = await Profile.findAll();
-      return list;
-    } catch (error) {
-      throw new Error(`Error obteniendo la lista: ${error}`);
+      return {
+        code: 200,
+        isError: false,
+        message: list
+      };
+    } catch (err:any) {
+      handleServiceError(err, '_findAllProfile', err.statusCode)
     }
   }
 
-  protected async _findByPk(id: string): Promise<Profile | null> {
+  protected async _findByPk(id: string): Promise<ServiceResponse<Profile | string>> {
     try {
       const record = await Profile.findByPk(id); // Remover el include de User
-      return record;
-    } catch (error) {
-      throw new Error(`Error obteniendo el registro con id ${id}: ${error}`);
+      if (!record) {
+        return {
+          code: 409,
+          isError: true,
+          message: 'No se encuentra registro con el identificador dado'
+        };
+      }
+      
+      return {
+        code: 200,
+        isError: false,
+        message: record
+      };
+
+    } catch (err:any) {
+      handleServiceError(err, '_findByPk', err.statusCode)
     }
   }
   
-  private async _createProfile(profileData: ProfileCreationAttributes, transaction: Transaction): Promise<Profile> {
-    try {
-      return await Profile.create(profileData, { transaction });
-    } catch (error) {
-      handleServiceError(error, 'Error creating profile', 500)
-    }
-  }
-
-  protected async _updateProfile(id: string, data: Partial<Profile>): Promise<Profile | null> {
+  protected async _updateProfile(id: string, data: Partial<Profile>): Promise<ServiceResponse<Profile | string>> {
     try {
       const record = await Profile.findByPk(id);
       if (!record) {
-        throw new Error(`Record with id ${id} not found`);
+        return {
+          code: 409,
+          isError: true,
+          message: 'No se encuentra registro con el identificador dado'
+        };
       }
+
+
       await record.update(data);
-      return record;
-    } catch (error) {
-      throw new Error(`Error updating record: ${error}`);
+      return {
+        code: 200,
+        isError: false,
+        message: record
+      };
+
+    } catch (err:any) {
+      handleServiceError(err, '_updateProfile', err.statusCode)
     }
   }
 
-  protected async _destroyProfile(id: string): Promise<number> {
-    const result = await Profile.destroy({
-      where: { IdProfile: id },
-    });
-    return result;
+  protected async _destroyProfile(id: string): Promise<ServiceResponse<string>> {
+
+    try {
+      const result = await Profile.destroy({
+        where: { IdProfile: id },
+      });
+  
+      if (!result) {
+        return {
+          code: 409,
+          isError: true,
+          message: 'Record not found'
+        };
+      } 
+  
+  
+      return {
+        code: 200,
+        isError: false,
+        message: 'Record  deleted successfully'
+      };
+      
+    } catch (err:any) {
+      handleServiceError(err, '_destroyProfile', err.statusCode)
+    }
+
+
   }  
+  //#endregion ######################################### Metodos Protected
+
+  
+  //#region ######################################### Metodos Private
+  private async _createProfile(profileData: ProfileCreationAttributes, transaction: Transaction): Promise<Profile> {
+    try {
+      return await Profile.create(profileData, { transaction });
+    } catch (err:any) {
+      handleServiceError(err, '_createProfile', err.statusCode)
+    }
+  }
+  //#endregion ######################################### Metodos Private
   
 }

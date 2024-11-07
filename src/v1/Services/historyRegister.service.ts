@@ -5,37 +5,10 @@ import { Transaction, Op } from 'sequelize';
 import { ServiceResponse } from '../../Utils/ServiceResponse';
 
 export class HistoryRegisterService {
-  
-  // Crear historial de registro
-  protected async _createHistory(userData: HistoryRegister): Promise<ServiceResponse<HistoryRegister>> {
-    try {
-      if(!userData.Email) {
-        throw errorCatch('El campo "Email" es obligatorio', 409);
-      }
-      
-      const existingRecord = await this._findByEmail(userData.Email);
-      if (existingRecord) {
-        return {
-            code: 409,
-            isError: true,
-            message: 'El correo ya está registrado'
-        };
-      }
-      const createdRecord = await HistoryRegister.create(userData);
-      return {
-          code: 201,
-          isError: false,
-          message: createdRecord,
-      };
 
-    } catch (error: any) {
-      handleServiceError(error, 'Create histery', error.statusCode);
-    }
-  }
+  //#region ######################################### Metodos Public
   // Actualizar historial de registro (con o sin transacción)
-  public async updateByRegister(
-    data: Partial<HistoryRegister>, 
-    transaction?: Transaction ): Promise<ServiceResponse<HistoryRegister>> {
+  public async updateByRegister( data: Partial<HistoryRegister>, transaction?: Transaction ): Promise<ServiceResponse<HistoryRegister>> {
 
     try {
 
@@ -71,8 +44,47 @@ export class HistoryRegisterService {
       throw new Error(`Error updating Register: ${error}`);
     }
   }
+  //#endregion ######################################### Metodos Public
+  
+  
+  //#region ######################################### Metodos Protected
+    // Crear historial de registro
+  protected async _createHistory(userData: HistoryRegister): Promise<ServiceResponse<HistoryRegister>> {
+    try {
+      if(!userData.Email) {
+        throw errorCatch('El campo "Email" es obligatorio', 409);
+      }
+      
+      const existingRecord = await this._findByEmail(userData.Email);
+      if (existingRecord) {
+        return {
+            code: 409,
+            isError: true,
+            message: 'El correo ya está registrado'
+        };
+      }
 
+      //Hace falta validar si tiene un codigo enviado o si se encuentra en estatus 6 202
+      // const ValidCodeRecord = await this._findByEmail(userData.Email);
+      // if (ValidCodeRecord) {
+      //   return {
+      //       code: 202,
+      //       isError: true,
+      //       message: '¡La cuenta requiere de verificación!, Consulta tu correo para ingresar el código de verificación'
+      //   };
+      // }
 
+      const createdRecord = await HistoryRegister.create(userData);
+      return {
+          code: 201,
+          isError: false,
+          message: createdRecord,
+      };
+
+    } catch (error: any) {
+      handleServiceError(error, 'Create histery', error.statusCode);
+    }
+  }
 
   protected async valid_Email (Email:string): Promise<ServiceResponse<HistoryRegister>> {
     
@@ -133,8 +145,6 @@ export class HistoryRegisterService {
     }
   }
 
-
-  
   protected async valid_Username (Username:string): Promise<ServiceResponse<HistoryRegister>> {
     
     const existingRecord = await this._findByUsername(Username);
@@ -190,9 +200,6 @@ export class HistoryRegisterService {
     }
   }
 
-
-
-
   // Obtener historial de registro por Email
   protected async _findByEmail(Email: string): Promise<HistoryRegister | null> {
     try {
@@ -223,4 +230,11 @@ export class HistoryRegisterService {
       throw new Error(`Error fetching user with email ${Id}: ${error}`);
     }
   }
+  //#endregion ######################################### Metodos Protected
+  
+  
+  //#region ######################################### Metodos Private
+  //#endregion ######################################### Metodos Private
+
+  
 }
