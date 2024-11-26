@@ -17,8 +17,8 @@ class TypePageController extends TypePageService {
 
 
 
-    } catch (err) {
-      error({ req, res, data: 'Error fetching user ', details: err, status: 500 });
+    } catch(err: any) {
+      error({ res, data: err.message, status: err.status, details: err });
     }
   }
 
@@ -29,8 +29,8 @@ class TypePageController extends TypePageService {
       const {code, message, isError} = response
       success({ res, data: message, status: code, isError});
 
-    } catch (err) {
-      error({ req, res, data: 'Error fetching record ', status: 500, details: err });
+    } catch(err: any) {
+      error({ res, data: err.message, status: err.status, details: err });
     }
   }
 
@@ -41,8 +41,8 @@ class TypePageController extends TypePageService {
       success({ res, data: message, status: code, isError});
 
 
-    } catch (err) {
-      error({ req, res, data: 'Error creating record ', status: 500, details: err });
+    } catch(err: any) {
+      error({ res, data: err.message, status: err.status, details: err });
     }
   }
 
@@ -53,8 +53,8 @@ class TypePageController extends TypePageService {
       const {code, message, isError} = response
       success({ res, data: message, status: code, isError});
 
-    } catch (err) {
-      error({ req, res, data: 'Error updating record ', status: 500, details: err });
+    } catch(err: any) {
+      error({ res, data: err.message, status: err.status, details: err });
     }
   }
 
@@ -65,8 +65,8 @@ class TypePageController extends TypePageService {
       const {code, message, isError} = response
       success({ res, data: message, status: code, isError});
 
-    } catch (err) {
-      error({ req, res, data: 'Error deleting record ', status: 500, details: err });
+    } catch(err: any) {
+      error({ res, data: err.message, status: err.status, details: err });
     }
   }
 

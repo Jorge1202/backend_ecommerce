@@ -19,8 +19,8 @@ class historyRegisterController extends HistoryRegisterService {
       success({ res, data: message, status: code, isError});
 
       
-    } catch (err: any) {
-      error({ res, data: err.message, status: 409, details: err });
+    } catch(err: any) {
+      error({ res, data: err.message, status: err.status, details: err });
     }
   }
 
@@ -42,8 +42,8 @@ class historyRegisterController extends HistoryRegisterService {
 
 
       
-    } catch (err: any) {
-      error({ res, data: err.message, status: 409, details: err });
+    } catch(err: any) {
+      error({ res, data: err.message, status: err.status, details: err });
     }
   }
 
@@ -62,11 +62,8 @@ class historyRegisterController extends HistoryRegisterService {
         success({ res, data: message, status: code, isError});
       }
       
-      
-
-      
-    } catch (err: any) {
-      error({ res, data: err.message, status: 409, details: err });
+    } catch(err: any) {
+      error({ res, data: err.message, status: err.status, details: err });
     }
   }
 
@@ -74,14 +71,15 @@ class historyRegisterController extends HistoryRegisterService {
   public updataRegister = async (req: Request, res: Response): Promise<void> => {
     try {
       const updatedRecord = await this.updateByRegister(req.body);
-      if (updatedRecord) {
-        const {code, message, isError} = updatedRecord
-        success({ res, data: message, status: code, isError});
-      } else {
-        error({ res, data: 'Record not found', status: 204, });
-      }
-    } catch (err: any) {
-      error({ res, data: err.message, status: 404, details: err });
+      if (!updatedRecord) {
+        error({ res, data: 'Record not found', status: 400, });
+      } 
+      
+      const {code, message, isError} = updatedRecord
+      success({ res, data: message, status: code, isError});      
+      
+    } catch(err: any) {
+      error({ res, data: err.message, status: err.status, details: err });
     }
   }
 

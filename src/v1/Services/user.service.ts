@@ -11,6 +11,7 @@ import { AuthService } from './auth.service';
 import { UserPageService } from './user_page.service'
 import { ProfileService } from './profile.service';
 import { HistoryRegisterService } from './historyRegister.service';
+import { generateToken } from '../Secure/tokenJWT';
 
 interface inUser {
   Username: string;
@@ -32,14 +33,13 @@ export class UserService {
     try {
       const dataUser = await User.findByPk(id);
       if (!dataUser) {
-        throw errorCatch(`Error fetching user with id ${id}`, 409);
+        throw errorCatch(`Error fetching user with id ${id}`, 422);
       }
 
       return dataUser
 
-
-    } catch (err) {
-      throw errorCatch(`Error fetching user with id ${id}: ${err}`, 409);
+    } catch (err: any) {
+      handleServiceError(err, 'findByPkUser_forAuth', err.statusCode);
     }
   }
   //#endregion ######################################### Metodos Public
@@ -52,8 +52,9 @@ export class UserService {
     return await withTransaction(async (transaction) => {
       try {
 
-        await this._validExite(user)
-
+        const responeValid = await this._validExite(user)
+        if(responeValid.code != 200) return responeValid;
+        
         // 1. Crear usuario
         const newUser = await this._createUser({
           Username: user.Username,
@@ -113,10 +114,21 @@ export class UserService {
         const historyRegisterService = new HistoryRegisterService();
         await historyRegisterService.updateByRegister(user, transaction);
 
+        const {auth} = resultAuth
+        const token = generateToken({
+          dataToken: {
+            IdAuth: auth.IdAuth,
+          },
+          expiresIn: '30m',
+        });
+
         return {
           code: 201,
           isError: false,
-          message: 'Usuario registrado exitosamente. ¡Verifica tu cuenta!'
+          message: {
+            message: 'Usuario registrado exitosamente. ¡Verifica tu cuenta!',
+            token
+          }
         };
 
       } catch (err: any) {
@@ -132,7 +144,7 @@ export class UserService {
       const dataUser = await User.findByPk(id);
       if (!dataUser) {
         return {
-          code: 409,
+          code: 422,
           isError: true,
           message: 'No se encuentra registro con el identificador dado'
         };
@@ -145,8 +157,8 @@ export class UserService {
       };
 
 
-    } catch (err) {
-      throw errorCatch(`Error fetching user with id ${id}: ${err}`, 409);
+    } catch (err: any) {
+      handleServiceError(err, 'findByPkUser', err.statusCode);
     }
   }
 
@@ -161,7 +173,7 @@ export class UserService {
       };
 
     } catch (err: any) {
-      handleServiceError(err, '_findAll', err.statusCode)
+      handleServiceError(err, '_findAll', 400)
     }
   }
 
@@ -171,7 +183,7 @@ export class UserService {
       const user = await User.findByPk(id);
       if (!user) {
         return {
-          code: 409,
+          code: 422,
           isError: true,
           message: 'No se encuentra registro con el identificador dado'
         };
@@ -195,7 +207,7 @@ export class UserService {
       const result = await User.destroy({ where: { IdUser: id } });
       if (!result) {
         return {
-          code: 409,
+          code: 422,
           isError: true,
           message: `No se encontro el registro`
         };
@@ -254,7 +266,7 @@ export class UserService {
     try {
       return await User.create(userData, { transaction });
     } catch (err: any) {
-      handleServiceError(err, '_createUser', err.statusCode)
+      handleServiceError(err, '_createUser', 400)
     }
   }
   private async _validExite(user: inUser): Promise<any> {
@@ -266,17 +278,17 @@ export class UserService {
       //Hace falta validar si tiene un codigo enviado o si se encuentra en estatus 
 
       if (userExit) {
-        return { message: 'El usuario ya existe', isError: true }
+        return { message: 'El usuario ya existe', isError: true, code: 409 }
       }
 
       const emailExit = await User.findOne({
         where: { Email: user.Email }
       })
       if (emailExit) {
-        return { message: 'El email ya existe', isError: true }
+        return { message: 'El email ya existe', isError: true, code:409 }
       }
 
-      return { message: 'Los datos son validos', isError: false }
+      return { message: 'Los datos son validos', isError: false, code:200 }
 
     }
     catch (err: any) {

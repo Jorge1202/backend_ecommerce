@@ -7,18 +7,18 @@ export class CodeAutenticationService {
 
   //#region ######################################### Metodos Public
   // Crear código de autenticación
-  public async createCodeEmail(codeData: CodeAutenticationCreationAttributes, transaction?: Transaction): Promise<CodeAutentication> {
+  public async createNewwCode(codeData: CodeAutenticationCreationAttributes, transaction?: Transaction): Promise<CodeAutentication> {
     try {
 
       await this._changeToInactive(codeData)    
       
-      const codeAleatorio = await this._generarCodigoAleatorio();
+      const codeAleatorio = this._generarCodigoAleatorio();
       codeData = {...codeData, Code: codeAleatorio}
       const code = await CodeAutentication.create(codeData, { transaction });
       return code;
 
     } catch (error:any) {
-      handleServiceError(error, 'createCodeEmail', error.statusCode)
+      handleServiceError(error, 'createNewwCode', error.statusCode)
     } 
   } 
   public async validCode (Code: string, IdAuth?:number):Promise<any> {
@@ -55,10 +55,11 @@ export class CodeAutenticationService {
   private async _changeToInactive (codeData: CodeAutenticationCreationAttributes): Promise<any> {
     try {
 
-     const [updatedCount, updatedUsers] = await CodeAutentication.update({IsActive: false}, {
+     const updatedUsers = await CodeAutentication.update({IsActive: false}, {
        where: {
          IdAuth:codeData.IdAuth,
-         IdTypeCode:codeData.IdTypeCode
+         IdTypeCode:codeData.IdTypeCode, 
+         IsActive:true 
        },              
        returning: true
      });
@@ -72,7 +73,7 @@ export class CodeAutenticationService {
    } 
  }
 
- private async _generarCodigoAleatorio():Promise<string>{
+ private _generarCodigoAleatorio():string {
    // Genera un número aleatorio entre 100000 y 999999
    const codigo = Math.floor(100000 + Math.random() * 900000);
    return codigo.toString()

@@ -20,9 +20,9 @@ export class ProfileService {
         IdProfile: profile.IdProfile,
       },transaction)
       
-    } catch (error) {
-      handleServiceError(error, 'Error creating profile', 500)
-    }
+    } catch (err: any) {
+      handleServiceError(err, 'createProfile', 400);
+    } 
   }
   //#endregion ######################################### Metodos Public
 
@@ -36,8 +36,8 @@ export class ProfileService {
         isError: false,
         message: list
       };
-    } catch (err:any) {
-      handleServiceError(err, '_findAllProfile', err.statusCode)
+    } catch (err: any) {
+      handleServiceError(err, '_findAllProfile', 400);
     }
   }
 
@@ -46,7 +46,7 @@ export class ProfileService {
       const record = await Profile.findByPk(id); // Remover el include de User
       if (!record) {
         return {
-          code: 409,
+          code: 422,
           isError: true,
           message: 'No se encuentra registro con el identificador dado'
         };
@@ -68,7 +68,7 @@ export class ProfileService {
       const record = await Profile.findByPk(id);
       if (!record) {
         return {
-          code: 409,
+          code: 422,
           isError: true,
           message: 'No se encuentra registro con el identificador dado'
         };
@@ -96,7 +96,7 @@ export class ProfileService {
   
       if (!result) {
         return {
-          code: 409,
+          code: 422,
           isError: true,
           message: 'Record not found'
         };

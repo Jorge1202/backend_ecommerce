@@ -12,15 +12,15 @@ export class UserPageService {
     try {
       const newRecord = await UserPage.create(userPageData, { transaction });
       if (!newRecord) {
-        throw errorCatch('No se creo el registro', 500)
+        throw errorCatch('No se creo el registro', 400)
       }
 
       return newRecord;
 
 
-    } catch (error) {
-      handleServiceError(error, 'Error creating user page', 500)
-    }
+    } catch (err: any) {
+      handleServiceError(err, 'createUserPage', err.statusCode);
+    } 
   }
   //#endregion ######################################### Metodos Publicos
 
@@ -35,9 +35,9 @@ export class UserPageService {
         message: list
       };
 
-    } catch (error) {
-      throw new Error(`Error obteniendo la lista: ${error}`);
-    }
+    } catch (err: any) {
+      handleServiceError(err, 'createUserPage', 400);
+    } 
   }
 
   protected async _findByPk(id: number): Promise<ServiceResponse<UserPage | string>> {
@@ -45,7 +45,7 @@ export class UserPageService {
       const record = await UserPage.findByPk(id);
       if (record) {
         return {
-          code: 409,
+          code: 422,
           isError: true,
           message: 'No se encuentra registro con el identificador dado'
         };
@@ -58,9 +58,9 @@ export class UserPageService {
       };
 
 
-    } catch (error) {
-      throw new Error(`Error obteniendo el registro con id ${id}: ${error}`);
-    }
+    } catch (err: any) {
+      handleServiceError(err, '_findByPk', 400);
+    } 
   }
 
   protected async _updateUserPage(id: number, data: Partial<UserPage>): Promise<ServiceResponse<UserPage | string>> {
@@ -81,9 +81,9 @@ export class UserPageService {
         message: record
       };
 
-    } catch (error) {
-      throw new Error(`Error actualizando registro con id ${id}: ${error}`);
-    }
+    } catch (err: any) {
+      handleServiceError(err, '_updateUserPage', 400);
+    } 
   }
   //#endregion ######################################### Metodos Protected
 

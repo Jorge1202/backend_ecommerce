@@ -32,9 +32,8 @@ class UserController extends UserService {
       success({ res, data: message, status: code, isError});
 
       
-    } catch (err) {
-      // await transaction.rollback(); // Revertir las operaciones en caso de error
-      error({ res, data: 'Error creating record', status: 500, details: err });
+    } catch(err: any) {
+      error({ res, data: err.message, status: err.status, details: err });
     }
   }
 
@@ -48,31 +47,31 @@ class UserController extends UserService {
 
       // Validación de campos obligatorios del usuario
       if (!user.Email) {
-        error({ res, data: 'Ingresa el Email', details:'(Controller.ValidDataCreate)', status: 422, });
+        error({ res, data: 'Ingresa el Email', details:'(Controller.ValidDataCreate)', status: 400, });
         return false;
       }
       if (!user.Username) {
-        error({ res, data: 'Ingresa el username', details:'(Controller.ValidDataCreate)', status: 422, });
+        error({ res, data: 'Ingresa el username', details:'(Controller.ValidDataCreate)', status: 400, });
         return false;
       }
       if (!user.Name) {
-        error({ res, data: 'Ingresa el nombre', details:'(Controller.ValidDataCreate)', status: 422, });
+        error({ res, data: 'Ingresa el nombre', details:'(Controller.ValidDataCreate)', status: 400, });
         return false;
       }
       if (!user.Firstname) {
-        error({ res, data: 'Ingresa el apellido', details:'(Controller.ValidDataCreate)', status: 422, });
+        error({ res, data: 'Ingresa el apellido', details:'(Controller.ValidDataCreate)', status: 400, });
         return false;
       }
 
       if (!user.Password) {
-        error({ res, data: 'Ingresa la contraseña', details:'(Controller.ValidDataCreate)', status: 422, });
+        error({ res, data: 'Ingresa la contraseña', details:'(Controller.ValidDataCreate)', status: 400, });
         return false;
       }
 
       // Si todo está bien, retornamos los datos
       return true;
-    } catch (err) {
-      error({ res, data: 'Error validando los datos', status: 400, details: err });
+    } catch(err: any) {
+      error({ res, data: err.message, status: err.status, details: err });    
       return null;
     }
   }
@@ -85,9 +84,8 @@ class UserController extends UserService {
       const {code, message, isError} = response
       success({ res, data: message, status: code, isError});
       
-    } catch (err) {
-      // await transaction.rollback(); // Revertir las operaciones en caso de error
-    error({ res, data: 'Error al enviar el correo prueba', status: 500, details: err });
+    } catch(err: any) {
+      error({ res, data: err.message, status: err.status, details: err });
     }
   }
 
@@ -98,8 +96,8 @@ class UserController extends UserService {
       const {code, message, isError} = response
       success({ res, data: message, status: code, isError});
 
-    } catch (err) {
-      error({ res, data: 'Error fetching record ', details: err, status: 500 });
+    } catch(err: any) {
+      error({ res, data: err.message, status: err.status, details: err });
     }
   }
 
@@ -111,8 +109,8 @@ class UserController extends UserService {
       success({ res, data: message, status: code, isError});
 
     
-    } catch (err) {
-      error({ res, data: 'Error fetching record ', status: 500, details: err});
+    } catch(err: any) {
+      error({ res, data: err.message, status: err.status, details: err });
     }
   }
   
@@ -123,8 +121,8 @@ class UserController extends UserService {
       const {code, message, isError} = response
       success({ res, data: message, status: code, isError});
 
-    } catch (err) {
-      error({ res, data: 'Error updating record ', status: 500, details: err });
+    } catch(err: any) {
+      error({ res, data: err.message, status: err.status, details: err });
     }
   }
 
@@ -135,8 +133,8 @@ class UserController extends UserService {
       const {code, message, isError} = response
       success({ res, data: message, status: code, isError});
 
-    } catch (err) {
-      error({ res, data: 'Error deleting record ', status: 500, details: err });
+    } catch(err: any) {
+      error({ res, data: err.message, status: err.status, details: err });
     }
   }
 }

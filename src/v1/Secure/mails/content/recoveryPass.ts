@@ -21,31 +21,44 @@ export const recoveryPass = (param:DataMail):string => `
                             ¡Hola ${param.name} ${param.firstname}!
                         </td> 
                     </tr>
+                                    
                     <tr>
                         <td style='font-size: 12px; text-align: justify; line-height: 22px;'>
-                            Hemos recibido una solicitud para cambiar la contraseña de tu cuenta. 
-                        </td>   
+                            Ingresa el siguiente código para restablecer la contraseña:
+                        </td>                       
                     </tr>
 
                     <tr>
-                        <td style='font-size: 12px; text-align: justify; line-height: 22px;'>
-                            Este enlace es válido durante los próximos <strong>30 minutos por razones de seguridad.</strong>. 
-                            Si no cambias tu contraseña dentro de este tiempo, deberás solicitarlo nuevanete.
-                        </td>   
+                        <td>
+                            <table align='left' border='0' cellpadding='0' cellspacing='0' style='margin: 15px 0px; line-height: 22px; font-size: 12px; text-align: justify;'>  
+                                <tr>
+                                    <td style='font-size: 11px; padding: 14px 32px 14px 32px; border-radius: 7px; display: block; border: 1px solid #E28000; background: #fff4e6;'>
+                                        <strong style='letter-spacing: 2pt; font-size: 17px;'>${param.code}</strong>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
                     </tr>
+                    
+                    <tr>
+                        <td style='font-size: 12px; text-align: justify; line-height: 22px;'>
+                            También puedes cambiar la contraseña directamente con el siguiente enlance.
+                        </td>                       
+                    </tr>
+            
                     <tr>
                         <td>
                             <center>
                                 <table style='margin: 35px 0 0 0;'>
                                     <tr>
                                         <td style='font-size: 12px; text-align: center; line-height: 22px;'>
-                                            Da click en el siguinte enlace para cambiar tu contrase;a.
+                                            Da click en el siguinte enlace para cambiar tu contraseña.
                                         </td>   
                                     </tr>
                                     <tr>
                                         <td>
                                             <a style='text-decoration: none; font-weight: bold;' href='${param.link}' target='_blank' data-saferedirecturl='${param.link}'>
-                                                <table border='0' cellpadding='14' cellspacing='0' style='background: #00916E; border-radius: 20px; width: 230px; height: 32px;'> 
+                                                <table border='0' cellpadding='14' cellspacing='0' style='background: #00916E; border-radius: 20px; width: 100%; height: 32px;'> 
                                                     <tr> 
                                                         <td align='center'>
                                                             <font style='color:#ffffff;'>Cambiar mi conraseña</font>
@@ -56,31 +69,24 @@ export const recoveryPass = (param:DataMail):string => `
                                         </td>
                                     </tr>
                                 </table>
-                            </center>
+                            </cenetr>
                         </td>
                     </tr>
-                    
-                    <tr>
+
+                    <tr style='margin: 35px 0 0 0; display: block;'>
                         <td style='font-size: 12px; text-align: justify; line-height: 22px;'>
-                        ${param.link}
+                            Este enlace es válido durante los próximos <strong>30 minutos por razones de seguridad.</strong>. 
+                            Si no cambias tu contraseña dentro de este tiempo, deberás solicitarlo nuevanete.
                         </td>   
                     </tr>
-                    <tr>
+        
+                    <tr style='margin: 35px 0 0 0; display: block;'>
                         <td style='font-size: 12px; text-align: justify; line-height: 22px;'>
                             Si no has solicitado el restablecimiento de tu contraseña, 
                             no te preocupes, simplemente ignora este correo. Tu cuenta sigue segura y no se realizarán cambios.
                         </td>   
                     </tr>
                     
-                    <tr>
-                        <td>
-                            <table align='left' border='0' cellpadding='0' cellspacing='0' style='width: 100%; margin: 2px 0px 6px 0px; line-height: 22px; font-size: 12px;'>  
-                                <tr><td>
-                                    Si tienes alguna pregunta o necesitas ayuda, no dudes en contactarnos. ¡Estamos aquí para ayudarte!
-                                </td> </tr>
-                            </table>
-                        </td>
-                    </tr>
                     <tr>
                         <td>
                             <table align='left' border='0' cellpadding='0' cellspacing='0' style='width: 100%; margin: 15px 0px; line-height: 22px; font-size: 12px;'>                            

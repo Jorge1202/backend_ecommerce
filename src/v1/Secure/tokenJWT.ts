@@ -68,16 +68,20 @@ export const generateToken = ({dataToken, expiresIn='1d'}: Token): string => {
 // Función para verificar y decodificar el JWT
 export const verifyToken = (token: string): { valid: boolean, message: string, cade:number, payload?: TokenPayload } => {
   try {
+    if (!token) {
+      return {cade:401, valid: false, message: 'No se proporcionó un refresh token'};
+    }
+
     // Verificar el token con la llave secreta
     const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
     return { cade:200, valid: true, message: 'Token válido', payload: decoded }; // Retorna el payload si la verificación es exitosa
   } catch (error) {
     if (error instanceof TokenExpiredError) {
-        return { cade:409, valid: false, message: 'Token ha expirado' };
+        return { cade:403, valid: false, message: 'Token ha expirado' };
       } else if (error instanceof JsonWebTokenError) {
-        return { cade:404, valid: false, message: 'Token inválido' };
+        return { cade:403, valid: false, message: 'Token inválido' };
       } else {
-        return { cade:500, valid: false, message: 'Error desconocido en la verificación del token' };
+        return { cade:403, valid: false, message: 'Error desconocido en la verificación del token' };
       }      
   }
 };

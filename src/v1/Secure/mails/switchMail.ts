@@ -50,7 +50,8 @@ export const bodyMail = async (action: MailActions, params: DataMail): Promise<s
         name: params.name,
         firstname: params.firstname,
         company: company,
-        link: `${linkFront}/recoverypassword/${params.token}`
+        code: params.code,
+        link: `${linkFront}/newPassword/${params.token}`
       });
       break;
     case MailActions.PasswordChangeSuccessful:

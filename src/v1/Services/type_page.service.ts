@@ -11,7 +11,7 @@ export class TypePageService {
     try {      
       const list = await TypePage.findAll();
       return {
-        code: 409,
+        code: 422,
         isError: true,
         message: list
       };
@@ -26,7 +26,7 @@ export class TypePageService {
       const record = await TypePage.findByPk(id); // Remover el include de User
       if (!record) {
         return {
-          code: 409,
+          code: 422,
           isError: true,
           message: 'No se encuentra registro con el identificador dado'
         };
@@ -47,7 +47,7 @@ export class TypePageService {
     try {
       const newRecord = await TypePage.create(data);
       if (!newRecord) {
-        throw errorCatch('No se creo el registro', 500)
+        throw errorCatch('No se creo el registro', 400)
       }
       
       return {
@@ -68,7 +68,7 @@ export class TypePageService {
       const record = await TypePage.findByPk(id);
       if (!record) {
         return {
-          code: 409,
+          code: 422,
           isError: true,
           message: `No se encontro el registro`
         };
@@ -95,7 +95,7 @@ export class TypePageService {
 
       if (!result) {
         return {
-          code: 409,
+          code: 422,
           isError: true,
           message: `No se encontro el registro`
         };

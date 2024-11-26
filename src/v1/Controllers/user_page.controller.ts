@@ -15,8 +15,8 @@ class UserPageController extends UserPageService {
       const {code, message, isError} = response
       success({ res, data: message, status: code, isError});
 
-    } catch (err) {
-      error({ req, res, data: 'Error fetching user pages', details: err, status: 500 });
+    } catch(err: any) {
+      error({ res, data: err.message, status: err.status, details: err });
     }
   }
 
@@ -27,8 +27,8 @@ class UserPageController extends UserPageService {
       const {code, message, isError} = response
       success({ res, data: message, status: code, isError});
 
-    } catch (err) {
-      error({ req, res, data: 'Error fetching record', status: 500, details: err });
+    } catch(err: any) {
+      error({ res, data: err.message, status: err.status, details: err });
     }
   }
 
@@ -39,8 +39,8 @@ class UserPageController extends UserPageService {
       const {code, message, isError} = response
       success({ res, data: message, status: code, isError});
 
-    } catch (err) {
-      error({ req, res, data: 'Error updating record', status: 500, details: err });
+    } catch(err: any) {
+      error({ res, data: err.message, status: err.status, details: err });
     }
   } 
 
