@@ -14,12 +14,17 @@ class AuthController extends AuthService {
     super(); 
   }
   //#region Endpoint Token
-  // function generateTokens(user) {
-  //   const accessToken = jwt.sign({ userId: user.id }, SECRET_ACCESS, { expiresIn: '15m' });
-  //   const refreshToken = jwt.sign({ userId: user.id }, SECRET_REFRESH, { expiresIn: '7d' });
-  
-  //   return { accessToken, refreshToken };
-  // }
+  public newTokenRefresh = async (req: Request, res: Response): Promise<void> => {
+    const { refreshToken } = req.cookies;
+    if (!refreshToken) {
+      res.status(401).json({ message: 'Refresh token missing' });
+    }
+
+    // const response = await this._newTokenRefresh(refreshToken);
+
+    
+
+  }
   //#endregion Endpoint Token
 
   //#region  ################ Generar cuenta 
@@ -60,7 +65,7 @@ class AuthController extends AuthService {
       const loginParams: ParamsLogin = {
         Login: {
           Username: String(message.Email),
-          Password:String(message.Code)
+          Code:String(message.Code)
         },
         withToken: !!deviceToken, 
         deviceToken,
@@ -107,32 +112,6 @@ class AuthController extends AuthService {
       error({ req, res, data: err.message , status: err.status, details: err });
     }
   }
-
-  // public validViewCode = async (req: Request, res: Response): Promise<void> => {
-  //   try {
-  //     const { email } = req.params;
-
-  //     const response = await this._generateCodeEmail(String(email));
-  //     const {code, message, isError} = response
-  //     success({ res, data: message, status: code, isError});
-
-  //   } catch (err:any) {
-  //     error({ req, res, data: err.message , status: 409, details: err });
-  //   }
-  // }
-
-  // public generateCodeEmail = async (req: Request, res: Response):Promise<void> => {
-  //   try {
-  //     const { email } = req.params;
-
-  //     const response = await this._generateCodeEmail(String(email));
-  //     const {code, message, isError} = response
-  //     success({ res, data: message, status: code, isError});
-
-  //   } catch (err:any) {
-  //     error({ req, res, data: err.message , status: 409, details: err });
-  //   }
-  // }
   //#endregion  ################ Generar cuenta 
 
   //#region ################ Iniciar y cerrar sesión 
@@ -154,7 +133,7 @@ class AuthController extends AuthService {
       }
 
       // Inicializar la variable para saber si se utilizará un token
-      const deviceToken = req.headers['device-token'] as string | undefined;
+      const deviceToken = req.headers['devicetoken'] as string | undefined;
       let deviceInfo: DevicesCreationAttributes | undefined;
 
       // Si no hay token, obtener la información del dispositivo
@@ -172,31 +151,37 @@ class AuthController extends AuthService {
         deviceToken,
         deviceInfo,
       };
-      const response = await this._login(loginParams);
-
-      const {tokenLogin, tokenDevice} = response
-
-      // console.log(tokenLogin); 
-      // console.log(tokenDevice);
-
-      // const token = req.cookies.token;
-      // // console.log(token);
+      const data = await this._login(loginParams);
+      const {response, tokens} = data;
+      
       // Establecer la cookie HttpOnly con el token
-
-      if(tokenLogin){
-        res.cookie('token', tokenLogin, {
-          httpOnly: true, // Protege contra ataques XSS
-          secure: process.env.NODE_ENV === 'production', // Solo en HTTPS si estás en producción
-          maxAge: 3600000, // La duración de la cookie (1 hora en milisegundos)
-          sameSite: 'strict', // Ayuda a prevenir ataques CSRF
-        });
-      }
+      if(tokens){
+        const {TOKEN_ACCESS, TOKEN_REFRESH} = tokens
+  
+        if(TOKEN_ACCESS){
+          res.cookie('_tkass', TOKEN_ACCESS, {
+            httpOnly: true, // Protege contra ataques XSS
+            maxAge: 3600000, // La duración de la cookie (1 hora en milisegundos)
+            secure: process.env.NODE_ENV === 'production', // Solo en HTTPS si estás en producción
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict':'lax', // Ayuda a prevenir ataques CSRF
+          });
+        }
+  
+        if(TOKEN_REFRESH){
+          res.cookie('_tkrsh', TOKEN_REFRESH, {
+            httpOnly: true, // Protege contra ataques XSS
+            maxAge: 3600000, // La duración de la cookie (1 hora en milisegundos)
+            secure: process.env.NODE_ENV === 'production', // Solo en HTTPS si estás en producción
+            sameSite: process.env.NODE_ENV === 'production' ? 'strict':'lax', // lax(local) strict(produccion)
+          });
+        }
+      }      
 
       // const {code, message, isError} = response
       success({ res, data: response, status: 200, isError:false});
 
     } catch (err:any) {
-      error({ req, res, data: err.message , status: err.status });
+      error({ req, res, data: err.message , status: err.statusCode  });
     }
 
   }
@@ -215,7 +200,7 @@ class AuthController extends AuthService {
         throw errorCatch('Falta la cabecera device-token', 400);
       }
 
-      const response = await this._validCodeDevice(code, deviceToken)
+      const response = await this.lg_validCodeDevice(code, deviceToken)
       const {code:codeResponse, message, isError} = response
       success({ res, data: message, status: codeResponse, isError});
 

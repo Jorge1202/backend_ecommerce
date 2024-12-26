@@ -1,9 +1,9 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
-import type { Login, LoginId } from './login';
-import type { User, UserId } from './user';
+import type { DeviceAuth, DeviceAuthId } from './device-auth';
 
 export interface DevicesAttributes {
+  IdDevices: number;
   UserAgent?: string;
   Plataform?: string;
   IdUser?: string;
@@ -16,7 +16,6 @@ export interface DevicesAttributes {
   VersionPlataform?: string;
   Cpu?: string;
   Browser?: string;
-  IdDevices: number;
   IsActive?: boolean;
 }
 
@@ -26,6 +25,7 @@ export type DevicesOptionalAttributes = "UserAgent" | "Plataform" | "IdUser" | "
 export type DevicesCreationAttributes = Optional<DevicesAttributes, DevicesOptionalAttributes>;
 
 export class Devices extends Model<DevicesAttributes, DevicesCreationAttributes> implements DevicesAttributes {
+  IdDevices!: number;
   UserAgent?: string;
   Plataform?: string;
   IdUser?: string;
@@ -38,26 +38,21 @@ export class Devices extends Model<DevicesAttributes, DevicesCreationAttributes>
   VersionPlataform?: string;
   Cpu?: string;
   Browser?: string;
-  IdDevices!: number;
   IsActive?: boolean;
 
-  // Devices hasMany Login via IdDevice
-  Logins!: Login[];
-  getLogins!: Sequelize.HasManyGetAssociationsMixin<Login>;
-  setLogins!: Sequelize.HasManySetAssociationsMixin<Login, LoginId>;
-  addLogin!: Sequelize.HasManyAddAssociationMixin<Login, LoginId>;
-  addLogins!: Sequelize.HasManyAddAssociationsMixin<Login, LoginId>;
-  createLogin!: Sequelize.HasManyCreateAssociationMixin<Login>;
-  removeLogin!: Sequelize.HasManyRemoveAssociationMixin<Login, LoginId>;
-  removeLogins!: Sequelize.HasManyRemoveAssociationsMixin<Login, LoginId>;
-  hasLogin!: Sequelize.HasManyHasAssociationMixin<Login, LoginId>;
-  hasLogins!: Sequelize.HasManyHasAssociationsMixin<Login, LoginId>;
-  countLogins!: Sequelize.HasManyCountAssociationsMixin;
-  // Devices belongsTo User via IdUser
-  IdUserUser!: User;
-  getIdUserUser!: Sequelize.BelongsToGetAssociationMixin<User>;
-  setIdUserUser!: Sequelize.BelongsToSetAssociationMixin<User, UserId>;
-  createIdUserUser!: Sequelize.BelongsToCreateAssociationMixin<User>;
+  // Devices hasMany DeviceAuth via IdDevice
+  DeviceAuths!: DeviceAuth[];
+  getDeviceAuths!: Sequelize.HasManyGetAssociationsMixin<DeviceAuth>;
+  setDeviceAuths!: Sequelize.HasManySetAssociationsMixin<DeviceAuth, DeviceAuthId>;
+  addDeviceAuth!: Sequelize.HasManyAddAssociationMixin<DeviceAuth, DeviceAuthId>;
+  addDeviceAuths!: Sequelize.HasManyAddAssociationsMixin<DeviceAuth, DeviceAuthId>;
+  createDeviceAuth!: Sequelize.HasManyCreateAssociationMixin<DeviceAuth>;
+  removeDeviceAuth!: Sequelize.HasManyRemoveAssociationMixin<DeviceAuth, DeviceAuthId>;
+  removeDeviceAuths!: Sequelize.HasManyRemoveAssociationsMixin<DeviceAuth, DeviceAuthId>;
+  hasDeviceAuth!: Sequelize.HasManyHasAssociationMixin<DeviceAuth, DeviceAuthId>;
+  hasDeviceAuths!: Sequelize.HasManyHasAssociationsMixin<DeviceAuth, DeviceAuthId>;
+  countDeviceAuths!: Sequelize.HasManyCountAssociationsMixin;
+
 
   static initModel(sequelize: Sequelize.Sequelize): typeof Devices {
     return Devices.init({
@@ -70,15 +65,6 @@ export class Devices extends Model<DevicesAttributes, DevicesCreationAttributes>
       type: DataTypes.STRING(50),
       allowNull: true,
       field: 'plataform'
-    },
-    IdUser: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-      references: {
-        model: 'user',
-        key: 'id_user'
-      },
-      field: 'id_user'
     },
     Token: {
       type: DataTypes.STRING(255),

@@ -20,18 +20,24 @@ interface Token {
     dataToken: TokenPayload
     expiresIn?: string
 }
+interface DataRefresh {
+  IdRefreshToken: number
+  ExpiresAt: Date
+}
 
 // Definimos las interfaces para los diferentes tipos de tokens
 export interface TokenLogin{
   IdAuth: number;
   IdUserPage: number;
   IdLogin: number;
+  dataRefresh: DataRefresh
 }
 
 export interface TokenDevice{
   IdDevice: number;
-  IdAuth: number;
-  IdUser: string;
+}
+export interface TokenRefresh{
+  IdDeviceAuth: number; 
 }
 
 // Ajustamos el tipo general del payload que puede ser un token de login o de dispositivo
@@ -75,6 +81,7 @@ export const verifyToken = (token: string): { valid: boolean, message: string, c
     // Verificar el token con la llave secreta
     const decoded = jwt.verify(token, JWT_SECRET) as TokenPayload;
     return { cade:200, valid: true, message: 'Token válido', payload: decoded }; // Retorna el payload si la verificación es exitosa
+  
   } catch (error) {
     if (error instanceof TokenExpiredError) {
         return { cade:403, valid: false, message: 'Token ha expirado' };

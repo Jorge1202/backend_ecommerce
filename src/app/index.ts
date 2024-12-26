@@ -13,8 +13,8 @@ import { config } from '../Config';
 const corsOptions = {
     origin: config.CORS.origin, // Permite solicitudes desde tu frontend en localhost:3000
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Métodos permitidos
-    allowedHeaders: ['Content-Type', 'Authorization'], // Encabezados permitidos
-    credentials: true, // Si necesitas enviar cookies o cabeceras de autenti.cación
+    allowedHeaders: ['Content-Type', 'Authorization', 'deviceToken'], // Encabezados permitidos
+    credentials: true, // Si necesitas enviar cookies o cabeceras de autenticación
     optionsSuccessStatus: 200 // Para algunos navegadores antiguos (como IE)
 };
 

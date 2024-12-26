@@ -12,6 +12,8 @@ import { PageStore } from '../page-store';
 import { StatusAuth } from '../status-auth';
 import { Login } from '../login';
 import { Devices } from '../devices';
+import { DeviceAuth } from '../device-auth';
+import { RefreshToken } from '../refresh-token';
 
 const initModel = (sequelize: Sequelize) => {
     
@@ -28,6 +30,8 @@ const initModel = (sequelize: Sequelize) => {
     StatusAuth.initModel(sequelize)
     Login.initModel(sequelize)
     Devices.initModel(sequelize)
+    DeviceAuth.initModel(sequelize)
+    RefreshToken.initModel(sequelize)
     //#endregion ######################### Create User
     
     //#region ######################### Create Store
