@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { success, error } from '../../middlewares/response';
+import { success, error } from '../../Utils/Response/response';
 
 import { UserService } from '../Services/user.service';
 interface Record {
@@ -27,13 +27,12 @@ class UserController extends UserService {
       if (!responseJson) return;
 
       // 2. Llamar al servicio para crear usuario 
-      const response = await this._registerUser(data);
-      const {code, message, isError} = response
-      success({ res, data: message, status: code, isError});
+      const {body, message, statusCode}= await this._registerUser(data);
+      success({ res, body, message, status: statusCode});
 
       
     } catch(err: any) {
-      error({ res, data: err.message, status: err.status, details: err });
+      error({ res, message: err.message, status: err.status });
     }
   }
 
@@ -41,37 +40,37 @@ class UserController extends UserService {
     try {
   
       if (!user) {
-        error({ res, data: 'Faltan datos de usuario ', details:'(Controller.ValidDataCreate)', status: 400 });
+        error({ res, message: 'Faltan datos de usuario ', status: 400 });
         return false;
       }
 
       // Validación de campos obligatorios del usuario
       if (!user.Email) {
-        error({ res, data: 'Ingresa el Email', details:'(Controller.ValidDataCreate)', status: 400, });
+        error({ res, message: 'Ingresa el Email', status: 400, });
         return false;
       }
       if (!user.Username) {
-        error({ res, data: 'Ingresa el username', details:'(Controller.ValidDataCreate)', status: 400, });
+        error({ res, message: 'Ingresa el username', status: 400, });
         return false;
       }
       if (!user.Name) {
-        error({ res, data: 'Ingresa el nombre', details:'(Controller.ValidDataCreate)', status: 400, });
+        error({ res, message: 'Ingresa el nombre', status: 400, });
         return false;
       }
       if (!user.Firstname) {
-        error({ res, data: 'Ingresa el apellido', details:'(Controller.ValidDataCreate)', status: 400, });
+        error({ res, message: 'Ingresa el apellido', status: 400, });
         return false;
       }
 
       if (!user.Password) {
-        error({ res, data: 'Ingresa la contraseña', details:'(Controller.ValidDataCreate)', status: 400, });
+        error({ res, message: 'Ingresa la contraseña', status: 400, });
         return false;
       }
 
       // Si todo está bien, retornamos los datos
       return true;
     } catch(err: any) {
-      error({ res, data: err.message, status: err.status, details: err });    
+      error({ res, message: err.message, status: err.status });    
       return null;
     }
   }
@@ -80,61 +79,56 @@ class UserController extends UserService {
     try {
       let data = req.body;
 
-      const response = await this._pruebaMail(data);
-      const {code, message, isError} = response
-      success({ res, data: message, status: code, isError});
+      const {body, message, statusCode} = await this._pruebaMail(data);
+      success({ res, body, message, status: statusCode});
       
     } catch(err: any) {
-      error({ res, data: err.message, status: err.status, details: err });
+      error({ res, message: err.message, status: err.status });
     }
   }
 
   public getAll = async (req: Request, res: Response): Promise<void> => {
     try {
 
-      const response = await this._findAll();
-      const {code, message, isError} = response
-      success({ res, data: message, status: code, isError});
+      const {body, message, statusCode}  = await this._findAll();
+      success({ res, body, message, status: statusCode});
 
     } catch(err: any) {
-      error({ res, data: err.message, status: err.status, details: err });
+      error({ res, message: err.message, status: err.status });
     }
   }
 
   public getById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const response = await this.findByPkUser(String(id));
-      const {code, message, isError} = response
-      success({ res, data: message, status: code, isError});
+      const {body, message, statusCode}  = await this.findByPkUser(String(id));
+      success({ res, body, message, status: statusCode});
 
     
     } catch(err: any) {
-      error({ res, data: err.message, status: err.status, details: err });
+      error({ res, message: err.message, status: err.status });
     }
   }
   
   public updateById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const response = await this._updateUser(String(id), req.body); // Llamada al servicio
-      const {code, message, isError} = response
-      success({ res, data: message, status: code, isError});
+      const {body, message, statusCode}  = await this._updateUser(String(id), req.body); // Llamada al servicio
+      success({ res, body, message, status: statusCode});
 
     } catch(err: any) {
-      error({ res, data: err.message, status: err.status, details: err });
+      error({ res, message: err.message, status: err.status });
     }
   }
 
   public deleteById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const response = await this._destroyUser(String(id)); // Llamada al servicio
-      const {code, message, isError} = response
-      success({ res, data: message, status: code, isError});
+      const {body, message, statusCode}  = await this._destroyUser(String(id)); // Llamada al servicio
+      success({ res, body, message, status: statusCode});
 
     } catch(err: any) {
-      error({ res, data: err.message, status: err.status, details: err });
+      error({ res, message: err.message, status: err.status });
     }
   }
 }

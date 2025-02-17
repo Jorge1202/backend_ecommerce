@@ -1,21 +1,28 @@
 import { UserPage, UserPageCreationAttributes } from '../models/user-page';
 import { Transaction } from 'sequelize';
-import { handleServiceError } from '../../Utils/errorHandler_catch';
-import { errorCatch } from '../../middlewares/error';
-import { ServiceResponse } from '../../Utils/ServiceResponse';
+import { handleServiceError } from '../../Utils/Response/handleServiceError';
+import { ServiceResponse, successResponse, errorResponse } from '../../Utils/Response/ServiceResponse';
 
 
 export class UserPageService {
 
   //#region ######################################### Metodos Publicos
-  public async createUserPage(userPageData: UserPageCreationAttributes, transaction: Transaction): Promise<UserPage> {
+  public async createUserPage(userPageData: UserPageCreationAttributes, transaction: Transaction): Promise<ServiceResponse<UserPage>> {
     try {
       const newRecord = await UserPage.create(userPageData, { transaction });
       if (!newRecord) {
-        throw errorCatch('No se creo el registro', 400)
+        return errorResponse({
+          statusCode: 400,
+          message: 'No se creo el registro'
+        });
       }
 
-      return newRecord;
+      return successResponse({
+        statusCode: 400,
+        message: 'Registro creado',
+        body: newRecord
+      });
+
 
 
     } catch (err: any) {
@@ -29,35 +36,34 @@ export class UserPageService {
   protected async _findAll(): Promise<ServiceResponse<UserPage[]>> {
     try {      
       const list = await UserPage.findAll();
-      return {
-        code: 200,
-        isError: false,
-        message: list
-      };
+        return successResponse({
+          statusCode: 200,
+          message: 'Lista de registros',  
+          body: list
+        });
+
 
     } catch (err: any) {
       handleServiceError(err, 'createUserPage', 400);
     } 
   }
 
-  protected async _findByPk(id: number): Promise<ServiceResponse<UserPage | string>> {
+  protected async _findByPk(id: number): Promise<ServiceResponse<UserPage>> {
     try {
       const record = await UserPage.findByPk(id);
-      if (record) {
-        return {
-          code: 422,
-          isError: true,
+      if (!record) {
+        return errorResponse({
+          statusCode: 422,
           message: 'No se encuentra registro con el identificador dado'
-        };
+        });
       }
 
-      return {
-        code: 200,
-        isError: false,
-        message: record
-      };
-
-
+      return successResponse({
+        statusCode: 200,
+        message: 'Registro localizado.',  
+        body: record
+      });
+      
     } catch (err: any) {
       handleServiceError(err, '_findByPk', 400);
     } 
@@ -67,19 +73,20 @@ export class UserPageService {
     try {
       const record = await UserPage.findByPk(id);
       if (!record) {
-        return {
-          code: 409,
-          isError: true,
-          message: `Record with id ${id} not found`
-        };
+        return errorResponse({
+          statusCode: 422,
+          message: `No se encontro el registro` 
+        });
+
+        
       }
 
       await record.update(data);
-      return {
-        code: 200,
-        isError: false,
-        message: record
-      };
+      return successResponse({
+        statusCode: 200,
+        message: 'Registro actualizado.',  
+        body: record
+      });    
 
     } catch (err: any) {
       handleServiceError(err, '_updateUserPage', 400);

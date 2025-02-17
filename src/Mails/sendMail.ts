@@ -1,4 +1,5 @@
 import { Main, Mail_DataObject, DataMail } from './mail'; // Asegúrate de importar el enum desde el archivo correcto
+import { handleServiceError } from '../Utils/Response/handleServiceError';
 
 export enum MailActions {
     CodeAuth = 'codeAuth_ValidEmail',
@@ -46,9 +47,8 @@ export class MailService {
             } else {
                 return {send: false, response:'Hubo un problema al enviar el correo.'} 
             }
-        } catch (error) {
-            console.error('Error en la llamada a main:', error);
-            return {send: false, response:`Error al enviar el correo`}  
+        } catch (err: any) {
+            handleServiceError(err, 'sendMail', err.statusCode);
         }
     };
 

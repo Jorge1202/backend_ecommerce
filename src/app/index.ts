@@ -3,7 +3,8 @@ import express, { Request, Response } from 'express';
 const cors = require('cors');
 
 import routes from './routes';
-import error from '../middlewares/errors_app'; 
+import {errors} from '../Utils/Response/errors'; 
+
 import cookieParser from 'cookie-parser';
 const app = express();
 
@@ -39,6 +40,6 @@ routes(app)
 //#endregion ROUTES
 
 // Middleware de manejo de errores
-app.use(error);
+app.use(errors);
 
 export {app};

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { ProfileService } from '../Services/profile.service';
-import { success, error } from '../../middlewares/response';
+import { success, error } from '../../Utils/Response/response';
 import { Transaction } from 'sequelize';
 class ProfileController extends ProfileService {
 
@@ -10,12 +10,11 @@ class ProfileController extends ProfileService {
 
   public getAll = async (req: Request, res: Response): Promise<void> => {
     try {
-      const response = await this._findAllProfile();    
-      const {code, message, isError} = response
-      success({ res, data: message, status: code, isError});
+      const {body, message, statusCode} = await this._findAllProfile();   
+      success({ res, body, message, status: statusCode});
 
     } catch(err: any) {
-      error({ res, data: err.message, status: err.status, details: err });
+      error({ res, message: err.message, status: err.status });
     }
   }
 
@@ -23,37 +22,34 @@ class ProfileController extends ProfileService {
     try {
       const { id } = req.params;
       
-      const response = await this._findByPk(String(id));
-      const {code, message, isError} = response
-      success({ res, data: message, status: code, isError});
+      const {body, message, statusCode} = await this._findByPk(String(id));
+      success({ res, body, message, status: statusCode});
       
     } catch(err: any) {
-      error({ res, data: err.message, status: err.status, details: err });
+      error({ res, message: err.message, status: err.status });
     }
   }
   
   public updateById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const response = await this._updateProfile(String(id), req.body); // Llamada al servicio
-      const {code, message, isError} = response
-      success({ res, data: message, status: code, isError});
+      const {body, message, statusCode} = await this._updateProfile(String(id), req.body); // Llamada al servicio
+      success({ res, body, message, status: statusCode});
 
 
     } catch(err: any) {
-      error({ res, data: err.message, status: err.status, details: err });
+      error({ res, message: err.message, status: err.status });
     }
   }
 
   public deleteById = async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const response = await this._destroyProfile(String(id)); // Llamada al servicio
-      const {code, message, isError} = response
-      success({ res, data: message, status: code, isError});
+      const {body, message, statusCode} = await this._destroyProfile(String(id)); // Llamada al servicio
+      success({ res, body, message, status: statusCode});
 
     } catch(err: any) {
-      error({ res, data: err.message, status: err.status, details: err });
+      error({ res, message: err.message, status: err.status });
     }
   }
 

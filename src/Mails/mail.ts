@@ -1,10 +1,10 @@
 import nodemailer, { Transporter, SendMailOptions } from 'nodemailer';
-import { handleServiceError } from '../../../Utils/errorHandler_catch';
+import { handleServiceError } from '../Utils/Response/handleServiceError';
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
-import {config} from '../../../Config';
-import { errorCatch } from '../../../middlewares/error';
+import {config} from '../Config';
 import {bodyMail} from './switchMail';
 import { MailActions } from './sendMail';
+import { ServiceResponse, successResponse, errorResponse } from '../Utils/Response/ServiceResponse';
 
 export interface DataMail {
   name:string
@@ -59,59 +59,69 @@ async function verifyTransporter(transporter: Transporter): Promise<void> {
 
 // Prepara el correo electrónico
 async function prepareMail(dataObject: Mail_DataObject): Promise<SendMailOptions> {
-  const { accion, message, dataMail } = dataObject;
+  try{
+    const { accion, message, dataMail } = dataObject;
 
-  // Validaciones básicas
-  if (!message.to || !message.subject) {
-    throw errorCatch('Faltan campos necesarios como destinatario o asunto', 400);
+    // Validaciones básicas
+    if (!message.to || !message.subject) {
+      throw errorResponse({
+        statusCode: 400,
+        message: 'Faltan campos necesarios como destinatario o asunto'
+      });
+    }
+  
+    if (!message.from) {
+      message.from = '"Clisvi" <jorge010.b@gmail.com>';
+    }
+  
+    // Asegúrate de que la acción sea un valor de MailActions
+    if (!Object.values(MailActions).includes(accion)) {
+      throw errorResponse({
+        statusCode: 409,
+        message: 'Acción no válida'
+      });
+          
+    } 
+  
+    // Genera el contenido HTML basado en la acción
+    const messagehtml = await bodyMail(accion, dataMail); 
+  
+    // Configuración del correo
+    const infoMail: SendMailOptions = {
+      from: message.from,
+      to: message.to,
+      subject: message.subject,
+      html: messagehtml,
+      // attachments: [
+      //   {
+      //     cid: 'logoUnuspat@1.ee',
+      //     path: './assets/logos/logo-color.png',
+      //     filename: 'unuspat_black.png',
+      //   },
+      //   {
+      //     cid: 'logoUnuspat@2.ee',
+      //     path: './assets/logos/logo-blanco.png',
+      //     filename: 'unuspat_white.png',
+      //   },
+      // ],
+    };
+  
+    // Agrega adjuntos específicos según la acción
+    if (accion === MailActions.FormularioContrato) {
+      infoMail.attachments?.push({
+        path: './assets/pdf/Contrato.pdf',
+        filename: 'ACOPIO-DE-INFORMACIÓN.pdf',
+      });
+    }
+  
+    return infoMail;
+  } catch (err: any) {
+    handleServiceError(err, '_registerUser', err.statusCode);
   }
-
-  if (!message.from) {
-    message.from = '"Clisvi" <jorge010.b@gmail.com>';
-  }
-
-  // Asegúrate de que la acción sea un valor de MailActions
-  if (!Object.values(MailActions).includes(accion)) {
-    throw errorCatch('Acción no válida', 409)
-        
-  } 
-
-  // Genera el contenido HTML basado en la acción
-  const messagehtml = await bodyMail(accion, dataMail); 
-
-  // Configuración del correo
-  const infoMail: SendMailOptions = {
-    from: message.from,
-    to: message.to,
-    subject: message.subject,
-    html: messagehtml,
-    // attachments: [
-    //   {
-    //     cid: 'logoUnuspat@1.ee',
-    //     path: './assets/logos/logo-color.png',
-    //     filename: 'unuspat_black.png',
-    //   },
-    //   {
-    //     cid: 'logoUnuspat@2.ee',
-    //     path: './assets/logos/logo-blanco.png',
-    //     filename: 'unuspat_white.png',
-    //   },
-    // ],
-  };
-
-  // Agrega adjuntos específicos según la acción
-  if (accion === MailActions.FormularioContrato) {
-    infoMail.attachments?.push({
-      path: './assets/pdf/Contrato.pdf',
-      filename: 'ACOPIO-DE-INFORMACIÓN.pdf',
-    });
-  }
-
-  return infoMail;
 }
 
 // Función principal para enviar el correo
-export async function Main(dataObject: Mail_DataObject): Promise<boolean> {
+export async function Main(dataObject: Mail_DataObject): Promise<ServiceResponse<boolean>> {
   try {
     // Inicializa el transportador y verifica que esté listo
     const transporter = await createTransporter();
@@ -126,13 +136,18 @@ export async function Main(dataObject: Mail_DataObject): Promise<boolean> {
     // Valida la respuesta del servicio de correo
     if (info.response.includes('OK')) {
       console.log('Main response OK');
-      return true;
+      return successResponse({
+        statusCode: 200,
+        message: 'Correo enviado'
+      });
     } else {
-      throw errorCatch('No se ha podido enviar el correo.', 500);
+      throw errorResponse({
+        statusCode: 500,
+        message: 'No se ha podido enviar el correo.'
+      });
     }
-  } catch (err) {
-    console.error('Error al enviar el correo:', err);
-    throw err;
+  } catch (err: any) {
+    handleServiceError(err, '_registerUser', err.statusCode);
   }
 }
 

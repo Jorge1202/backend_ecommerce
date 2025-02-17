@@ -1,6 +1,6 @@
 import { StatisticsProfile, StatisticsProfileCreationAttributes } from "../models/statistics-profile";
 import { Transaction } from 'sequelize';
-import { handleServiceError } from '../../Utils/errorHandler_catch';
+import { handleServiceError } from '../../Utils/Response/handleServiceError';
 
 export class StatisticsProfileService {
   //#region ######################################### Metodos Public

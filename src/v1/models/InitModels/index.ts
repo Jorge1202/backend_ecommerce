@@ -21,10 +21,8 @@ const initModel = (sequelize: Sequelize) => {
     
     //#region ######################### Create User
     HistoryRegister.initModel(sequelize)
-    User.initModel(sequelize)
     Auth.initModel(sequelize)
     CodeAutentication.initModel(sequelize)
-    UserPage.initModel(sequelize)
     Profile.initModel(sequelize)
     StatisticsProfile.initModel(sequelize)
     StatusAuth.initModel(sequelize)
@@ -32,6 +30,9 @@ const initModel = (sequelize: Sequelize) => {
     Devices.initModel(sequelize)
     DeviceAuth.initModel(sequelize)
     RefreshToken.initModel(sequelize)
+    
+    UserPage.initModel(sequelize)
+    User.initModel(sequelize)
     //#endregion ######################### Create User
     
     //#region ######################### Create Store

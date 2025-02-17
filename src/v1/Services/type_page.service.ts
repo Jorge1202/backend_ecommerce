@@ -1,7 +1,6 @@
 import { TypePage } from '../models/type-page'; 
-import { ServiceResponse } from '../../Utils/ServiceResponse';
-import { errorCatch } from '../../middlewares/error';
-import { handleServiceError } from '../../Utils/errorHandler_catch';
+import { ServiceResponse, successResponse, errorResponse } from '../../Utils/Response/ServiceResponse';
+import { handleServiceError } from '../../Utils/Response/handleServiceError';
 
 
 export class TypePageService {
@@ -10,11 +9,11 @@ export class TypePageService {
   protected async _findAll(): Promise<ServiceResponse<TypePage[]>> {
     try {      
       const list = await TypePage.findAll();
-      return {
-        code: 422,
-        isError: true,
-        message: list
-      };
+      return successResponse({
+        statusCode: 200,
+        message: 'Registro localizado.',  
+        body: list
+      });      
 
     } catch (err: any) {
       handleServiceError(err, '_findAll', err.statusCode);
@@ -25,18 +24,17 @@ export class TypePageService {
     try {
       const record = await TypePage.findByPk(id); // Remover el include de User
       if (!record) {
-        return {
-          code: 422,
-          isError: true,
-          message: 'No se encuentra registro con el identificador dado'
-        };
+        return errorResponse({
+          statusCode: 422,
+          message: 'No se encuentra registro con el identificador dado',  
+        }); 
       }
       
-      return {
-        code: 200,
-        isError: false,
-        message: record
-      };
+      return successResponse({
+        statusCode: 200,
+        message: 'Registro localizado.',  
+        body: record
+      }); 
 
     } catch (err: any) {
       handleServiceError(err, '_findByPk', err.statusCode);
@@ -47,14 +45,18 @@ export class TypePageService {
     try {
       const newRecord = await TypePage.create(data);
       if (!newRecord) {
-        throw errorCatch('No se creo el registro', 400)
+        return errorResponse({
+          statusCode: 400,
+          message: 'No se creo el registro',  
+        });
       }
       
-      return {
-        code: 200,
-        isError: false,
-        message: newRecord
-      };
+      return successResponse({
+        statusCode: 200,
+        message: 'Registro creado.',  
+        body: newRecord
+      });
+
 
 
 
@@ -67,20 +69,19 @@ export class TypePageService {
     try {
       const record = await TypePage.findByPk(id);
       if (!record) {
-        return {
-          code: 422,
-          isError: true,
-          message: `No se encontro el registro`
-        };
+        return errorResponse({
+          statusCode: 422,
+          message:  `No se encontro el registro` 
+        });
       }
 
 
       await record.update(data);
-      return {
-        code: 200,
-        isError: false,
-        message: record
-      };
+      return successResponse({
+        statusCode: 200,
+        message: 'Registro actualizado.',  
+        body: record
+      });
       
     } catch (err: any) {
       handleServiceError(err, '_updateTypePage', err.statusCode);
@@ -94,18 +95,17 @@ export class TypePageService {
       });
 
       if (!result) {
-        return {
-          code: 422,
-          isError: true,
-          message: `No se encontro el registro`
-        };
+        return errorResponse({
+          statusCode: 422,
+          message:  `No se encontro el registro` 
+        });
       }
 
-      return {
-        code: 200,
-        isError: false,
-        message: result
-      };
+      return successResponse({
+        statusCode: 200,
+        message: 'Registro eliminado.',  
+        body: result
+      });
       
     } catch (err: any) {
       handleServiceError(err, '_destroyTypePage', err.statusCode);

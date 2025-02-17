@@ -1,9 +1,8 @@
 import { Transaction } from 'sequelize';
-import { withTransaction } from '../../Utils/transaction_helper';
-import { handleServiceError } from '../../Utils/errorHandler_catch';
-import { MailService, MailServiceConfig, MailActions } from '../Secure/mails/sendMail';
-import { errorCatch } from '../../middlewares/error';
-import { ServiceResponse } from '../../Utils/ServiceResponse';
+import { withTransaction } from '../../Database/transaction_helper';
+import { handleServiceError } from '../../Utils/Response/handleServiceError';
+import { MailService, MailServiceConfig, MailActions } from '../../Mails/sendMail';
+import { ServiceResponse, successResponse, errorResponse } from '../../Utils/Response/ServiceResponse';
 
 import { User, UserCreationAttributes } from '../models/user';
 
@@ -11,7 +10,7 @@ import { AuthService } from './auth.service';
 import { UserPageService } from './user_page.service'
 import { ProfileService } from './profile.service';
 import { HistoryRegisterService } from './historyRegister.service';
-import { generateToken } from '../Secure/tokenJWT';
+import { generateToken } from '../../Secure/tokenJWT';
 
 interface inUser {
   Username: string;
@@ -29,14 +28,22 @@ export class UserService {
 
   //#region ######################################### Metodos Public 
   //Obtener usuario por se usa para Auth
-  public async findByPkUser_forAuth(id: string): Promise<User> {
+  public async findByPkUser_forAuth(id: string): Promise<ServiceResponse<User>> {
     try {
       const dataUser = await User.findByPk(id);
       if (!dataUser) {
-        throw errorCatch(`Error fetching user with id ${id}`, 422);
+        return errorResponse({
+          statusCode: 422,
+          message: 'No se encuentra registro con el identificador dado'
+        });
       }
 
-      return dataUser
+      return successResponse({
+        statusCode: 200,
+        message: 'Registro localizado.',  
+        body: dataUser
+      });
+
 
     } catch (err: any) {
       handleServiceError(err, 'findByPkUser_forAuth', err.statusCode);
@@ -77,13 +84,23 @@ export class UserService {
 
         // 3. Crear perfil de la página del usuario
         const profileService = new ProfileService();
+
+        const infoUserPage = newUserPage.body
+
+        if(!infoUserPage){
+          return errorResponse({
+            message: newUserPage.message,
+            statusCode: newUserPage.statusCode,
+          });
+        }
+
         await profileService.createProfile({
           Name: user.Name,
           Firstname: user.Firstname,
           Lastname: user.Lastname,
           Email: user.Email,
           Phone: user.Phone,
-          IdUserPage: newUserPage.IdUserPage // Relación obligatoria
+          IdUserPage: infoUserPage.IdUserPage // Relación obligatoria
         }, transaction);
 
         // 4. Crear autenticación        
@@ -95,6 +112,21 @@ export class UserService {
           Pw: user.Password
         }, transaction);
 
+        if(!resultAuth.error){
+          return errorResponse({
+            message: resultAuth.message,
+            statusCode: resultAuth.statusCode,
+          }); 
+        }
+
+        const {body} = resultAuth
+        if (!body || !body.codeAuth) {
+          return errorResponse({
+            message: resultAuth.message,
+            statusCode: resultAuth.statusCode,
+          });
+        }
+
         // Envía el correo
         const mailConfig: MailServiceConfig = {
           accion: MailActions.CodeAuth,
@@ -103,7 +135,7 @@ export class UserService {
           dataMail: {
             name: user.Name,
             firstname: user.Firstname,
-            code: resultAuth.codeAuth.Code ?? '',
+            code: body.codeAuth.Code ?? '',
           }
         };
         const mailService = new MailService(mailConfig);
@@ -114,7 +146,7 @@ export class UserService {
         const historyRegisterService = new HistoryRegisterService();
         await historyRegisterService.updateByRegister(user, transaction);
 
-        const {auth} = resultAuth
+        const {auth} = body
         const token = generateToken({
           dataToken: {
             IdAuth: auth.IdAuth,
@@ -123,8 +155,7 @@ export class UserService {
         });
 
         return {
-          code: 201,
-          isError: false,
+          code: 201,          
           message: {
             message: 'Usuario registrado exitosamente. ¡Verifica tu cuenta!',
             token
@@ -143,19 +174,17 @@ export class UserService {
     try {
       const dataUser = await User.findByPk(id);
       if (!dataUser) {
-        return {
-          code: 422,
-          isError: true,
+        return errorResponse({
+          statusCode: 422,
           message: 'No se encuentra registro con el identificador dado'
-        };
+        });
       }
 
-      return {
-        code: 200,
-        isError: false,
-        message: dataUser
-      };
-
+      return successResponse({
+        statusCode: 200,
+        message: 'Registro localizado.',
+        body:dataUser
+      });
 
     } catch (err: any) {
       handleServiceError(err, 'findByPkUser', err.statusCode);
@@ -166,11 +195,12 @@ export class UserService {
   protected async _findAll(): Promise<ServiceResponse<User[]>> {
     try {
       const list = await User.findAll();
-      return {
-        code: 200,
-        isError: false,
-        message: list
-      };
+
+      return successResponse({
+        statusCode: 200,
+        message: 'Lista de Registros',
+        body:list
+      });
 
     } catch (err: any) {
       handleServiceError(err, '_findAll', 400)
@@ -182,19 +212,19 @@ export class UserService {
     try {
       const user = await User.findByPk(id);
       if (!user) {
-        return {
-          code: 422,
-          isError: true,
+        return errorResponse({
+          statusCode: 200,
           message: 'No se encuentra registro con el identificador dado'
-        };
+        });
+        
       }
 
       await user.update(data);
-      return {
-        code: 200,
-        isError: false,
-        message: user
-      };
+      return successResponse({
+        statusCode: 200,
+        message: 'Registro actualizado.',  
+        body:user
+      });
 
     } catch (err: any) {
       handleServiceError(err, '_updateUser', err.statusCode)
@@ -206,18 +236,18 @@ export class UserService {
     try {
       const result = await User.destroy({ where: { IdUser: id } });
       if (!result) {
-        return {
-          code: 422,
-          isError: true,
-          message: `No se encontro el registro`
-        };
+        return errorResponse({
+          statusCode: 422,
+          message:  `No se encontro el registro`
+        });
       }
 
-      return {
-        code: 200,
-        isError: false,
-        message: result
-      };
+      return successResponse({
+        statusCode: 200,
+        message: 'Registro eliminado.',  
+        body:result
+      });
+
 
     } catch (err: any) {
       handleServiceError(err, '_destroyUser', err.statusCode)
@@ -245,12 +275,11 @@ export class UserService {
 
       console.log(responseMail);
 
-      return {
-        code: 200,
-        isError: false,
+      return successResponse({
+        statusCode: 200,
         message: 'Usuario registrado exitosamente. ¡Verifica tu cuenta!'
-      };
-
+      });
+      
     } catch (err: any) {
       handleServiceError(err, '_pruebaMail', err.statusCode)
     }
@@ -278,17 +307,17 @@ export class UserService {
       //Hace falta validar si tiene un codigo enviado o si se encuentra en estatus 
 
       if (userExit) {
-        return { message: 'El usuario ya existe', isError: true, code: 409 }
+      return { message: 'El usuario ya existe',  code: 409 }
       }
 
       const emailExit = await User.findOne({
         where: { Email: user.Email }
       })
       if (emailExit) {
-        return { message: 'El email ya existe', isError: true, code:409 }
+      return { message: 'El email ya existe',  code:409 }
       }
 
-      return { message: 'Los datos son validos', isError: false, code:200 }
+    return { message: 'Los datos son validos',  code:200 }
 
     }
     catch (err: any) {

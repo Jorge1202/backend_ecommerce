@@ -1,4 +1,4 @@
-import { sequelize } from '../Database/sequelizeORM';
+import { sequelize } from './sequelizeORM';
 import { Transaction } from 'sequelize';
 
 export async function withTransaction<T>(callback: (transaction: Transaction) => Promise<T>): Promise<T> {

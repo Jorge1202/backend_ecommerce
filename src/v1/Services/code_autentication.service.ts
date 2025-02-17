@@ -1,7 +1,6 @@
 import { CodeAutentication, CodeAutenticationCreationAttributes } from '../models/code-autentication';
 import { Transaction } from 'sequelize';
-import { handleServiceError } from '../../Utils/errorHandler_catch';
-import { errorCatch } from '../../middlewares/error';
+import { handleServiceError } from '../../Utils/Response/handleServiceError';
 
 export class CodeAutenticationService {
 

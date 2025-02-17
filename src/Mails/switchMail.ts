@@ -1,4 +1,4 @@
-import { config } from '../../../Config';
+import { config } from '../Config';
 
 import { MailActions } from './sendMail';
 import { DataMail } from './mail';
@@ -8,7 +8,7 @@ import { cedeAuth } from './content/code_auth';
 import { recoveryPass } from './content/recoveryPass';
 import { PasswordChangeSuccessful } from './content/PasswordChangeSuccessful';
 import { newDevice } from './content/newDevice';
-import { errorCatch } from '../../../middlewares/error';
+import { errorResponse } from '../Utils/Response/ServiceResponse';
 
 export const bodyMail = async (action: MailActions, params: DataMail): Promise<string> => {
   let body = '';
@@ -63,8 +63,10 @@ export const bodyMail = async (action: MailActions, params: DataMail): Promise<s
       break;
     default:
       console.log(`El el caso ${action} no se encuentra, Verifica el MailActions que envias`);
-      
-      throw errorCatch('Action not supported', 400)
+      throw errorResponse({
+        statusCode: 400,
+        message: 'Action not supported'
+      });
   }
 
   return template(body, company);

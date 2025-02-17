@@ -1,9 +1,8 @@
 import { Transaction } from 'sequelize';
 import { Profile, ProfileCreationAttributes  } from '../models/profile'; 
-import { handleServiceError } from '../../Utils/errorHandler_catch';
+import { handleServiceError } from '../../Utils/Response/handleServiceError';
 import { StatisticsProfileService } from './statics_profile.service';
-import { StatisticsProfile } from '../models/statistics-profile';
-import { ServiceResponse } from '../../Utils/ServiceResponse';
+import { ServiceResponse, successResponse, errorResponse } from '../../Utils/Response/ServiceResponse';
 
 
 export class ProfileService {
@@ -31,56 +30,55 @@ export class ProfileService {
   protected async _findAllProfile(): Promise<ServiceResponse<Profile[]>> {
     try {      
       const list = await Profile.findAll();
-      return {
-        code: 200,
-        isError: false,
-        message: list
-      };
+      return successResponse({
+        statusCode: 200,
+        message: 'Registro localizado.',  
+        body: list
+      });
+
     } catch (err: any) {
       handleServiceError(err, '_findAllProfile', 400);
     }
   }
 
-  protected async _findByPk(id: string): Promise<ServiceResponse<Profile | string>> {
+  protected async _findByPk(id: string): Promise<ServiceResponse<Profile>> {
     try {
       const record = await Profile.findByPk(id); // Remover el include de User
       if (!record) {
-        return {
-          code: 422,
-          isError: true,
-          message: 'No se encuentra registro con el identificador dado'
-        };
+        return errorResponse({
+          statusCode: 422,
+          message: 'No se encuentra registro con el identificador dado',  
+        });
       }
       
-      return {
-        code: 200,
-        isError: false,
-        message: record
-      };
+      return successResponse({
+        statusCode: 200,
+        message: 'Registro localizado.',  
+        body:record
+      });
 
     } catch (err:any) {
       handleServiceError(err, '_findByPk', err.statusCode)
     }
   }
   
-  protected async _updateProfile(id: string, data: Partial<Profile>): Promise<ServiceResponse<Profile | string>> {
+  protected async _updateProfile(id: string, data: Partial<Profile>): Promise<ServiceResponse<Profile>> {
     try {
       const record = await Profile.findByPk(id);
       if (!record) {
-        return {
-          code: 422,
-          isError: true,
+        return errorResponse({
+          statusCode: 422,
           message: 'No se encuentra registro con el identificador dado'
-        };
+        });
       }
 
 
       await record.update(data);
-      return {
-        code: 200,
-        isError: false,
-        message: record
-      };
+      return successResponse({
+        statusCode: 200,
+        message: 'Registro localizado.',
+        body:record
+      });
 
     } catch (err:any) {
       handleServiceError(err, '_updateProfile', err.statusCode)
@@ -95,19 +93,16 @@ export class ProfileService {
       });
   
       if (!result) {
-        return {
-          code: 422,
-          isError: true,
-          message: 'Record not found'
-        };
+        return errorResponse({
+          statusCode: 422,
+          message: 'No se encuentra registro con el identificador dado'
+        });
       } 
   
-  
-      return {
-        code: 200,
-        isError: false,
-        message: 'Record  deleted successfully'
-      };
+      return successResponse({
+        statusCode: 200,
+        message: 'Registro eliminado exitosamente.'
+      });
       
     } catch (err:any) {
       handleServiceError(err, '_destroyProfile', err.statusCode)

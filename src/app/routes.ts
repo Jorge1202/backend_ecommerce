@@ -20,10 +20,11 @@ async function loadRoutes(app: Express) {
 
         //#region referencia v1
         app.use(`/api/${VERSION_NameFile.v1}/history-register`, historyRegister_1);
+        app.use(`/api/${VERSION_NameFile.v1}/auth`, authRoutes_v1);
         app.use(`/api/${VERSION_NameFile.v1}/users`, userRoutes_1);
+        
         app.use(`/api/${VERSION_NameFile.v1}/userpage`, userPageRoutes_v1);
         app.use(`/api/${VERSION_NameFile.v1}/typepage`, typePageRoutes_v1);
-        app.use(`/api/${VERSION_NameFile.v1}/auth`, authRoutes_v1);
         app.use(`/api/${VERSION_NameFile.v1}/profile`, profileRoutes_v1);
         //#endregion referencia
         

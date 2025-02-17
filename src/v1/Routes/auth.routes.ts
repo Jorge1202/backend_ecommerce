@@ -16,7 +16,9 @@ userRoutes.get('/reSendCode', authController.reSendCode);
 // userRoutes.get('/loginAfterRegister', authController.loginAfetr);
 
 userRoutes.post('/login', authController.login);
-userRoutes.get('/validCodeDevice/:code', authController.validCodeDevice); 
+userRoutes.get('/verifyViewCodeDevice', authController.validViewNewDevice);
+userRoutes.post('/validCodeDevice', authController.validCodeDevice); 
+userRoutes.get('/newCodeDevice', authController.newCode_NewDevice); 
 userRoutes.get('/logout/', authController.logout); 
 //#endregion ################ Iniciar y cerrar sesión
 

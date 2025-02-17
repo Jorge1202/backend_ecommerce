@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { success, error } from '../../middlewares/response';
+import { success, error } from '../../Utils/Response/response';
 
 import { HistoryRegisterService } from '../Services/historyRegister.service';
 
@@ -15,12 +15,12 @@ class historyRegisterController extends HistoryRegisterService {
 
       // 2. Llamar al servicio para crear registro 
       const response = await this._createHistory(data);
-      const {code, message, isError} = response
-      success({ res, data: message, status: code, isError});
+      const {statusCode, message, body} = response
+      success({ res, body, message, status: statusCode});
 
       
     } catch(err: any) {
-      error({ res, data: err.message, status: err.status, details: err });
+      error({ res, message: err.message, status: err.status });
     }
   }
 
@@ -30,20 +30,20 @@ class historyRegisterController extends HistoryRegisterService {
 
       if(Id){
         const response = await this.valid_EmailwhithID(String(Email), Number(Id));
-        const {code, message, isError} = response
-        success({ res, data: message, status: code, isError});
+        const {statusCode, message, body} = response
+        success({ res,body, message, status: statusCode});
         
       } else {
         const response = await this.valid_Email(String(Email));
-        const {code, message, isError} = response
+        const {statusCode, message, body} = response
         
-        success({ res, data: message, status: code, isError});
+        success({ res, body, message, status: statusCode});
       }
 
 
       
     } catch(err: any) {
-      error({ res, data: err.message, status: err.status, details: err });
+      error({ res, message: err.message, status: err.status });
     }
   }
 
@@ -53,17 +53,17 @@ class historyRegisterController extends HistoryRegisterService {
 
       if(Id){
         const response = await this.valid_UsernamewhithID(String(Username), Number(Id));
-        const {code, message, isError} = response
-        success({ res, data: message, status: code, isError});
+        const {statusCode, message, body} = response
+        success({ res, body, message, status: statusCode});
         
       } else {
         const response = await this.valid_Username(String(Username));
-        const {code, message, isError} = response
-        success({ res, data: message, status: code, isError});
+        const {statusCode, message, body} = response
+        success({ res, body, message, status: statusCode});
       }
       
     } catch(err: any) {
-      error({ res, data: err.message, status: err.status, details: err });
+      error({ res, message: err.message, status: err.status });
     }
   }
 
@@ -72,14 +72,14 @@ class historyRegisterController extends HistoryRegisterService {
     try {
       const updatedRecord = await this.updateByRegister(req.body);
       if (!updatedRecord) {
-        error({ res, data: 'Record not found', status: 400, });
+        error({ res, message: 'Record not found', status: 400, });
       } 
       
-      const {code, message, isError} = updatedRecord
-      success({ res, data: message, status: code, isError});      
+      const {statusCode, message, body} = updatedRecord
+      success({ res, body, message, status: statusCode});      
       
     } catch(err: any) {
-      error({ res, data: err.message, status: err.status, details: err });
+      error({ res, message: err.message, status: err.status });
     }
   }
 
