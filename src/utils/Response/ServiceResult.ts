@@ -24,6 +24,11 @@ interface ErrorResultParams {
 }
 
 // Función para construir respuestas de éxito
+/**
+ * 
+ * @param param0 
+ * @returns 
+ */
 export function successResult<T>({
     body = null,
     message = 'Operación exitosa',
