@@ -18,7 +18,7 @@ import { RefreshToken, RefreshTokenAttributes } from '../models/refresh-token';
 
 import { CodeAutenticationService } from './code_autentication.service';
 import { UserService } from './user.service';
-import { ServiceResponse, errorResponse, successResponse } from '../../Utils/Response/ServiceResponse';
+import { ServiceResult, errorResult, successResult, throwServerError } from '../../Utils/Response/ServiceResult';
 
 import { maskEmail } from '../../Mails/maskEmail';
 
@@ -48,7 +48,7 @@ export interface ParamsLogin {
 export class AuthService {
 
   //#region ######################################### CREATION ACOUNT
-  public async createAuth(authData: AuthCreationAttributes, transaction: Transaction): Promise<ServiceResponse<AuthResult>> {
+  public async createAuth(authData: AuthCreationAttributes, transaction: Transaction): Promise<ServiceResult<AuthResult>> {
     try {
 
       const hashedPassword = await bcrypt.hash(authData.Password, 10);
@@ -63,14 +63,14 @@ export class AuthService {
       }, transaction);
 
       if (!codeAuth || !auth) {
-        return errorResponse({
+        throw throwServerError({
           message: 'Error al crear el registro',
-          statusCode: 422,
+          status: 500,
         });
       }
 
-      return successResponse({
-        statusCode: 200,
+      return successResult({
+        status: 200,
         message: 'Se ha creado el registro',
         body:{
           auth,
@@ -82,16 +82,16 @@ export class AuthService {
       handleServiceError(error, 'createAuth', error.statusCode)
     }
   }
-  protected async _generateCodeEmail(Email: string): Promise<ServiceResponse<any>> {
+  protected async _generateCodeEmail(Email: string): Promise<ServiceResult<any>> {
     try {
 
       const userData = await User.findOne({
         where: { Email }
       })
       if (!userData) {
-        return errorResponse({
-          message: 'El correo es incorrecto',
-          statusCode: 422,
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
         });
       }
 
@@ -99,15 +99,15 @@ export class AuthService {
         where: { IdUser: userData.IdUser }
       })
       if (!auth) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'El correo es incorrecto'
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
         });
       }
 
       if (auth.Status == 2) {
-        return errorResponse({
-          statusCode: 422,
+        return errorResult({
+          status: 422,
           message: 'La cuenta ya se encuentra activa'
         });
       }
@@ -129,10 +129,15 @@ export class AuthService {
         }
       };
       const mailService = new MailService(mailConfig);
-      const responseMail = await mailService.send();
+      const {send, response} = await mailService.send();
+      if(!send){
+        console.error('mailService.send()', response);     
+      }
 
-      return successResponse({
-        statusCode: 200,
+
+
+      return successResult({
+        status: 200,
         message: '¡Código generado! Te llegará a tu correo electrónico.',
       });
 
@@ -140,32 +145,31 @@ export class AuthService {
       handleServiceError(error, '_generateCodeEmail', error.statusCode)
     }
   }
-  private async createAuth_Private(userData: AuthCreationAttributes, transaction: Transaction): Promise<Auth> {
-    try {
-      return await Auth.create(userData, { transaction });
-    } catch (error: any) {
-      handleServiceError(error, '_createAuth', error.statusCode)
-    }
-  }
-  protected async _validCodeByEmail(Token: string, Code: string): Promise<ServiceResponse<any>> {
+  protected async _validCodeByEmail(Token: string, Code: string): Promise<ServiceResult<any>> {
     try {
       const response = await this._varifyToken(Token)
       if (!response.valid) {
-        return successResponse({
+        return errorResult({
           message: response.message,
-          statusCode: response.code,
+          status: response.code,
         });
       }
 
       const { IdAuth } = response.payload
+      if (!IdAuth) {
+        return errorResult({
+          message: `Token invalido`,
+          status: 400,
+        });
+      }
 
       const authData = await Auth.findOne({
         where: { IdAuth }
       })
       if (!authData) {
-        return errorResponse({
-          message: 'El usuario no existe',
-          statusCode: 422,
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
         });
       }
 
@@ -173,18 +177,18 @@ export class AuthService {
         where: { IdUser: authData.IdUser }
       })
       if (!userData) {
-        return errorResponse({
-          message: 'El usuario no existe',
-          statusCode: 422,
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
         });
       }
 
       const code_AutService = new CodeAutenticationService();
       const dataCode = await code_AutService.validCode(Code, authData.IdAuth);
       if (dataCode == 0) {
-        return errorResponse({
+        return errorResult({
           message: 'El Cóodigo es incorrecto',
-          statusCode: 422,
+          status: 422,
         });
       }
 
@@ -196,9 +200,9 @@ export class AuthService {
         IdAuth: authData.IdAuth,
         IdTypeCode: 5
       });
-      return successResponse({
+      return successResult({
         message: 'El Cóodigo generado',
-        statusCode: 200,
+        status: 200,
         body: {
           Email: userData.Email,
           Code: codeAuth.Code
@@ -209,23 +213,22 @@ export class AuthService {
       handleServiceError(error, '_validCodeByEmail', error.statusCode)
     }
   }
-  protected async _validViewVerifyEmail(Token: string): Promise<ServiceResponse<any>> {
+  protected async _validViewVerifyEmail(Token: string): Promise<ServiceResult<any>> {
     try {
       const response = await this._varifyToken(Token)
       if (!response.valid) {
-        return successResponse({
+        return errorResult({
           message: response.message,
-          statusCode: response.code,
+          status: response.code,
         });
       }
 
       const { IdAuth } = response.payload
       if (!IdAuth) {
-        return successResponse({
+        return errorResult({
           message: `Token invalido`,
-          statusCode: 422,
+          status: 400,
         });
-
       }
 
       //Validar si cuenta con un code estatus 3
@@ -234,14 +237,14 @@ export class AuthService {
         where: { IdTypeCode, IdAuth: IdAuth }
       });
       if (!codeValid) {
-        return errorResponse({
-          statusCode: 422,
+        return errorResult({
+          status: 422,
           message: 'No cuenta con solicitud de verificacion de correo'
         });
       }
 
-      return successResponse({
-        statusCode: 200,
+      return successResult({
+        status: 200,
         message: 'Vista autorizada'
       });
 
@@ -249,24 +252,31 @@ export class AuthService {
       handleServiceError(error, '_validCodeByEmail', error.statusCode)
     }
   }
-  protected async _reSendCode(Token: string): Promise<ServiceResponse<any>> {
+  protected async _reSendCode(Token: string): Promise<ServiceResult<any>> {
     try {
       const response = await this._varifyToken(Token)
       if (!response.valid) {
-        return successResponse({
+        return errorResult({
           message: response.message,
-          statusCode: response.code,
+          status: response.code,
         });
       }
 
       const { IdAuth } = response.payload
+      if (!IdAuth) {
+        return errorResult({
+          message: `Token invalido`,
+          status: 400,
+        });
+      }
+
       const auth = await Auth.findOne({
         where: { IdAuth }
       })
       if (!auth) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'No existe registro'
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
         });
       }
 
@@ -281,9 +291,9 @@ export class AuthService {
         where: { IdUser: auth.IdUser }
       })
       if (!user) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'No existe registro'
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
         });
       }
 
@@ -299,21 +309,32 @@ export class AuthService {
         }
       };
       const mailService = new MailService(mailConfig);
-      const responseMail = await mailService.send();
+      const {send, response:message} = await mailService.send();
+      if(!send){
+        console.error('mailService.send()', message);     
+      }
 
-      return successResponse({
-        statusCode: 200,
+
+      return successResult({
+        status: 200,
         message: 'Se ha enviado correo con nuevo código'
       });
     } catch (err: any) {
       handleServiceError(err, '_reSendCode', err.statusCode);
     }
   }
+  private async createAuth_Private(userData: AuthCreationAttributes, transaction: Transaction): Promise<Auth> {
+    try {
+      return await Auth.create(userData, { transaction });
+    } catch (error: any) {
+      handleServiceError(error, '_createAuth', error.statusCode)
+    }
+  }
   //#endregion ######################################### CREATION ACOUNT
 
 
   //#region ######################################### LOGIN
-  protected async loginAfterRegister(params: ParamsLogin): Promise<ServiceResponse<any>> {
+  protected async loginAfterRegister(params: ParamsLogin): Promise<ServiceResult<any>> {
     try {
       const { Login } = params
       const _Login: LoginParams = Login
@@ -323,9 +344,9 @@ export class AuthService {
         where: { Email }
       });
       if (!user) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'Datos incorrectos ¡Intentelo nuevamente!'
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
         });
       }
 
@@ -333,9 +354,9 @@ export class AuthService {
         where: { IdUser: user.IdUser }
       });
       if (!authData) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'Datos incorrectos ¡Intentelo nuevamente!',
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
         });
       }
 
@@ -343,15 +364,16 @@ export class AuthService {
         where: { Code, IdAuth: authData.IdAuth }
       });
       if (!codeValid) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'Datos incorrectos ¡Intentelo nuevamente!'
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
         });
       }
+
       if (!codeValid.IsActive) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'Datos incorrectos ¡Intentelo nuevamente!'
+        return errorResult({
+          status: 422,
+          message: 'Tu código ha expirado'
         });
       }
 
@@ -368,8 +390,8 @@ export class AuthService {
       // Llamar al servicio de login con los datos correspondientes     
       const loginWhithCode = true
       const responseLogin = await this._login(modifiedParams, loginWhithCode);
-      return successResponse({
-        statusCode: 200,
+      return successResult({
+        status: 200,
         message: 'Se genero login',
         body: responseLogin
       });
@@ -378,8 +400,58 @@ export class AuthService {
       handleServiceError(err, 'loginAfterRegister', err.statusCode);
     }
   }
-  protected async _login(params: ParamsLogin, whithCode: boolean = false): Promise<ServiceResponse<any>> {
+  protected async _login(params: ParamsLogin, whithCode: boolean = false): Promise<ServiceResult<any>> {
     return await this._login_pv(params, whithCode)
+  }
+  private async fc_validParams_login(params: LoginParams, whithCode: boolean): Promise<ServiceResult<any>> {
+    try {
+      const { Username, Password } = params;
+
+      const dataAuth = await Auth.findOne({ where: { Username } })
+      if (!dataAuth) {
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
+        });
+      }
+
+      if (dataAuth.Status === 1) {
+        // --- Enviar correo con codigo de verificacion de email
+
+        return errorResult({
+          status: 422,
+          message: `Confirma tu correo electrónico, mediante el código de verificación`
+        });
+      }
+
+      //verifica el status que este activo el user
+      if (dataAuth.Status !== 2 && dataAuth.Status != 3) {
+        const status = await StatusAuth.findByPk(dataAuth.Status)
+        return errorResult({
+          status: 422,
+          message: `${status?.Description}`
+        });
+      }
+
+      if (!whithCode) {
+        const isPasswordValid = await bcrypt.compare(Password, dataAuth.Password);
+        if (!isPasswordValid) {
+          throw throwServerError({
+            status: 409,
+            message: 'No cuentas con permisos para hacer login'
+          });
+        }
+      }
+
+      return successResult({
+        status: 200,
+        message: 'Bienvenido',
+        body: dataAuth
+      });
+
+    } catch (err: any) {
+      handleServiceError(err, 'validation', err.statusCode);
+    }
   }
   private async _login_pv (params: ParamsLogin, whithCode: boolean = false): Promise<any>{
     return await withTransaction(async (transaction) => {
@@ -388,9 +460,9 @@ export class AuthService {
 
         //Valida parametros
         const infoAuth = await this.fc_validParams_login(params.Login, whithCode);
-        if (infoAuth.statusCode !== 200) {
-          return errorResponse({
-            statusCode: 422,
+        if (infoAuth.status !== 200) {
+          return errorResult({
+            status: infoAuth.status,
             message: infoAuth.message
           });
         }
@@ -406,9 +478,9 @@ export class AuthService {
         //########### PRIMER LOGIN VALIDA LOGIN Y TOKEN
         if (listLogin.length === 0) {
           if (!deviceInfo) {
-            return errorResponse({
-              statusCode: 422,
-              message: 'Los datos del dispositivo no se encuentran.'
+            throw throwServerError({
+              message: 'No se encuentra el registro',
+              status: 409,
             });
           }
           return await this.lg_first_LOGIN(deviceInfo, body, transaction);
@@ -419,8 +491,8 @@ export class AuthService {
         if (withToken && listLogin.length >= 1) {
           //deviceToken, infoAuth
           if (!deviceToken) {
-            return errorResponse({
-              statusCode: 422,
+            return errorResult({
+              status: 400,
               message: 'El token del dispositivo es requerido pero no se proporcionó.'
             });
           }
@@ -429,63 +501,13 @@ export class AuthService {
 
         //########### (NUEVO DISPOSITIVO) MÁS DE UN LOGUEO
         if (!withToken && listLogin.length >= 1) {
-          return await this.lg_newDevice_LOGIN(body, transaction);
-          
+          return await this.lg_newDevice_LOGIN(body, transaction);          
         }
 
       } catch (err: any) {
         handleServiceError(err, 'Error login', err.statusCode);
       }
     })
-  }
-  private async fc_validParams_login(params: LoginParams, whithCode: boolean): Promise<ServiceResponse<any>> {
-    try {
-      const { Username, Password } = params;
-
-      const dataAuth = await Auth.findOne({ where: { Username } })
-      if (!dataAuth) {
-        return errorResponse({
-          statusCode: 403,
-          message: 'Datos incorrectos ¡Intentelo nuevamente!'
-        });
-      }
-
-      if (dataAuth.Status === 1) {
-        // Enviar correo con codigo de verificacion de email
-        return errorResponse({
-          statusCode: 422,
-          message: `Codigo`
-        });
-      }
-
-      //verifica el status que este activo el user
-      if (dataAuth.Status !== 2 && dataAuth.Status != 3) {
-        const status = await StatusAuth.findByPk(dataAuth.Status)
-        return errorResponse({
-          statusCode: 422,
-          message: `${status?.Description}`
-        });
-      }
-
-      if (!whithCode) {
-        const isPasswordValid = await bcrypt.compare(Password, dataAuth.Password);
-        if (!isPasswordValid) {
-          return errorResponse({
-            statusCode: 403,
-            message: 'Datos incorrectos ¡Intentelo nuevamente!'
-          });
-        }
-      }
-
-      return successResponse({
-        statusCode: 200,
-        message: 'Datos incorrectos ¡Intentelo nuevamente!',
-        body: dataAuth
-      });
-
-    } catch (err: any) {
-      handleServiceError(err, 'validation', err.statusCode);
-    }
   }
   private async lg_first_LOGIN(deviceInfo: DevicesCreationAttributes, dataAuth: Auth, transaction: any) {
 
@@ -502,9 +524,9 @@ export class AuthService {
       /**Se obtiene valor del la pagina de usuario para el TOKEN_ACCESS*/
       const userPage = await UserPage.findOne({ where: { IdUser: dataAuth.IdUser } });
       if (!userPage) {
-        return errorResponse({
-          statusCode: 400,
-          message: 'No existe registro en tabla userPage'
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 404,
         });
       }
 
@@ -513,8 +535,8 @@ export class AuthService {
       const expiracionDias = 30
       const tokenRefresh = await this._generateToken(dataRefreshToken, 'Refresh', `${expiracionDias}d`);
       if (!tokenRefresh || tokenRefresh.code != 200) {
-        return errorResponse({
-          statusCode: 400,
+        throw throwServerError({
+          status: 409,
           message: 'Error en el servicio al generar token'
         });
       }
@@ -538,8 +560,8 @@ export class AuthService {
       const dataAccessToken: TokenLogin = { IdAuth: dataAuth.IdAuth, IdUserPage: userPage.IdUserPage, IdLogin: login.IdLogin, dataRefresh };
       const tokenLogin = await this._generateToken(dataAccessToken, 'Login');
       if (tokenLogin.code != 200) {
-        return errorResponse({
-          statusCode: 400,
+        throw throwServerError({
+          status: 409,
           message: 'Error en el servicio al generar token'
         });
       }
@@ -549,8 +571,8 @@ export class AuthService {
       device.Token = deviceToken
       await this._updateDevice(device, transaction)
 
-      return successResponse({
-        statusCode: 200,
+      return successResult({
+        status: 200,
         message: '¡Inicio de sesión exitoso! Bienvenido.',
         body:{
           deviceVerify: true,
@@ -576,9 +598,9 @@ export class AuthService {
         where: { Token: deviceToken }
       })
       if (!device) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'No se encontro el dispositivo'
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
         });
 
       }
@@ -602,9 +624,9 @@ export class AuthService {
         where: { IdDevice: device.IdDevices, IdAuth }
       })
       if (!deviceAuth) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'No se encontro el dispositivo'
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
         });
       }
       await this._updateLoginToInactive(deviceAuth.IdDeviceAuth, IdAuth)
@@ -617,8 +639,8 @@ export class AuthService {
       const expiracionDias = 30
       const tokenRefresh = await this._generateToken(dataRefreshToken, 'Refresh', `${expiracionDias}d`);
       if (tokenRefresh.code != 200) {
-        return errorResponse({
-          statusCode: 400,
+        throw throwServerError({
+          status: 409,
           message: 'Error en el servicio al generar token'
         });
       }
@@ -641,22 +663,22 @@ export class AuthService {
       /**Se optiene datos del usuario y se generan el Access token */
       const userPage = await UserPage.findOne({ where: { IdUser: dataAuth.IdUser } });
       if (!userPage) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'No existe registro en tabla userPage'
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
         });
       }
       const dataAccessToken: TokenLogin = { IdAuth: dataAuth.IdAuth, IdUserPage: userPage.IdUserPage, IdLogin: login.IdLogin, dataRefresh };
       const tokenLogin = await this._generateToken(dataAccessToken, 'Login');
       if (tokenLogin.code != 200) {
-        return errorResponse({
-          statusCode: 400,
+        throw throwServerError({
+          status: 409,
           message: 'Error en el servicio al generar token'
         });
       }
 
-      return successResponse({
-        statusCode: 200,
+      return successResult({
+        status: 200,
         message: '¡Inicio de sesión exitoso! Bienvenido de nuevo.',
         body:{
           deviceVerify: true,
@@ -736,6 +758,122 @@ export class AuthService {
 
 
   //#region ######################################### NEW DEVICE  
+  protected async lg_validCodeDevice(Code: string, TOKEN_NEWDEVICE: string, deviceInfo: DevicesCreationAttributes): Promise<ServiceResult<any>> {
+    return  await this.lg_ValidCodeDevic_pv (Code, TOKEN_NEWDEVICE, deviceInfo)    
+  }
+  protected async fc_validViewNewDevice(Token: string): Promise<ServiceResult<any>> {
+    try {
+      const response = await this._varifyToken(Token)
+      if (!response.valid) {
+        return errorResult({
+          message: response.message,
+          status: response.code,
+        });
+      }
+
+      const { IdAuth } = response.payload
+      if (!IdAuth) {
+        return errorResult({
+          message: `Token invalido`,
+          status: 400,
+        });
+      }
+
+      const auth = await Auth.findOne({
+        where: { IdAuth }
+      })
+      if (!auth) {
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
+        });
+      }
+      const user = await User.findOne({
+        where: { IdUser: auth.IdUser }
+      })
+      if (!user) {
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
+        });
+      }
+
+
+      return successResult({
+        status: 200,
+        message: 'Se permite su acceso para validar el dispositivo',
+        body: {
+          email: maskEmail(user.Email)
+        }
+      });
+
+    } catch (err: any) {
+      handleServiceError(err, 'lg_validCodeDevice', err.statusCode);
+    }
+  }
+  protected async fc_newCode_NewDevice(Token: string): Promise<ServiceResult<any>> {
+    try {
+      /**Se valida Token */
+      const response = await this._varifyToken(Token)
+      if (!response.valid) {
+        return errorResult({
+          message: response.message,
+          status: response.code,
+        });
+      }
+
+      /**Se obtiene los datos con el token */
+      const { IdAuth } = response.payload
+      if (!IdAuth) {
+        return errorResult({
+          message: `Token invalido`,
+          status: 400,
+        });
+      }
+
+      const auth = await Auth.findByPk(IdAuth)
+      if (!auth) {
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
+        });
+      }
+
+      /**Se crea un nuevo Codigo */
+      const code_AutService = new CodeAutenticationService();
+      const codeAuth = await code_AutService.createNewwCode({
+        IdAuth: IdAuth,
+        IdTypeCode: 6 //(6='Registro de dispositivo')
+      });
+      if (!codeAuth) {
+        throw throwServerError({
+          status: 409,
+          message: 'No se genero código'
+        });
+      }
+
+      /**Se obtiene los datos del usuario */
+      const userData = await User.findByPk(auth.IdUser)
+      if (!userData) {
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
+        });
+      }
+
+      /**Se oenvia código por correo */
+      const code = codeAuth.Code
+      await this._sendMailVerifyDevice(userData.Email, userData.Name, userData.Firstname, code || '');
+
+      return successResult({
+        status: 200,
+        message: 'Se ha enviado correo con nuevo código'
+      });
+
+    } catch (err: any) {
+      handleServiceError(err, 'lg_validCodeDevice', err.statusCode);
+    }
+  }
   private async lg_newDevice_LOGIN(dataAuth: Auth, transaction: any) {
     /** Se usa mismo metodo para generar un codigo nuevo y enviar por correo cuando:
      * es nuevo dispositivo y 
@@ -751,8 +889,8 @@ export class AuthService {
         IdTypeCode: 6, //(6='Registro de dispositivo')    
       }, transaction);
       if (!codeAuth) {
-        return errorResponse({
-          statusCode: 422,
+        throw throwServerError({
+          status: 409,
           message: 'No se genero código'
         });
       }
@@ -760,9 +898,9 @@ export class AuthService {
       /**SE OTIEN LOS DATOS DEL USUARIO */
       const userData = await User.findByPk(dataAuth.IdUser)
       if (!userData) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'No se encontro usuario'
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
         });
       }
 
@@ -774,14 +912,14 @@ export class AuthService {
       const tokenNewDevice: Token_New_Device = { IdAuth };
       const tokenValidCode = await this._generateToken(tokenNewDevice, 'validCode', '30m');
       if (tokenValidCode.code != 200) {
-        return errorResponse({
-          statusCode: 400,
+        throw throwServerError({
+          status: 409,
           message: 'Error en el servicio al generar token'
         });
       }
 
-      return successResponse({
-        statusCode: 200,
+      return successResult({
+        status: 200,
         message: '¡Correo enviado con éxito! Hemos enviado un código para verificar tu nuevo dispositivo.',
         body:{
           deviceVerify: false,
@@ -795,25 +933,21 @@ export class AuthService {
       handleServiceError(err, 'lg_validCodeDevice', err.statusCode);
     }
   }
-  protected async lg_validCodeDevice(Code: string, TOKEN_NEWDEVICE: string, deviceInfo: DevicesCreationAttributes): Promise<ServiceResponse<any>> {
-    return  await this.lg_ValidCodeDevic_pv (Code, TOKEN_NEWDEVICE, deviceInfo)    
-  }
-
   private async lg_ValidCodeDevic_pv (Code: string, TOKEN_NEWDEVICE: string, deviceInfo: DevicesCreationAttributes): Promise<any>{
     return await withTransaction(async (transaction) => {
       try {
 
         /**SE VALIDA EL TOKEN  */
         if (!TOKEN_NEWDEVICE) {
-          return errorResponse({
-            statusCode: 422,
+          return errorResult({
+            status: 422,
             message: 'El token del dispositivo es requerido pero no se proporcionó.'
           });
         }
         const getToken = await this._varifyToken(TOKEN_NEWDEVICE)
         if (!getToken.valid) {
-          return errorResponse({
-            statusCode: getToken.code,
+          return errorResult({
+            status: getToken.code,
             message: getToken.message
           });
         }
@@ -822,9 +956,9 @@ export class AuthService {
         const { IdAuth } = getToken.payload
         const authData = await Auth.findByPk(IdAuth)
         if (!authData) {
-          return errorResponse({
-            statusCode: 422,
-            message: 'Los datos del token no existen'
+          throw throwServerError({
+            message: 'No se encuentra el registro',
+            status: 409,
           });
         }
 
@@ -832,8 +966,8 @@ export class AuthService {
         const code_AutService = new CodeAutenticationService();
         const validCode = await code_AutService.validCode(Code, IdAuth);
         if (validCode == 0) {
-          return errorResponse({
-            statusCode: 422,
+          return errorResult({
+            status: 422,
             message: 'Código incorrecto'
           });
         }
@@ -853,8 +987,8 @@ export class AuthService {
         const expiracionDias = 30
         const tokenRefresh = await this._generateToken(dataRefreshToken, 'Refresh', `${expiracionDias}d`);
         if (tokenRefresh.code != 200) {
-          return errorResponse({
-            statusCode: 400,
+          throw throwServerError({
+            status: 409,
             message: 'Error en el servicio al generar token'
           });
         }
@@ -876,22 +1010,22 @@ export class AuthService {
         /**SE OBTIENE LOS VALORES DE USER PARA EL TOKEN ACCESS */
         const userPage = await UserPage.findOne({ where: { IdUser: authData.IdUser } });
         if (!userPage) {
-          return errorResponse({
-            statusCode: 422,
-            message: 'No existe registro en la página de usuario'
+          throw throwServerError({
+            message: 'No se encuentra el registro',
+            status: 409,
           });
         }
         const dataAccessToken: TokenLogin = { IdAuth: IdAuth, IdUserPage: userPage.IdUserPage, IdLogin: login.IdLogin, dataRefresh };
         const tokenLogin = await this._generateToken(dataAccessToken, 'Login');
         if (tokenLogin.code != 200) {
-          return errorResponse({
-            statusCode: 400,
+          throw throwServerError({
+            status: 409,
             message: 'Error en el servicio al generar token'
           });
         }
 
-        return successResponse({
-          statusCode: 200,
+        return successResult({
+          status: 200,
           message: '¡Dispositivo verificado con éxito! Ahora puedes acceder a tu cuenta de manera segura.',
           body:{
             deviceVerify: true,
@@ -909,117 +1043,18 @@ export class AuthService {
       }
     })
   }
-  protected async fc_validViewNewDevice(Token: string): Promise<ServiceResponse<any>> {
-    try {
-      const response = await this._varifyToken(Token)
-      if (!response.valid) {
-        return successResponse({
-          message: response.message,
-          statusCode: response.code,
-        });
-      }
-
-      const { IdAuth } = response.payload
-      const auth = await Auth.findOne({
-        where: { IdAuth }
-      })
-      if (!auth) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'No existe registro'
-        });
-      }
-      const user = await User.findOne({
-        where: { IdUser: auth.IdUser }
-      })
-      if (!user) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'No existe registro'
-        });
-      }
-
-
-      return successResponse({
-        statusCode: 200,
-        message: 'Se permite su acceso para validar el dispositivo',
-        body: {
-          email: maskEmail(user.Email)
-        }
-      });
-
-    } catch (err: any) {
-      handleServiceError(err, 'lg_validCodeDevice', err.statusCode);
-    }
-  }
-  protected async fc_newCode_NewDevice(Token: string): Promise<ServiceResponse<any>> {
-    try {
-      /**Se valida Token */
-      const response = await this._varifyToken(Token)
-      if (!response.valid) {
-        return successResponse({
-          message: response.message,
-          statusCode: response.code,
-        });
-      }
-
-      /**Se obtiene los datos con el token */
-      const { IdAuth } = response.payload
-      const auth = await Auth.findByPk(IdAuth)
-      if (!auth) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'No existe registro'
-        });
-      }
-
-      /**Se crea un nuevo Codigo */
-      const code_AutService = new CodeAutenticationService();
-      const codeAuth = await code_AutService.createNewwCode({
-        IdAuth: IdAuth,
-        IdTypeCode: 6 //(6='Registro de dispositivo')
-      });
-      if (!codeAuth) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'No se genero código'
-        });
-      }
-
-      /**Se obtiene los datos del usuario */
-      const userData = await User.findByPk(auth.IdUser)
-      if (!userData) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'No se genero código'
-        });
-      }
-
-      /**Se oenvia código por correo */
-      const code = codeAuth.Code
-      await this._sendMailVerifyDevice(userData.Email, userData.Name, userData.Firstname, code || '');
-
-      return successResponse({
-        statusCode: 200,
-        message: 'Se ha enviado correo con nuevo código'
-      });
-
-    } catch (err: any) {
-      handleServiceError(err, 'lg_validCodeDevice', err.statusCode);
-    }
-  }
   //#endregion ######################################### NEW DEVICE  
 
 
   //#region ######################################### CHANGE PASSWORD  
-  protected async _recoveryPassword(Email: string): Promise<ServiceResponse<any>> {
+  protected async _recoveryPassword(Email: string): Promise<ServiceResult<any>> {
     try {
       const user = await User.findOne({
         where: { Email }
       });
       if (!user) {
-        return errorResponse({
-          statusCode: 422,
+        return errorResult({
+          status: 422,
           message: `'Si existe una cuenta asociada con este correo, recibirás un email'`
         });
       }
@@ -1028,9 +1063,9 @@ export class AuthService {
         where: { IdUser: user.IdUser }
       })
       if (!auth) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'Usuario no autenticado'
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
         });
       }
 
@@ -1063,14 +1098,14 @@ export class AuthService {
       const mailService = new MailService(mailConfig);
       const responseMail = await mailService.send();
       if (!responseMail.send) {
-        return errorResponse({
-          statusCode: 416,
+        throw throwServerError({
+          status: 409,
           message: responseMail.response
         });
       }
 
-      return successResponse({
-        statusCode: 200,
+      return successResult({
+        status: 200,
         message: `¡Solicitud aprovada!, Accede al correo (${Email}) para seguir el proceso`,
         body: {
           token,
@@ -1086,36 +1121,43 @@ export class AuthService {
       handleServiceError(err, '_recoveryPassword', err.statusCode);
     }
   }
-  protected async _validDataUser(token: string): Promise<ServiceResponse<any>> {
+  protected async _validDataUser(token: string): Promise<ServiceResult<any>> {
     try {
       const response = await this._varifyToken(token)
       if (!response.valid) {
-        return successResponse({
+        return errorResult({
           message: response.message,
-          statusCode: response.code,
+          status: response.code,
         });
       }
 
       const { IdUser } = response.payload
+      if (!IdUser) {
+        return errorResult({
+          message: `Token invalido`,
+          status: 400,
+        });
+      }
+
       const authUser = await Auth.findOne({
         where: { IdUser }
       })
       if (!authUser) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'No existe usuario autenticado'
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
         });
       }
 
       if (authUser.Status != 2 && authUser.Status != 3) {
-        return errorResponse({
-          statusCode: 422,
+        return errorResult({
+          status: 422,
           message: 'El estatus de usuario no se encuentra en condiciones para solicitar el cambio de contraseña'
         });
       }
 
-      return successResponse({
-        statusCode: 200,
+      return successResult({
+        status: 200,
         message: 'Solicitud aprovada'
       });
 
@@ -1124,24 +1166,30 @@ export class AuthService {
       handleServiceError(err, '_validDataUser', err.statusCode);
     }
   }
-  protected async _changePassword(Password: string, Token: string): Promise<ServiceResponse<any>> {
+  protected async _changePassword(Password: string, Token: string): Promise<ServiceResult<any>> {
     try {
       const response = await this._varifyToken(Token)
       if (!response.valid) {
-        return successResponse({
+        return errorResult({
           message: response.message,
-          statusCode: response.code,
+          status: response.code,
         });
       }
 
       const { IdUser } = response.payload
+      if (!IdUser) {
+        return errorResult({
+          message: `Token invalido`,
+          status: 400,
+        });
+      }
 
       const userService = new UserService()
       const {body, error} = await userService.findByPkUser_forAuth(IdUser)
       
       if (error || !body) {
-        return errorResponse({
-          statusCode: 422,
+        return errorResult({
+          status: 422,
           message: `Si existe una cuenta asociada con este correo, recibirás un email`
         });
 
@@ -1151,9 +1199,9 @@ export class AuthService {
         where: { IdUser }
       })
       if (!authUser) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'Usuario no se relaciona con la autenticación'
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
         });
       }
 
@@ -1176,14 +1224,14 @@ export class AuthService {
       const mailService = new MailService(mailConfig);
       const responseMail = await mailService.send();
       if (!responseMail.send) {
-        return errorResponse({
-          statusCode: 422,
+        return errorResult({
+          status: 422,
           message: responseMail.response
         });
       }
 
-      return successResponse({
-        statusCode: 200,
+      return successResult({
+        status: 200,
         message: '¡Contraseña actualizada! Ahora inicia sesión con tu nueva contraseña'
       });
 
@@ -1195,32 +1243,30 @@ export class AuthService {
 
   }
 
-  protected async _validCode(Code: string, Token: string): Promise<ServiceResponse<any>> {
+  protected async _validCode(Code: string, Token: string): Promise<ServiceResult<any>> {
     try {
       const response = await this._varifyToken(Token)
 
       if (!response.valid) {
-        return successResponse({
+        return errorResult({
           message: response.message,
-          statusCode: response.code,
+          status: response.code,
         });
       }
 
       const { IdUser } = response.payload
-
       if (!IdUser) {
-        return errorResponse({
-          statusCode: 422,
-          message: `Los datos del Token son invalido`
+        return errorResult({
+          status: 400,
+          message: `Token invalido`
         });
-
       }
 
       const userService = new UserService()
-      const {body, statusCode, message, error} = await userService.findByPkUser_forAuth(IdUser)
+      const {body, status, message, error} = await userService.findByPkUser_forAuth(IdUser)
       if (!body || error) {
-        return errorResponse({
-          statusCode: statusCode,
+        return errorResult({
+          status,
           message: message
         });
       }
@@ -1229,17 +1275,17 @@ export class AuthService {
         where: { IdUser: body.IdUser }
       })
       if (!authData) {
-        return errorResponse({
-          statusCode: 422,
-          message: 'Usuario no se relaciona con la autenticación'
+        throw throwServerError({
+          message: 'No se encuentra el registro',
+          status: 409,
         });
       }
 
       const code_AutService = new CodeAutenticationService();
       const dataCode = await code_AutService.validCode(Code, authData.IdAuth);
       if (dataCode == 0) {
-        return errorResponse({
-          statusCode: 422,
+        return errorResult({
+          status: 422,
           message: 'El Cóodigo incorrecto'
         });
       }
@@ -1253,8 +1299,8 @@ export class AuthService {
 
 
 
-      return successResponse({
-        statusCode: 200,
+      return successResult({
+        status: 200,
         message: `¡Código correcto! Puedes cambiar tu contraseña`,
         body: {
           token
@@ -1287,25 +1333,31 @@ export class AuthService {
   /**
   3. Opciones avanzadas
   Si quieres mejorar la experiencia del usuario, puedes implementar un flujo adicional:
-  Notificar al cliente antes de la expiración
-  Incluye en la respuesta del Access Token o en un endpoint dedicado información sobre la proximidad de expiración del Refresh Token, 
-  para que el cliente pueda actuar antes de que expire.
-  Renovación automática (si es seguro):
-  Si el Refresh Token está a punto de expirar (pero no ha expirado), permite al cliente renovar el Refresh Token generando uno 
+
+  - Al solicitar un nuevo ACCESS TOKEN obtener la expiración(t_ex_Rfh) de un TOKEN REFRESH 
+  - Si (t_ex_Rfh) es menor al tiempo de expiración del nuevo ACCESS TOKEN solicitar un nuevo TOKEN REFRESH y pasar esos valores al ACCESS TOKEN 
+  - Incluye en la respuesta del Access Token o en un endpoint dedicado información sobre la proximidad de expiración del Refresh Token, 
+    para que el cliente pueda actuar antes de que expire.
+  - Renovación automática (si es seguro):
+  - Si el Refresh Token está a punto de expirar (pero no ha expirado), permite al cliente renovar el Refresh Token generando uno 
   nuevo sin necesidad de forzar el inicio de sesión.
 */
   private async _generateToken(
     data: TokenLogin | TokenDevice | TokenRefresh | Token_New_Device,
-    type: 'Login' | 'Device' | 'Refresh' | 'validCode',
+    type: 'Login' | 'Refresh' | 'Device' | 'validCode',
     expirationTime: string = ''
   ): Promise<{ token?: string; message?: string; code: number }> {
     try {
       let contentToken: TokenPayload | null = null;
       // Validación y generación de contenido del token según el tipo
       switch (type) {
-        case 'Login':
+        case 'Login': //Access Token
           contentToken = this._validateLoginData(data as TokenLogin);
           expirationTime = '1h';
+          break;
+        
+        case 'Refresh': //Access Token
+          contentToken = this._validateRefreshData(data as TokenRefresh);
           break;
 
         case 'Device':
@@ -1313,16 +1365,12 @@ export class AuthService {
           expirationTime = '30d';
           break;
 
-        case 'Refresh':
-          contentToken = this._validateRefreshData(data as TokenRefresh);
-          break;
-
         case 'validCode':
           contentToken = this._validateDataNewDevice(data as Token_New_Device);
           break;
 
         default:
-          return { message: 'Tipo de token no válido', code: 400 };
+          return { message: 'Tipo de caso no válido', code: 400 };
       }
 
       if (!contentToken) {
@@ -1365,7 +1413,8 @@ export class AuthService {
     }
     return data;
   }
-  private async createRefreshToken({ Token, ExpiresAt, IsActive = true, IdAuth, IdDeviceAuth, LastUsedAt }: RefreshTokenAttributes, transaction?: Transaction): Promise<RefreshToken> {
+  private async createRefreshToken({ Token, ExpiresAt, IsActive = true, IdAuth, IdDeviceAuth, LastUsedAt }
+    : RefreshTokenAttributes, transaction?: Transaction): Promise<RefreshToken> {
     try {
       const refreshToken = await RefreshToken.create({
         Token,
@@ -1394,6 +1443,29 @@ export class AuthService {
       handleServiceError(err, '_varifyToken', err.statusCode);
     }
   }
+  public async service_varifyToken(token: string): Promise<ServiceResult<any>> {
+    try {
+      const response = await verifyToken(token)
+      if (!response.valid) return errorResult({
+        message: response.message,
+        status: response.code
+      })
+
+      if (!this._HasPayload_Private(response))
+        return errorResult({
+          message: response.message,
+          status: response.code
+        })
+
+      return successResult({
+        message: response.message,
+        status: response.code
+      })
+    } catch (err: any) {
+      handleServiceError(err, '_varifyToken', err.statusCode);
+    }
+  }
+
   private _HasPayload_Private(response: { payload?: TokenPayload }): response is { payload: TokenPayload } {
     return response.payload !== undefined;
   }

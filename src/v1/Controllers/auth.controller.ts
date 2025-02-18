@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { AuthService } from '../Services/auth.service';
 // import { success, error } from '../../middlewares/response';
-import { error, success } from '../../Utils/Response/response';
+import { errorResponse, successResponse } from '../../Utils/Response/ControllerResponse';
 import { DevicesCreationAttributes } from '../models/devices';
 
 
@@ -30,25 +30,26 @@ class AuthController extends AuthService {
       const authHeader  = req.headers['authorization'];
       const token = authHeader && authHeader.split(' ')[1];
       if (!token) {
-        throw error({res, message:'Token invalido', status:401});      
+        return errorResponse({res, message:'Token invalido', status:401});      
       }
-
 
       const {Code} = req.query
 
       // if (!Email || (typeof Email === 'string' && Email.trim() === "")) {
-      //   throw error({res, message:'El Email es requerido', status:409});  
+      //   return errorResponse({res, message:'El Email es requerido', status:409});  
       // }
   
       if (!Code || (typeof Code === 'string' && Code.trim() === "")) {
-        throw error({res, message:'El código es requerido', status:400});  
+        return errorResponse({res, message:'El código es requerido', status:400});  
       }
 
-      const response = await this._validCodeByEmail(String(token), String(Code))
-      if(response.statusCode !== 200){
-        error({ res, message: response.message, status: response.statusCode});
-        return
-      }
+      // const response = await this.service_varifyToken(token)
+      // if (response.error) {
+      //   return errorResponse({res, message:response.message, status:response.status})
+      // }
+
+      const { body, message, status, error } = await this._validCodeByEmail(String(token), String(Code))
+      if(error){return errorResponse({ res, message, status })}
 
       
       // Inicializar la variable para saber si se utilizará un token
@@ -56,7 +57,7 @@ class AuthController extends AuthService {
       let deviceInfo: DevicesCreationAttributes | undefined;
       deviceInfo = await this._getDataDevice(req);
 
-      const dataEmail = response.body
+      const dataEmail = body
       const loginParams: ParamsLogin = {
         Login: {
           Username: String(dataEmail.Email),
@@ -68,58 +69,74 @@ class AuthController extends AuthService {
       };
 
       const response_loginAfter = await this.loginAfterRegister(loginParams);
+      if(response_loginAfter.error){ return errorResponse({res, message, status})}
 
-      success({ res, 
-        status: response_loginAfter.statusCode,
+      return successResponse({ res, 
+        status: response_loginAfter.status,
         message: response_loginAfter.message, 
         body: response_loginAfter.body
       });
 
-    } catch (err: any) {
-      // next()
-      error({ res, message: err.message , status: err.status });
+    } catch (err:any) {
+      // Manejar errores llamando al middleware de errores
+      next(err);
     }
   }
   public validViewVerifyEmail = async (req: Request, res: Response): Promise<void> => {
     const authHeader  = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     if (!token) {
-      throw error({ res, message: 'Token invalido', status: 401 });      
+      return errorResponse({ res, message: 'Token invalido', status: 401 });      
     }
 
-    const response = await this._validViewVerifyEmail(token)
-    success({ res, 
-      message: response.message, 
-      status: response.statusCode,
-      body: response.body
+    // const response = await this.service_varifyToken(token)
+    // if (response.error) {
+    //   return errorResponse({res, message:response.message, status:response.status})
+    // }
+
+    const { body, message, status, error }= await this._validViewVerifyEmail(token)
+    if(error){ return errorResponse({res, message, status})}
+
+    return successResponse({ res, 
+      message: message, 
+      status: status,
+      body: body
     });  
 
   }
-  public reSendCode = async (req: Request, res: Response): Promise<void> => {
+  public reSendCode = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const authHeader  = req.headers['authorization'];
       const token = authHeader && authHeader.split(' ')[1];
       if (!token) {
-        throw error({ res, message: 'Token invalido', status: 401 });      
+        return errorResponse({ res, message: 'Token invalido', status: 401 });      
       }
 
       const { email } = req.params;
 
-      const response = await this._reSendCode(token);
-      success({ res, 
-        message: response.message, 
-        status: response.statusCode,
-        body: response.body
+      // const response = await this.service_varifyToken(token)
+      // if (response.error) {
+      //   return errorResponse({res, message:response.message, status:response.status})
+      // }
+      
+      const { body, message, status, error } = await this._reSendCode(token);
+      if(error){return errorResponse({ res, message, status })}
+
+      return successResponse({ res, 
+        message: message, 
+        status: status,
+        body: body
       });
 
     } catch (err:any) {
-      error({ res, message: err.message , status: err.status});
+      // Manejar errores llamando al middleware de errores
+      next(err);
     }
   }
   //#endregion  ################ Generar cuenta 
 
   //#region ################ Iniciar sesión 
-  public login = async (req: Request, res: Response):Promise<void> => {
+  public login = async (req: Request, res: Response, next: NextFunction):Promise<void> => {
     // const { Username, Password } = req.body;
     const { Username, Password } = req.body;
     
@@ -129,11 +146,11 @@ class AuthController extends AuthService {
     try {
       // Validar que username y password están presentes
       if (!_Username) {
-        throw error({res, message:'El nombre de usuario es requerido', status:400}); 
+        return errorResponse({res, message:'El nombre de usuario es requerido', status:400}); 
       }
     
       if (!_Password) {
-        throw error({res, message:'La contraseña es requerida', status:400}); 
+        return errorResponse({res, message:'La contraseña es requerida', status:400}); 
       }
 
       // Inicializar la variable para saber si se utilizará un token
@@ -155,9 +172,9 @@ class AuthController extends AuthService {
         deviceToken,
         deviceInfo,
       };
-      const {body, tokens, message, statusCode} = await this._login(loginParams);
+      const { body, tokens, message, status, error } = await this._login(loginParams)
+      if(error){return errorResponse({ res, message, status })}
 
-      
       // Establecer la cookie HttpOnly con el token
       if(tokens){
         const {TOKEN_REFRESH, TOKEN_DEVICE} = tokens
@@ -183,54 +200,63 @@ class AuthController extends AuthService {
         }
       }      
 
-      success({ res,
+      return successResponse({ res,
         message,
         body, 
-        status: statusCode
-      });
+        status
+      })
 
     } catch (err:any) {
-      error({ res, message: err.message , status: err.statusCode  });
+      // Manejar errores llamando al middleware de errores
+      next(err);
     }
 
   }
-  public validViewNewDevice = async (req: Request, res: Response):Promise<void> => {
+  public validViewNewDevice = async (req: Request, res: Response, next:NextFunction):Promise<void> => {
     try {
       const authHeader  = req.headers['authorization'];
       const token = authHeader && authHeader.split(' ')[1];
       if (!token) {
-        throw error({ res, message: 'Token invalido', status: 401 });      
+        return errorResponse({ res, message: 'Token invalido', status: 401 });      
       }
 
-      const response = await this.fc_validViewNewDevice(token)
-      success({ res, 
-        message: response.message, 
-        status: response.statusCode,
-        body: response.body        
-      });
+      // const response = await this.service_varifyToken(token)
+      // if (response.error) {
+      //   return errorResponse({res, message:response.message, status:response.status})
+      // }
+      const {body, message, status, error} = await this.fc_validViewNewDevice(token)
+      if(error){return errorResponse({ res, message, status })}
 
+      return successResponse({ res, 
+        message, 
+        status,
+        body: body        
+      });
+      
     } catch (err:any) {
-      error({ res, message: err.message , status: err.status });
+      // Manejar errores llamando al middleware de errores
+      next(err);
     }
   } 
-  public validCodeDevice = async (req: Request, res: Response):Promise<void> => {
+  public validCodeDevice = async (req: Request, res: Response, next: NextFunction):Promise<void> => {
     try {
       // Inicializar la variable para saber si se utilizará un token
       const authHeader  = req.headers['authorization'];
       const TokenValidDevice = authHeader && authHeader.split(' ')[1];
       if (!TokenValidDevice) {
-        throw error({ res, message: 'Token invalido', status: 401 });      
+        return errorResponse({ res, message: 'Token invalido', status: 401 });      
       }
 
       const { Code } = req.body;
       if(!Code){
-        throw error({ res, message: 'Código no exite', status: 400 }); 
+        return errorResponse({ res, message: 'Código no exite', status: 400 }); 
       }
 
       let deviceInfo: DevicesCreationAttributes;
       deviceInfo = await this._getDataDevice(req);
 
-      const {body, tokens, message, statusCode} = await this.lg_validCodeDevice(Code, TokenValidDevice, deviceInfo)
+      const {body, tokens, message, status, error} = await this.lg_validCodeDevice(Code, TokenValidDevice, deviceInfo)
+      if(error){return errorResponse({ res, message, status })}
 
       if(tokens){
         const {TOKEN_REFRESH, TOKEN_DEVICE} = tokens
@@ -256,13 +282,14 @@ class AuthController extends AuthService {
         }
       }
 
-      success({ res, 
+      return successResponse({ res, 
         body, 
         message, 
-        status: statusCode});
+        status});
 
-    } catch(err: any) {
-      error({ res, message: err.message, status: err.statusCode });
+    } catch (err:any) {
+      // Manejar errores llamando al middleware de errores
+      next(err);
     }
   }
   private _getDataDevice = async (req: Request): Promise<DevicesCreationAttributes> => {
@@ -283,20 +310,32 @@ class AuthController extends AuthService {
       Cpu : result.cpu.architecture  || 'Unknown',
     };
   }
-  public newCode_NewDevice = async (req: Request, res: Response):Promise<void> => {
-    const authHeader  = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-    if (!token) {
-      throw error({ res, message: 'Token invalido', status: 401 });      
+  public newCode_NewDevice = async (req: Request, res: Response, next: NextFunction):Promise<void> => {
+    try {
+      const authHeader  = req.headers['authorization'];
+      const token = authHeader && authHeader.split(' ')[1];
+      if (!token) {
+        return errorResponse({ res, message: 'Token invalido', status: 401 });      
+      }
+
+      // const response = await this.service_varifyToken(token)
+      // if (response.error) {
+      //   return errorResponse({res, message:response.message, status:response.status})
+      // }
+
+      const {body, message, status, error} = await this.fc_newCode_NewDevice(token)    
+      if(error){ return errorResponse({res, message, status})}  
+
+      return successResponse({ res, 
+        message: message, 
+        status: status,
+        body: body
+      });
+    } catch (err:any) {
+      // Manejar errores llamando al middleware de errores
+      next(err);
     }
-
-
-    const response = await this.fc_newCode_NewDevice(token)
-    success({ res, 
-      message: response.message, 
-      status: response.statusCode,
-      body: response.body
-    });
+    
   }
   //#endregion ################ Iniciar sesión 
 
@@ -306,69 +345,94 @@ class AuthController extends AuthService {
   //#endregion ################ CERRAR sesión 
 
   //#region ################ Solicitar cambio de contraseña 
-  public validDataUser = async (req: Request, res: Response): Promise<void> => {
+  public validDataUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const authHeader  = req.headers['authorization'];
       const token = authHeader && authHeader.split(' ')[1];
       if (!token) {
-        error({ res, message: 'Token invalido', status: 401 });
-      } else {
-        const response = await this._validDataUser(token)
-        success({ res, 
-          body: response.body,
-          message: response.message, 
-          status: response.statusCode
-        }); 
-      }
-    } catch (err: any) {
-      error({ res, message: err.message , status: err.status });
+        return errorResponse({ res, message: 'Token invalido', status: 401 });
+      } 
+
+      // const response = await this.service_varifyToken(token)
+      // if (response.error) {
+      //   return errorResponse({res, message:response.message, status:response.status})
+      // }
+
+      const {body, message, status, error} = await this._validDataUser(token)
+      if(error){ return errorResponse({res, message, status})} 
+
+      return successResponse({ res, 
+        body: body,
+        message: message, 
+        status: status
+      }); 
+    } catch (err:any) {
+      // Manejar errores llamando al middleware de errores
+      next(err);
     }
   }
-  public recoveryPassword = async (req: Request, res: Response): Promise<void> => {
+  public recoveryPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       let info = req.body;
       const {Email} = info
 
-      const {body, statusCode, message} = await this._recoveryPassword(Email);
-      success({ res, message, status: statusCode, body});
+      const {body, status, message, error} = await this._recoveryPassword(Email);
+      if(error){ return errorResponse({res, message, status})}
+
+      return successResponse({ res, message, status, body});
       
-    } catch(err: any) {
-      error({ res, message: err.message, status: err.status });
+    } catch (err:any) {
+      // Manejar errores llamando al middleware de errores
+      next(err);
     }
   }
-  public validCodePassword = async (req: Request, res: Response): Promise<void> => {
+  public validCodePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const authHeader  = req.headers['authorization'];
       const token = authHeader && authHeader.split(' ')[1];
       if (!token) {
-        throw error({ res, message: 'Token invalido', status: 401 });      
+        return errorResponse({ res, message: 'Token invalido', status: 401 });      
       }
   
+      // const response = await this.service_varifyToken(token)
+      // if (response.error) {
+      //   return errorResponse({res, message:response.message, status:response.status})
+      // }
+
       const {Code} = req.body        
-      const {body, message, statusCode} = await this._validCode(Code, token)
-      success({ res, body, message, status: statusCode});  
+      const {body, message, status, error} = await this._validCode(Code, token)
+      if(error){ return errorResponse({res, message, status})}
+
+      return successResponse({ res, body, message, status});  
       
-    } catch(err: any) {
-      error({ res, message: err.message, status: err.status });
+    } catch (err:any) {
+      // Manejar errores llamando al middleware de errores
+      next(err);
     }
 
 
   }
-  public changePassword = async (req: Request, res: Response): Promise<void> => {
+  public changePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const authHeader  = req.headers['authorization'];
       const token = authHeader && authHeader.split(' ')[1];
       if (!token) {
-        error({ res, message: 'Token invalido', status: 401 });
-      } else {
+        return errorResponse({ res, message: 'Token invalido', status: 401 });
+      } 
 
-        const {Password} = req.body        
-        const {body, message, statusCode} = await this._changePassword(Password, token)
-        success({ res, body, message, status: statusCode});  
+      // const response = await this.service_varifyToken(token)
+      // if (response.error) {
+      //   return errorResponse({res, message:response.message, status:response.status})
+      // }
 
-      }
-    } catch(err: any) {
-      error({ res, message: err.message, status: err.status });
+      const {Password} = req.body        
+      const {body, message, status, error} = await this._changePassword(Password, token)
+      if(error){ return errorResponse({res, message, status})}
+
+      return successResponse({ res, body, message, status});  
+    } catch (err:any) {
+      // Manejar errores llamando al middleware de errores
+      next(err);
     }
   }
   //#endregion ################ Solicitar cambio de contraseña 

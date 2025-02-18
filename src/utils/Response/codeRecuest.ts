@@ -15,12 +15,15 @@ export const statusMessage: Record<number, string> = {
         308: 'Permanent Redirect', // El recurso solicitado se ha movido permanentemente a una URL diferente.
         
         // Respuestas de Error del Cliente (4xx)
-        400: 'Bad Request', // Se utiliza cuando el servidor no puede procesar la solicitud debido a un error de sintaxis o datos incompletos o inválidos.
+        //codigos de response
+        400: 'Bad Request', //(Error de sintaxis o datos incompletos o inválidos) Se utiliza cuando el servidor no puede procesar la solicitud debido a un error de sintaxis o datos incompletos o inválidos.
+        422: 'Unprocessable Entity', // (Reglas de negocio) La solicitud estaba bien formada, pero no se pudo procesar debido a que los datos son lógicamente inválidos o no cumplen con las reglas de negocio.        
+        //solo para tokens
         401: 'Unauthorized', // Se requiere autenticación para acceder al recurso.
         403: 'Forbidden', // El servidor entendió la solicitud pero se niega a autorizarla.
+        //Metodos para catch
+        409: 'Conflict', // (Conflicto con el estado actual del recurso) La solicitud no pudo ser completada debido a un conflicto con el estado actual del recurso. (ejemplo: Intentar registrar un email ya usado.)
         404: 'Not Found', // El recurso solicitado no se encontró en el servidor.
-        409: 'Conflict', // La solicitud no pudo ser completada debido a un conflicto con el estado actual del recurso. (Intentar registrar un email ya usado.)
-        422: 'Unprocessable Entity', // La solicitud estaba bien formada, pero no se pudo procesar debido a que los datos son lógicamente inválidos o no cumplen con las reglas de negocio.
         429: 'Too Many Requests', // El usuario ha enviado demasiadas solicitudes en un período de tiempo dado.
         
         // Respuestas de Error del Servidor (5xx)

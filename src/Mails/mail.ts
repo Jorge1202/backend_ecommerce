@@ -4,7 +4,7 @@ import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import {config} from '../Config';
 import {bodyMail} from './switchMail';
 import { MailActions } from './sendMail';
-import { ServiceResponse, successResponse, errorResponse } from '../Utils/Response/ServiceResponse';
+import { ServiceResult, successResult, errorResult } from '../Utils/Response/ServiceResult';
 
 export interface DataMail {
   name:string
@@ -53,7 +53,7 @@ async function verifyTransporter(transporter: Transporter): Promise<void> {
   //   throw error('No se ha podido verificar el servicio de correo.',500);
   // }
   catch (err: any) {
-    handleServiceError(err, '_registerUser', err.statusCode);
+    handleServiceError(err, 'verifyTransporter', err.statusCode);
   }
 }
 
@@ -64,8 +64,8 @@ async function prepareMail(dataObject: Mail_DataObject): Promise<SendMailOptions
 
     // Validaciones básicas
     if (!message.to || !message.subject) {
-      throw errorResponse({
-        statusCode: 400,
+      throw errorResult({
+        status: 400,
         message: 'Faltan campos necesarios como destinatario o asunto'
       });
     }
@@ -76,8 +76,8 @@ async function prepareMail(dataObject: Mail_DataObject): Promise<SendMailOptions
   
     // Asegúrate de que la acción sea un valor de MailActions
     if (!Object.values(MailActions).includes(accion)) {
-      throw errorResponse({
-        statusCode: 409,
+      throw errorResult({
+        status: 409,
         message: 'Acción no válida'
       });
           
@@ -116,12 +116,12 @@ async function prepareMail(dataObject: Mail_DataObject): Promise<SendMailOptions
   
     return infoMail;
   } catch (err: any) {
-    handleServiceError(err, '_registerUser', err.statusCode);
+    handleServiceError(err, 'prepareMail', err.statusCode);
   }
 }
 
 // Función principal para enviar el correo
-export async function Main(dataObject: Mail_DataObject): Promise<ServiceResponse<boolean>> {
+export async function Main(dataObject: Mail_DataObject): Promise<ServiceResult<boolean>> {
   try {
     // Inicializa el transportador y verifica que esté listo
     const transporter = await createTransporter();
@@ -136,18 +136,18 @@ export async function Main(dataObject: Mail_DataObject): Promise<ServiceResponse
     // Valida la respuesta del servicio de correo
     if (info.response.includes('OK')) {
       console.log('Main response OK');
-      return successResponse({
-        statusCode: 200,
+      return successResult({
+        status: 200,
         message: 'Correo enviado'
       });
     } else {
-      throw errorResponse({
-        statusCode: 500,
+      throw errorResult({
+        status: 500,
         message: 'No se ha podido enviar el correo.'
       });
     }
   } catch (err: any) {
-    handleServiceError(err, '_registerUser', err.statusCode);
+    handleServiceError(err, 'Main', err.statusCode);
   }
 }
 

@@ -1,3 +1,8 @@
+/**
+ * 
+ * @param email prueba_dos@gmail.com
+ * @returns pru.....@g....com
+ */
 function maskEmail(email: string): string {
     const [localPart, domainPart] = email.split('@');
     
@@ -14,4 +19,3 @@ function maskEmail(email: string): string {
 }
 
 export {maskEmail}
-

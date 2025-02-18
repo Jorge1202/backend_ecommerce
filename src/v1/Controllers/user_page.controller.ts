@@ -1,6 +1,6 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { UserPageService } from '../Services/user_page.service';
-import { success, error } from '../../Utils/Response/response';
+import { successResponse, errorResponse } from '../../Utils/Response/ControllerResponse';
 import { UserPage } from '../models/user-page';
 import { Transaction } from 'sequelize';
 class UserPageController extends UserPageService {
@@ -9,35 +9,44 @@ class UserPageController extends UserPageService {
     super();  
   }
 
-  public getAll = async (req: Request, res: Response): Promise<void> => {
+  public getAll = async (req: Request, res: Response, next:NextFunction): Promise<void> => {
     try {
-      const {body, message, statusCode} = await this._findAll();
-      success({ res, body, message, status: statusCode});
+      const {body, message, status, error} = await this._findAll();
+      if(error){ return errorResponse({res, message, status})}
+
+      successResponse({ res, body, message, status});
 
     } catch(err: any) {
-      error({ res, message: err.message, status: err.status });
+      // Manejar errores llamando al middleware de errores
+      next(err);
     }
   }
 
-  public getById = async (req: Request, res: Response): Promise<void> => {
+  public getById = async (req: Request, res: Response, next:NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
-      const {body, message, statusCode} = await this._findByPk(Number(id));
-      success({ res, body, message, status: statusCode});
+      const {body, message, status, error} = await this._findByPk(Number(id));
+      if(error){ return errorResponse({res, message, status})}
+      
+      successResponse({ res, body, message, status});
 
     } catch(err: any) {
-      error({ res, message: err.message, status: err.status });
+      // Manejar errores llamando al middleware de errores
+      next(err);
     }
   }
 
-  public updateById = async (req: Request, res: Response): Promise<void> => {
+  public updateById = async (req: Request, res: Response, next:NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
-      const {body, message, statusCode} = await this._updateUserPage(Number(id), req.body); // Llamada al servicio
-      success({ res, body, message, status: statusCode});
+      const {body, message, status, error} = await this._updateUserPage(Number(id), req.body); // Llamada al servicio
+      if(error){ return errorResponse({res, message, status})}
+
+      successResponse({ res, body, message, status});
 
     } catch(err: any) {
-      error({ res, message: err.message, status: err.status });
+      // Manejar errores llamando al middleware de errores
+      next(err);
     }
   } 
 

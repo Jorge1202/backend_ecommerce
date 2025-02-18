@@ -8,7 +8,7 @@ import { cedeAuth } from './content/code_auth';
 import { recoveryPass } from './content/recoveryPass';
 import { PasswordChangeSuccessful } from './content/PasswordChangeSuccessful';
 import { newDevice } from './content/newDevice';
-import { errorResponse } from '../Utils/Response/ServiceResponse';
+import { errorResult } from '../Utils/Response/ServiceResult';
 
 export const bodyMail = async (action: MailActions, params: DataMail): Promise<string> => {
   let body = '';
@@ -63,8 +63,8 @@ export const bodyMail = async (action: MailActions, params: DataMail): Promise<s
       break;
     default:
       console.log(`El el caso ${action} no se encuentra, Verifica el MailActions que envias`);
-      throw errorResponse({
-        statusCode: 400,
+      throw errorResult({
+        status: 400,
         message: 'Action not supported'
       });
   }

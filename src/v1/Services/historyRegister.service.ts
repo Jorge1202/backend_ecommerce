@@ -1,28 +1,28 @@
 import { handleServiceError } from '../../Utils/Response/handleServiceError';
 import { HistoryRegister } from '../models/history-register';
 import { Transaction, Op } from 'sequelize';
-import { ServiceResponse, successResponse, errorResponse } from '../../Utils/Response/ServiceResponse';
+import { ServiceResult, successResult, errorResult } from '../../Utils/Response/ServiceResult';
 
 export class HistoryRegisterService {
 
   //#region ######################################### Metodos Public
   // Actualizar historial de registro (con o sin transacción)
-  public async updateByRegister( data: Partial<HistoryRegister>, transaction?: Transaction ): Promise<ServiceResponse<HistoryRegister>> {
+  public async updateByRegister( data: Partial<HistoryRegister>, transaction?: Transaction ): Promise<ServiceResult<HistoryRegister>> {
 
     try {
 
       if(!data){
-        return errorResponse({
-          statusCode: 422,
-          message: 'No hay datos para actualizar'
+        return errorResult({
+          message: 'No se encuentra el registro',
+          status: 404,
         });
       }
 
       const isUnique = await this._findByID(data.Id || 0);
       if (!isUnique) {
-        return errorResponse({
-            statusCode: 422,
-            message: 'El correo ya está registrado'
+        return errorResult({
+          message: 'No se encuentra el registro',
+          status: 404,
         });
       }
       
@@ -33,8 +33,8 @@ export class HistoryRegisterService {
         await isUnique.update(data);
       }
       
-      return successResponse({
-        statusCode: 200,
+      return successResult({
+        status: 200,
         message: '',
         body: isUnique
       });
@@ -48,20 +48,20 @@ export class HistoryRegisterService {
   
   //#region ######################################### Metodos Protected
     // Crear historial de registro
-  protected async _createHistory(userData: HistoryRegister): Promise<ServiceResponse<HistoryRegister>> {
+  protected async _createHistory(userData: HistoryRegister): Promise<ServiceResult<HistoryRegister>> {
     try {
       if(!userData.Email) {
-        return errorResponse({
-          statusCode: 409,
-          message: 'El campo "Email" es obligatorio'
+        return errorResult({
+          message: 'No se encuentra el registro',
+          status: 404,
         });
       }
       
       const existingRecord = await this._findByEmail(userData.Email);
       if (existingRecord) {
-        return errorResponse({
-          statusCode: 409,
-          message: 'El correo ya está registrado'
+        return errorResult({
+          message: 'No se encuentra el registro',
+          status: 404,
         });
       }
 
@@ -76,8 +76,8 @@ export class HistoryRegisterService {
       // }
 
       const createdRecord = await HistoryRegister.create(userData);
-      return successResponse({
-        statusCode: 201,
+      return successResult({
+        status: 201,
         message: 'Registro fue creado',
         body: createdRecord
       });
@@ -87,25 +87,25 @@ export class HistoryRegisterService {
     }
   }
 
-  protected async valid_Email (Email:string): Promise<ServiceResponse<HistoryRegister>> {
+  protected async valid_Email (Email:string): Promise<ServiceResult<HistoryRegister>> {
     try {
       if(!Email) {
-        return errorResponse({
-          statusCode: 409,
-          message: 'El campo "Email" es obligatorio',
+        return errorResult({
+          message: 'No se encuentra el registro',
+          status: 404,
         });
       }
   
       const existingRecord = await this._findByEmail(Email);
       if (existingRecord) {
-        return errorResponse({
-          statusCode: 409,
-          message: 'El correo ya está registrado',
+        return errorResult({
+          message: 'No se encuentra el registro',
+          status: 404,
         });
       }
   
-      return successResponse({
-        statusCode: 200,
+      return successResult({
+        status: 200,
         message: 'El correo está disponible'
       });
     
@@ -114,25 +114,25 @@ export class HistoryRegisterService {
     }
 
   }
-  protected async valid_EmailwhithID (Email:string, Id:number): Promise<ServiceResponse<HistoryRegister>> {
+  protected async valid_EmailwhithID (Email:string, Id:number): Promise<ServiceResult<HistoryRegister>> {
     try {
       if(!Email) {
-        return errorResponse({
-          statusCode: 409,
-          message: 'El campo "Email" es obligatorio'
+        return errorResult({
+          message: 'No se encuentra el registro',
+          status: 404,
         });
       }
   
       const isUnique = await this._isEmailUniqueForOtherId(Email, Id);
       if (isUnique) {
-        return errorResponse({
-          statusCode: 409,
-          message: 'El correo ya está registrado'
+        return errorResult({
+          message: 'No se encuentra el registro',
+          status: 404,
         });
       }
   
-      return successResponse({
-        statusCode: 200,
+      return successResult({
+        status: 200,
         message: 'El correo está disponible'
       });
       
@@ -156,18 +156,18 @@ export class HistoryRegisterService {
     }
   }
 
-  protected async valid_Username (Username:string): Promise<ServiceResponse<HistoryRegister>> {
+  protected async valid_Username (Username:string): Promise<ServiceResult<HistoryRegister>> {
     try {
       const existingRecord = await this._findByUsername(Username);
       if (existingRecord) {
-        return errorResponse({
-          statusCode: 409,
-          message: 'El username ya está registrado'
+        return errorResult({
+          message: 'No se encuentra el registro',
+          status: 404,
         });
       }
   
-      return successResponse({
-        statusCode: 200,
+      return successResult({
+        status: 200,
         message: 'El username está disponible'
       });
 
@@ -176,25 +176,25 @@ export class HistoryRegisterService {
     }
 
   }
-  protected async valid_UsernamewhithID (Username:string, Id:number): Promise<ServiceResponse<HistoryRegister>> {
+  protected async valid_UsernamewhithID (Username:string, Id:number): Promise<ServiceResult<HistoryRegister>> {
     try {
       if(!Username) {
-        return errorResponse({
-          statusCode: 409,
-          message: 'El campo "Username" es obligatorio'
+        return errorResult({
+          message: 'Es necesario el campo de username',
+          status: 409,
         });
       }
   
       const isUnique = await this._isUsernameUniqueForOtherId(Username, Id);
       if (isUnique) {
-        return errorResponse({
-          statusCode: 409,
-          message: 'El Username ya está registrado'
+        return errorResult({
+          message: 'No se encuentra el registro',
+          status: 404,
         });
       }
   
-      return successResponse({
-        statusCode: 200,
+      return successResult({
+        status: 200,
         message: 'El Username está disponible'
       });
     
