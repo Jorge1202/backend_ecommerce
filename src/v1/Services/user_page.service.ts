@@ -26,7 +26,7 @@ export class UserPageService {
 
 
     } catch (err: any) {
-      handleServiceError(err, 'createUserPage', err.statusCode);
+      handleServiceError(err, 'createUserPage', 'UserPageService');
     } 
   }
   //#endregion ######################################### Metodos Publicos
@@ -44,7 +44,7 @@ export class UserPageService {
 
 
     } catch (err: any) {
-      handleServiceError(err, 'createUserPage', 400);
+      handleServiceError(err, 'createUserPage', 'UserPageService');
     } 
   }
 
@@ -65,7 +65,7 @@ export class UserPageService {
       });
       
     } catch (err: any) {
-      handleServiceError(err, '_findByPk', 400);
+      handleServiceError(err, '_findByPk', 'UserPageService');
     } 
   }
 
@@ -89,7 +89,7 @@ export class UserPageService {
       });    
 
     } catch (err: any) {
-      handleServiceError(err, '_updateUserPage', 400);
+      handleServiceError(err, '_updateUserPage', 'UserPageService');
     } 
   }
   //#endregion ######################################### Metodos Protected

@@ -20,7 +20,7 @@ export class ProfileService {
       },transaction)
       
     } catch (err: any) {
-      handleServiceError(err, 'createProfile', 400);
+      handleServiceError(err, 'createProfile', 'ProfileService');
     } 
   }
   //#endregion ######################################### Metodos Public
@@ -37,7 +37,7 @@ export class ProfileService {
       });
 
     } catch (err: any) {
-      handleServiceError(err, '_findAllProfile', 400);
+      handleServiceError(err, '_findAllProfile', 'ProfileService');
     }
   }
 
@@ -58,7 +58,7 @@ export class ProfileService {
       });
 
     } catch (err:any) {
-      handleServiceError(err, '_findByPk', err.statusCode)
+      handleServiceError(err, '_findByPk', 'ProfileService')
     }
   }
   
@@ -81,7 +81,7 @@ export class ProfileService {
       });
 
     } catch (err:any) {
-      handleServiceError(err, '_updateProfile', err.statusCode)
+      handleServiceError(err, '_updateProfile', 'ProfileService')
     }
   }
 
@@ -105,7 +105,7 @@ export class ProfileService {
       });
       
     } catch (err:any) {
-      handleServiceError(err, '_destroyProfile', err.statusCode)
+      handleServiceError(err, '_destroyProfile', 'ProfileService')
     }
 
 
@@ -118,7 +118,7 @@ export class ProfileService {
     try {
       return await Profile.create(profileData, { transaction });
     } catch (err:any) {
-      handleServiceError(err, '_createProfile', err.statusCode)
+      handleServiceError(err, '_createProfile', 'ProfileService')
     }
   }
   //#endregion ######################################### Metodos Private

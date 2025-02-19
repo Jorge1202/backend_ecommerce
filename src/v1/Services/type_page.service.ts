@@ -16,7 +16,7 @@ export class TypePageService {
       });      
 
     } catch (err: any) {
-      handleServiceError(err, '_findAll', err.statusCode);
+      handleServiceError(err, '_findAll', 'TypePageService');
     }  
   }
 
@@ -37,7 +37,7 @@ export class TypePageService {
       }); 
 
     } catch (err: any) {
-      handleServiceError(err, '_findByPk', err.statusCode);
+      handleServiceError(err, '_findByPk', 'TypePageService');
     } 
   }
   
@@ -61,7 +61,7 @@ export class TypePageService {
 
 
     } catch (err: any) {
-      handleServiceError(err, '_createTypePage', err.statusCode);
+      handleServiceError(err, '_createTypePage', 'TypePageService');
     } 
   }
 
@@ -84,7 +84,7 @@ export class TypePageService {
       });
       
     } catch (err: any) {
-      handleServiceError(err, '_updateTypePage', err.statusCode);
+      handleServiceError(err, '_updateTypePage', 'TypePageService');
     } 
   }
 
@@ -108,7 +108,7 @@ export class TypePageService {
       });
       
     } catch (err: any) {
-      handleServiceError(err, '_destroyTypePage', err.statusCode);
+      handleServiceError(err, '_destroyTypePage', 'TypePageService');
     } 
   }  
   //#endregion ######################################### Metodos Protected

@@ -1,17 +1,14 @@
-import {Response } from 'express';
-import {MiddlewareResponse} from '../Utils/Response/ControllerResponse';
+import { Request, Response, NextFunction } from 'express';
+import { MiddlewareResponse } from '../Utils/Response/ControllerResponse';
 
 // Middleware para capturar todos los errores generados en el API
-const errorsMiddleware = (err: any, res: Response) => {
-  console.error('[error]', err);
+const errorsMiddleware = (err: any, req: Request, res: Response, next: NextFunction) => {
+  // console.error('[error]', err); // Log del error para depuración
 
   const message = err.message || 'Error interno';
-  const status = err.statusCode || 500;
+  const status = err.status || 500;
 
-  MiddlewareResponse({res, message, status});
+  MiddlewareResponse({ res, message, status });
 };
 
-export {errorsMiddleware};
-
-
-
+export { errorsMiddleware };

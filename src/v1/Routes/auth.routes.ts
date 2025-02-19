@@ -5,6 +5,7 @@ const userRoutes = Router();
 
 
 //#region  ################ Generar cuenta 
+userRoutes.get('/methodPruebaErrores', authController.methodPruebaErrores); 
 userRoutes.get('/validCodeByEmail', authController.validCodeByEmail); 
 userRoutes.get('/ViewVerifyEmail', authController.validViewVerifyEmail); 
 userRoutes.get('/reSendCode', authController.reSendCode); 

@@ -46,6 +46,37 @@ export interface ParamsLogin {
 
 
 export class AuthService {
+  //#region
+  protected async _methodPruebaErrores(dataAuth:number): Promise<ServiceResult<any>> {
+    try {
+      if (dataAuth==1) {
+        throw throwServerError({
+          message: 'Error crítico para el flujo.',
+          status: 409,
+        });
+
+        
+      }
+      if (dataAuth==2) {
+        return errorResult({
+          status: 400,
+          message: `Error de sintaxis o datos incompletos o inválidos`
+        });
+      }
+      
+      return successResult({
+        status: 200,
+        message: 'Bienvenido',
+        body: dataAuth
+      });
+
+    }  catch (err: any) {
+      handleServiceError(err, '_methodPrueba', 'AuthService');
+    }
+
+  }
+  //#endregion
+
 
   //#region ######################################### CREATION ACOUNT
   public async createAuth(authData: AuthCreationAttributes, transaction: Transaction): Promise<ServiceResult<AuthResult>> {
@@ -79,7 +110,7 @@ export class AuthService {
       });
 
     } catch (error: any) {
-      handleServiceError(error, 'createAuth', error.statusCode)
+      handleServiceError(error, 'createAuth', 'AuthService')
     }
   }
   protected async _generateCodeEmail(Email: string): Promise<ServiceResult<any>> {
@@ -142,7 +173,7 @@ export class AuthService {
       });
 
     } catch (error: any) {
-      handleServiceError(error, '_generateCodeEmail', error.statusCode)
+      handleServiceError(error, '_generateCodeEmail', 'AuthService')
     }
   }
   protected async _validCodeByEmail(Token: string, Code: string): Promise<ServiceResult<any>> {
@@ -210,7 +241,7 @@ export class AuthService {
       });
 
     } catch (error: any) {
-      handleServiceError(error, '_validCodeByEmail', error.statusCode)
+      handleServiceError(error, '_validCodeByEmail', 'AuthService')
     }
   }
   protected async _validViewVerifyEmail(Token: string): Promise<ServiceResult<any>> {
@@ -249,7 +280,7 @@ export class AuthService {
       });
 
     } catch (error: any) {
-      handleServiceError(error, '_validCodeByEmail', error.statusCode)
+      handleServiceError(error, '_validCodeByEmail', 'AuthService')
     }
   }
   protected async _reSendCode(Token: string): Promise<ServiceResult<any>> {
@@ -320,14 +351,14 @@ export class AuthService {
         message: 'Se ha enviado correo con nuevo código'
       });
     } catch (err: any) {
-      handleServiceError(err, '_reSendCode', err.statusCode);
+      handleServiceError(err, '_reSendCode', 'AuthService');
     }
   }
   private async createAuth_Private(userData: AuthCreationAttributes, transaction: Transaction): Promise<Auth> {
     try {
       return await Auth.create(userData, { transaction });
     } catch (error: any) {
-      handleServiceError(error, '_createAuth', error.statusCode)
+      handleServiceError(error, '_createAuth', 'AuthService')
     }
   }
   //#endregion ######################################### CREATION ACOUNT
@@ -397,7 +428,7 @@ export class AuthService {
       });
 
     } catch (err: any) {
-      handleServiceError(err, 'loginAfterRegister', err.statusCode);
+      handleServiceError(err, 'loginAfterRegister', 'AuthService');
     }
   }
   protected async _login(params: ParamsLogin, whithCode: boolean = false): Promise<ServiceResult<any>> {
@@ -450,7 +481,7 @@ export class AuthService {
       });
 
     } catch (err: any) {
-      handleServiceError(err, 'validation', err.statusCode);
+      handleServiceError(err, 'validation', 'AuthService');
     }
   }
   private async _login_pv (params: ParamsLogin, whithCode: boolean = false): Promise<any>{
@@ -505,7 +536,7 @@ export class AuthService {
         }
 
       } catch (err: any) {
-        handleServiceError(err, 'Error login', err.statusCode);
+        handleServiceError(err, 'Error login', 'AuthService');
       }
     })
   }
@@ -586,7 +617,7 @@ export class AuthService {
       });
 
     } catch (err: any) {
-      handleServiceError(err, 'Error login', err.statusCode);
+      handleServiceError(err, 'Error login', 'AuthService');
     }
   }
   private async lg_existDevice_LOGIN(deviceToken: string, dataAuth: Auth, transaction: any) {
@@ -691,7 +722,7 @@ export class AuthService {
       });
 
     } catch (err: any) {
-      handleServiceError(err, 'Error login', err.statusCode);
+      handleServiceError(err, 'Error login', 'AuthService');
     }
   }
   private getfechaToken(addDays: number) {
@@ -704,7 +735,7 @@ export class AuthService {
       const devices = await Devices.create(deviceInfo, { transaction });
       return devices
     } catch (err: any) {
-      handleServiceError(err, '_createDevice', err.statusCode);
+      handleServiceError(err, '_createDevice', 'AuthService');
     }
   }
   private async _updateDevice(deviceInfo: Devices, transaction: Transaction): Promise<Devices> {
@@ -712,7 +743,7 @@ export class AuthService {
       const devices = await deviceInfo.update({ ...deviceInfo, Token: deviceInfo.Token }, { transaction });
       return devices
     } catch (err: any) {
-      handleServiceError(err, '_updateDevice', err.statusCode);
+      handleServiceError(err, '_updateDevice', 'AuthService');
     }
   }
   private async _createLogin(IdAuth: number, IdDeviceAuth: number, transaction?: Transaction): Promise<Login> {
@@ -723,7 +754,7 @@ export class AuthService {
         IdDeviceAuth
       }, { transaction });
     } catch (err: any) {
-      handleServiceError(err, '_createLogin', err.statusCode);
+      handleServiceError(err, '_createLogin', 'AuthService');
     }
   }
   private async _sendMailVerifyDevice(Email: string, Name: string, Firstname: string, Code: string): Promise<any> {
@@ -741,7 +772,7 @@ export class AuthService {
       const mailService = new MailService(mailConfig);
       const responseMail = await mailService.send();
     } catch (err: any) {
-      handleServiceError(err, '_sendMailVerifyDevice', err.statusCode);
+      handleServiceError(err, '_sendMailVerifyDevice', 'AuthService');
     }
 
   }
@@ -751,7 +782,7 @@ export class AuthService {
         where: { IdAuth, IdDeviceAuth }
       })
     } catch (err: any) {
-      handleServiceError(err, '_updateLoginToInactive', err.statusCode);
+      handleServiceError(err, '_updateLoginToInactive', 'AuthService');
     }
   }
   //#endregion ######################################### LOGIN
@@ -808,7 +839,7 @@ export class AuthService {
       });
 
     } catch (err: any) {
-      handleServiceError(err, 'lg_validCodeDevice', err.statusCode);
+      handleServiceError(err, 'lg_validCodeDevice', 'AuthService');
     }
   }
   protected async fc_newCode_NewDevice(Token: string): Promise<ServiceResult<any>> {
@@ -871,7 +902,7 @@ export class AuthService {
       });
 
     } catch (err: any) {
-      handleServiceError(err, 'lg_validCodeDevice', err.statusCode);
+      handleServiceError(err, 'lg_validCodeDevice', 'AuthService');
     }
   }
   private async lg_newDevice_LOGIN(dataAuth: Auth, transaction: any) {
@@ -930,7 +961,7 @@ export class AuthService {
       });
 
     } catch (err: any) {
-      handleServiceError(err, 'lg_validCodeDevice', err.statusCode);
+      handleServiceError(err, 'lg_validCodeDevice', 'AuthService');
     }
   }
   private async lg_ValidCodeDevic_pv (Code: string, TOKEN_NEWDEVICE: string, deviceInfo: DevicesCreationAttributes): Promise<any>{
@@ -1039,7 +1070,7 @@ export class AuthService {
         });
 
       } catch (err: any) {
-        handleServiceError(err, 'Error', err.statusCode);
+        handleServiceError(err, 'Error', 'AuthService');
       }
     })
   }
@@ -1118,7 +1149,7 @@ export class AuthService {
 
 
     } catch (err: any) {
-      handleServiceError(err, '_recoveryPassword', err.statusCode);
+      handleServiceError(err, '_recoveryPassword', 'AuthService');
     }
   }
   protected async _validDataUser(token: string): Promise<ServiceResult<any>> {
@@ -1163,7 +1194,7 @@ export class AuthService {
 
 
     } catch (err: any) {
-      handleServiceError(err, '_validDataUser', err.statusCode);
+      handleServiceError(err, '_validDataUser', 'AuthService');
     }
   }
   protected async _changePassword(Password: string, Token: string): Promise<ServiceResult<any>> {
@@ -1238,7 +1269,7 @@ export class AuthService {
 
 
     } catch (err: any) {
-      handleServiceError(err, '_changePassword', err.statusCode);
+      handleServiceError(err, '_changePassword', 'AuthService');
     }
 
   }
@@ -1308,7 +1339,7 @@ export class AuthService {
       });
 
     } catch (err: any) {
-      handleServiceError(err, '_validCode', err.statusCode);
+      handleServiceError(err, '_validCode', 'AuthService');
     }
   }
   //#endregion ######################################### CHANGE PASSWORD
@@ -1386,7 +1417,7 @@ export class AuthService {
       return { token, code: 200 };
     } catch (err: any) {
       // Manejo de errores
-      handleServiceError(err, '_generateToken', err.statusCode || 500);
+      handleServiceError(err, '_generateToken', 'AuthService');
     }
   }
   private _validateLoginData(data: TokenLogin): TokenPayload | null {
@@ -1427,7 +1458,7 @@ export class AuthService {
 
       return refreshToken;
     } catch (err: any) {
-      handleServiceError(err, 'Could not create refresh token', err.statusCode);
+      handleServiceError(err, 'Could not create refresh token', 'AuthService');
     }
   }
   private async _varifyToken(token: string): Promise<any> {
@@ -1440,7 +1471,7 @@ export class AuthService {
 
       return response
     } catch (err: any) {
-      handleServiceError(err, '_varifyToken', err.statusCode);
+      handleServiceError(err, '_varifyToken', 'AuthService');
     }
   }
   public async service_varifyToken(token: string): Promise<ServiceResult<any>> {
@@ -1462,7 +1493,7 @@ export class AuthService {
         status: response.code
       })
     } catch (err: any) {
-      handleServiceError(err, '_varifyToken', err.statusCode);
+      handleServiceError(err, '_varifyToken', 'AuthService');
     }
   }
 

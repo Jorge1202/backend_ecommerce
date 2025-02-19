@@ -40,7 +40,7 @@ export class HistoryRegisterService {
       });
 
     } catch (err: any) {
-      handleServiceError(err, 'updateByRegister', err.statusCode);
+      handleServiceError(err, 'updateByRegister', 'HistoryRegisterService');
     }
   }
   //#endregion ######################################### Metodos Public
@@ -83,7 +83,7 @@ export class HistoryRegisterService {
       });
 
     } catch (error: any) {
-      handleServiceError(error, '_createHistory', error.statusCode);
+      handleServiceError(error, '_createHistory', 'HistoryRegisterService');
     }
   }
 
@@ -110,7 +110,7 @@ export class HistoryRegisterService {
       });
     
     } catch (err: any) {
-      handleServiceError(err, 'valid_Email', err.statusCode);
+      handleServiceError(err, 'valid_Email', err.status);
     }
 
   }
@@ -137,7 +137,7 @@ export class HistoryRegisterService {
       });
       
     } catch (error: any) {
-      handleServiceError(error, 'valid_EmailwhithID', error.statusCode);
+      handleServiceError(error, 'valid_EmailwhithID', 'HistoryRegisterService');
     }
 
   }
@@ -152,7 +152,7 @@ export class HistoryRegisterService {
         
         return existingRecord;
     } catch (error: any) {
-      handleServiceError(error, '_isEmailUniqueForOtherId', error.statusCode);
+      handleServiceError(error, '_isEmailUniqueForOtherId', 'HistoryRegisterService');
     }
   }
 
@@ -172,7 +172,7 @@ export class HistoryRegisterService {
       });
 
     } catch (error: any) {
-      handleServiceError(error, 'valid_Username', error.statusCode);
+      handleServiceError(error, 'valid_Username', 'HistoryRegisterService');
     }
 
   }
@@ -199,7 +199,7 @@ export class HistoryRegisterService {
       });
     
     } catch (error: any) {
-      handleServiceError(error, 'valid_UsernamewhithID', error.statusCode);
+      handleServiceError(error, 'valid_UsernamewhithID', 'HistoryRegisterService');
     }
 
   }
@@ -214,7 +214,7 @@ export class HistoryRegisterService {
         
         return existingRecord;
     } catch (error: any) {
-      handleServiceError(error, '_isUsernameUniqueForOtherId', error.statusCode);
+      handleServiceError(error, '_isUsernameUniqueForOtherId', 'HistoryRegisterService');
     }    
   }
 
@@ -225,7 +225,7 @@ export class HistoryRegisterService {
         where: { Email } // Busca donde el campo 'Email' coincida
       });
     } catch (error: any) {
-      handleServiceError(error, '_findByEmail', 400);
+      handleServiceError(error, '_findByEmail', 'HistoryRegisterService');
     } 
   }
   // Obtener historial de registro por Username
@@ -235,7 +235,7 @@ export class HistoryRegisterService {
         where: { Username }
       });
     } catch (error: any) {
-      handleServiceError(error, '_findByUsername', 400);
+      handleServiceError(error, '_findByUsername', 'HistoryRegisterService');
     } 
   }
   // Obtener historial de registro por Id
@@ -245,7 +245,7 @@ export class HistoryRegisterService {
         where: { Id }
       });
     } catch (error: any) {
-      handleServiceError(error, '_findByID', 400);
+      handleServiceError(error, '_findByID', 'HistoryRegisterService');
     } 
   }
   //#endregion ######################################### Metodos Protected

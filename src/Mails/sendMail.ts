@@ -48,7 +48,7 @@ export class MailService {
                 return {send: false, response:'Hubo un problema al enviar el correo.'} 
             }
         } catch (err: any) {
-            handleServiceError(err, 'sendMail', err.statusCode);
+            handleServiceError(err, 'sendMail', err.status);
         }
     };
 

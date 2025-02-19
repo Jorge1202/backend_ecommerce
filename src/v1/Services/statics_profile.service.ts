@@ -8,7 +8,7 @@ export class StatisticsProfileService {
       try {
           await StatisticsProfile.create(statics, {transaction})
         } catch (error) {
-          handleServiceError(error, 'Error creating statics profile', 400)
+          handleServiceError(error, 'createStatics', 'StatisticsProfileService')
         }    
   }
   //#region ######################################### Metodos Public

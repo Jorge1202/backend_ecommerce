@@ -46,7 +46,7 @@ export class UserService {
 
 
     } catch (err: any) {
-      handleServiceError(err, 'findByPkUser_forAuth', err.statusCode);
+      handleServiceError(err, 'findByPkUser_forAuth', 'UserService');
     }
   }
 
@@ -73,7 +73,7 @@ export class UserService {
       });
 
     } catch (err: any) {
-      handleServiceError(err, 'findByPkUser', err.statusCode);
+      handleServiceError(err, 'findByPkUser', 'UserService');
     }
   }
 
@@ -89,7 +89,7 @@ export class UserService {
       });
 
     } catch (err: any) {
-      handleServiceError(err, '_findAll', 400)
+      handleServiceError(err, '_findAll', 'UserService')
     }
   }
 
@@ -113,7 +113,7 @@ export class UserService {
       });
 
     } catch (err: any) {
-      handleServiceError(err, '_updateUser', err.statusCode)
+      handleServiceError(err, '_updateUser', 'UserService')
     }
   }
 
@@ -136,7 +136,7 @@ export class UserService {
 
 
     } catch (err: any) {
-      handleServiceError(err, '_destroyUser', err.statusCode)
+      handleServiceError(err, '_destroyUser', 'UserService')
     }
   }
 
@@ -167,7 +167,7 @@ export class UserService {
       });
 
     } catch (err: any) {
-      handleServiceError(err, '_pruebaMail', err.statusCode)
+      handleServiceError(err, '_pruebaMail', 'UserService')
     }
   }
   //#endregion ######################################### Metodos ServiceResponse
@@ -293,7 +293,7 @@ export class UserService {
         });
 
       } catch (err: any) {
-        handleServiceError(err, '_registerUser', err.statusCode);
+        handleServiceError(err, '_registerUser', 'UserService');
       }
     })
   }
@@ -308,7 +308,7 @@ export class UserService {
     try {
       return await User.create(userData, { transaction });
     } catch (err: any) {
-      handleServiceError(err, '_createUser', 400)
+      handleServiceError(err, '_createUser', 'UserService')
     }
   }
 
@@ -340,7 +340,7 @@ export class UserService {
 
     }
     catch (err: any) {
-      handleServiceError(err, '_validExite', err.statusCode);
+      handleServiceError(err, '_validExite', 'UserService');
     }
   }
   //#endregion ######################################### Metodos Private

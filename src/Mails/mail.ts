@@ -53,7 +53,7 @@ async function verifyTransporter(transporter: Transporter): Promise<void> {
   //   throw error('No se ha podido verificar el servicio de correo.',500);
   // }
   catch (err: any) {
-    handleServiceError(err, 'verifyTransporter', err.statusCode);
+    handleServiceError(err, 'verifyTransporter', err.status);
   }
 }
 
@@ -116,7 +116,7 @@ async function prepareMail(dataObject: Mail_DataObject): Promise<SendMailOptions
   
     return infoMail;
   } catch (err: any) {
-    handleServiceError(err, 'prepareMail', err.statusCode);
+    handleServiceError(err, 'prepareMail', err.status);
   }
 }
 
@@ -147,7 +147,7 @@ export async function Main(dataObject: Mail_DataObject): Promise<ServiceResult<b
       });
     }
   } catch (err: any) {
-    handleServiceError(err, 'Main', err.statusCode);
+    handleServiceError(err, 'Main', err.status);
   }
 }
 

@@ -22,7 +22,7 @@ export const statusMessage: Record<number, string> = {
         401: 'Unauthorized', // Se requiere autenticación para acceder al recurso.
         403: 'Forbidden', // El servidor entendió la solicitud pero se niega a autorizarla.
         //Metodos para catch
-        409: 'Conflict', // (Conflicto con el estado actual del recurso) La solicitud no pudo ser completada debido a un conflicto con el estado actual del recurso. (ejemplo: Intentar registrar un email ya usado.)
+        409: 'Conflict 22', // (Conflicto con el estado actual del recurso) La solicitud no pudo ser completada debido a un conflicto con el estado actual del recurso. (ejemplo: Intentar registrar un email ya usado.)
         404: 'Not Found', // El recurso solicitado no se encontró en el servidor.
         429: 'Too Many Requests', // El usuario ha enviado demasiadas solicitudes en un período de tiempo dado.
         

@@ -5,25 +5,28 @@ import { ValidationError, DatabaseError, UniqueConstraintError } from 'sequelize
 
 // Clase personalizada de error para manejar errores con códigos de estado específicos
 export class CustomError extends Error {
-  public readonly statusCode: number;
+  public readonly status: number;
 
   // Constructor que recibe un mensaje y un código de estado (por defecto 500)
-  constructor(message: string, statusCode: number = 500) {
+  constructor(message: string, status: number = 500) {
     super(message); // Llama al constructor de la clase base `Error`
-    this.statusCode = statusCode; // Establece el código de estado
+    this.status = status; // Establece el código de estado
+    Object.setPrototypeOf(this, CustomError.prototype); // Asegurar la herencia
   }
 }
 
 /**
  * Maneja los errores de un servicio específico, proporcionando un mensaje personalizado
- * @param error - El error original capturado
+ * @param error - El error original capturado {status, message}
  * @param customMessage - Mensaje personalizado para describir la operación fallida
- * @param statusCode - Código de estado HTTP a devolver en el error (por defecto 500)
+ * @param status - Código de estado HTTP a devolver en el error (por defecto 500)
  * @throws CustomError - Lanza un error personalizado basado en el tipo de error capturado
  */
-export function handleServiceError(error: any, customMessage: string, statusCode: number = 500): never {
+export function handleServiceError(error: any, customMessage: string, clase: string): never {
   let errorMessage: string;
+  let errorStatus: number;
 
+  errorStatus = error.status
   // Manejo específico para errores de validación
   if (error instanceof ValidationError) {
     errorMessage = `Error de validación en autenticación: ${error.errors.map(e => e.message).join(', ')}`;
@@ -43,13 +46,13 @@ export function handleServiceError(error: any, customMessage: string, statusCode
 
   // Loguea el error en la consola con el mensaje personalizado
   const timestamp = new Date().toISOString();
-  console.error(`[${timestamp}] ${customMessage}: ${errorMessage}`);
+  console.log(`[${timestamp}] ${clase} - ${customMessage}: ${errorMessage}`);
   
   // Lanza un error personalizado que será capturado por el middleware de manejo de errores en Express
   throw new CustomError(
     process.env.NODE_ENV === 'development'
-      ? `${customMessage}: ${errorMessage}`
+      ? `[${timestamp}] ${errorStatus} ${clase}.${customMessage} : ${errorMessage}`
       : 'Ha ocurrido un error interno.',
-    statusCode
+      errorStatus 
   );
 }

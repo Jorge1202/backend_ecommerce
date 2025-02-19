@@ -69,7 +69,7 @@ export const MiddlewareResponse = ({
 }): void => {
 
   // Aseguramos consistencia en el log de errores
-  console.error(`Error: ${message}, Status: ${status}`);
+  // console.error(`Error: ${message}, Status: ${status}`);
 
   // Enviamos la respuesta al cliente
   res.status(status).json({
@@ -78,6 +78,7 @@ export const MiddlewareResponse = ({
     message,
     body
   });
+
 };
 
 
