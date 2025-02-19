@@ -4,8 +4,7 @@ import authController from '../Controllers/auth.controller';
 const userRoutes = Router();
 
 
-//#region  ################ Generar cuenta 
-userRoutes.get('/methodPruebaErrores', authController.methodPruebaErrores); 
+//#region  ################ Generar cuenta  
 userRoutes.get('/validCodeByEmail', authController.validCodeByEmail); 
 userRoutes.get('/ViewVerifyEmail', authController.validViewVerifyEmail); 
 userRoutes.get('/reSendCode', authController.reSendCode); 

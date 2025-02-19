@@ -69,21 +69,6 @@ class UserController extends UserService {
     }
     
   }
-  
-  public sendMail = async (req: Request, res: Response, next:NextFunction): Promise<void> => {
-    try {
-      let data = req.body;
-
-      const {body, message, status, error} = await this._pruebaMail(data);
-      if(error){ return errorResponse({res, message, status})}
-
-      successResponse({ res, body, message, status});
-      
-    } catch(err: any) {
-      // Manejar errores llamando al middleware de errores
-      next(err);
-    }
-  }
 
   public getAll = async (req: Request, res: Response, next:NextFunction): Promise<void> => {
     try {

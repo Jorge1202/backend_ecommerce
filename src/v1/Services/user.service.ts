@@ -138,38 +138,7 @@ export class UserService {
     } catch (err: any) {
       handleServiceError(err, '_destroyUser', 'UserService')
     }
-  }
-
-  protected async _pruebaMail(data: RegisterData): Promise<ServiceResult<any>> {
-    try {
-      const { user } = data;
-
-      const mailConfig: MailServiceConfig = {
-        accion: MailActions.CodeAuth,
-        to: user.Email,
-        subject: 'Verifica tu cuenta',
-        dataMail: {
-          name: user.Name,
-          firstname: user.Firstname,
-          code: "456328",
-          username: user.Username
-        }
-      };
-      const mailService = new MailService(mailConfig);
-      const {send, response} = await mailService.send();
-      if(!send){
-        console.error('mailService.send()', response);     
-      }
-
-      return successResult({
-        status: 200,
-        message: 'prueba de mail'
-      });
-
-    } catch (err: any) {
-      handleServiceError(err, '_pruebaMail', 'UserService')
-    }
-  }
+  }  
   //#endregion ######################################### Metodos ServiceResponse
 
 

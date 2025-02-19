@@ -46,37 +46,6 @@ export interface ParamsLogin {
 
 
 export class AuthService {
-  //#region
-  protected async _methodPruebaErrores(dataAuth:number): Promise<ServiceResult<any>> {
-    try {
-      if (dataAuth==1) {
-        throw throwServerError({
-          message: 'Error crítico para el flujo.',
-          status: 409,
-        });
-
-        
-      }
-      if (dataAuth==2) {
-        return errorResult({
-          status: 400,
-          message: `Error de sintaxis o datos incompletos o inválidos`
-        });
-      }
-      
-      return successResult({
-        status: 200,
-        message: 'Bienvenido',
-        body: dataAuth
-      });
-
-    }  catch (err: any) {
-      handleServiceError(err, '_methodPrueba', 'AuthService');
-    }
-
-  }
-  //#endregion
-
 
   //#region ######################################### CREATION ACOUNT
   public async createAuth(authData: AuthCreationAttributes, transaction: Transaction): Promise<ServiceResult<AuthResult>> {

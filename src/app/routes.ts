@@ -7,6 +7,7 @@ import userPageRoutes_v1 from '../v1/Routes/user_page.routes'
 import typePageRoutes_v1 from '../v1/Routes/type_page.routes'
 import authRoutes_v1 from '../v1/Routes/auth.routes'
 import profileRoutes_v1 from '../v1/Routes/profile.routes'
+import methodPruebaRoutes_v1 from '../v1/Routes/methodPrueba.routes'
 //#endregion ############################ VERION 1
 
 
@@ -19,6 +20,8 @@ async function loadRoutes(app: Express) {
     try {
 
         //#region referencia v1
+        app.use(`/api/${VERSION_NameFile.v1}/methodPrueba`, methodPruebaRoutes_v1);
+        
         app.use(`/api/${VERSION_NameFile.v1}/history-register`, historyRegister_1);
         app.use(`/api/${VERSION_NameFile.v1}/auth`, authRoutes_v1);
         app.use(`/api/${VERSION_NameFile.v1}/users`, userRoutes_1);

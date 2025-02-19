@@ -1,8 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { UserPageService } from '../Services/user_page.service';
 import { successResponse, errorResponse } from '../../Utils/Response/ControllerResponse';
-import { UserPage } from '../models/user-page';
-import { Transaction } from 'sequelize';
+
 class UserPageController extends UserPageService {
 
   constructor() {

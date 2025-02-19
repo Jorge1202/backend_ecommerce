@@ -27,27 +27,6 @@ class AuthController extends AuthService {
 
     // const response = await this._newTokenRefresh(refreshToken);
   }
-  public methodPruebaErrores = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const {Code} = req.query
-      if(!Code){
-        return errorResponse({ res, message:"Faltan datos", status:400 })
-      }
-
-      const { body, message, status, error } = await this._methodPruebaErrores(Number(Code))
-      if(error){return errorResponse({ res, message, status })}
-
-      return successResponse({ res, 
-        status,
-        message, 
-        body
-      });
-
-    } catch (err:any) {      
-      // Manejar errores llamando al middleware de errores
-      next(err);
-    }    
-  }
   //#endregion Endpoint Token
 
   //#region  ################ Generar cuenta 
