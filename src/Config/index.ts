@@ -17,6 +17,7 @@ interface MailConfig {
 interface Config {
     api: ApiConfig;
     JWT_SECRET : string;
+    JWT_SECRET_REFRESH : string;
     CORS: CORSConfig;
     version: string
     URL_FRONTEND: string
@@ -29,6 +30,7 @@ const config: Config = {
     version: 'v1',
     URL_FRONTEND: process.env.SRV_HOST || "http://localhost:3000",
     JWT_SECRET: process.env.JWT_SECRET || 'notasecret',
+    JWT_SECRET_REFRESH: process.env.JWT_SECRET_REFRESH || 'EsMiSecretRefresh',
     
     api: {
         PORT: Number(process.env.PORT) || 3005, // Convertimos a número para mayor seguridad

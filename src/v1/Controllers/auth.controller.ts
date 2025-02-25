@@ -4,8 +4,12 @@ import { AuthService } from '../Services/auth.service';
 import { errorResponse, successResponse } from '../../Utils/Response/ControllerResponse';
 import { DevicesCreationAttributes } from '../models/devices';
 
-
+import { generateCookieTokenRefresh, generateCookieTokenDevice } from '../../Secure/generateTokens';
 import { ParamsLogin } from '../Services/auth.service';
+import { verifyToken } from '../../Secure/tokenJWT';
+import { TokenAuthUser, TokenLogin, TokenRefresh } from '../../Secure/interfaceToken';
+
+
 const UAParser = require('ua-parser-js');
 
 class AuthController extends AuthService {
@@ -13,21 +17,6 @@ class AuthController extends AuthService {
   constructor() {
     super(); 
   }
-  //#region Endpoint Token
-  public newTokenRefresh = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const { refreshToken } = req.cookies;
-      if (!refreshToken) {
-        res.status(401).json({ message: 'Refresh token missing' });
-      }
-    } catch (error) {
-      
-    }
-
-
-    // const response = await this._newTokenRefresh(refreshToken);
-  }
-  //#endregion Endpoint Token
 
   //#region  ################ Generar cuenta 
   public validCodeByEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -38,22 +27,23 @@ class AuthController extends AuthService {
         return errorResponse({res, message:'Token invalido', status:401});      
       }
 
+      const { payload, message: validMessage, status: validStatus, error: validError  } = await verifyToken(token)
+      if(validError || !payload){return errorResponse({ res, message:validMessage, status:validStatus })}
+      const dataTokenAuthUser = payload as TokenAuthUser
+
       const {Code} = req.query
 
       // if (!Email || (typeof Email === 'string' && Email.trim() === "")) {
       //   return errorResponse({res, message:'El Email es requerido', status:409});  
       // }
+
   
       if (!Code || (typeof Code === 'string' && Code.trim() === "")) {
         return errorResponse({res, message:'El código es requerido', status:400});  
       }
 
-      // const response = await this.service_varifyToken(token)
-      // if (response.error) {
-      //   return errorResponse({res, message:response.message, status:response.status})
-      // }
 
-      const { body, message, status, error } = await this._validCodeByEmail(String(token), String(Code))
+      const { body, message, status, error } = await this._validCodeByEmail(dataTokenAuthUser, String(Code))
       if(error){return errorResponse({ res, message, status })}
 
       
@@ -94,12 +84,13 @@ class AuthController extends AuthService {
       return errorResponse({ res, message: 'Token invalido', status: 401 });      
     }
 
-    // const response = await this.service_varifyToken(token)
-    // if (response.error) {
-    //   return errorResponse({res, message:response.message, status:response.status})
-    // }
+    const { payload, message: validMessage, status: validStatus, error: validError  } = await verifyToken(token)
+    if(validError || !payload){return errorResponse({ res, message:validMessage, status:validStatus })}
+    const dataTokenAuthUser = payload as TokenAuthUser
 
-    const { body, message, status, error }= await this._validViewVerifyEmail(token)
+
+
+    const { body, message, status, error }= await this._validViewVerifyEmail(dataTokenAuthUser)
     if(error){ return errorResponse({res, message, status})}
 
     return successResponse({ res, 
@@ -117,14 +108,13 @@ class AuthController extends AuthService {
         return errorResponse({ res, message: 'Token invalido', status: 401 });      
       }
 
-      const { email } = req.params;
+      const { payload, message: validMessage, status: validStatus, error: validError  } = await verifyToken(token)
+      if(validError || !payload){return errorResponse({ res, message:validMessage, status:validStatus })}
+      const dataTokenAuthUser = payload as TokenAuthUser
 
-      // const response = await this.service_varifyToken(token)
-      // if (response.error) {
-      //   return errorResponse({res, message:response.message, status:response.status})
-      // }
+      const { email } = req.params;
       
-      const { body, message, status, error } = await this._reSendCode(token);
+      const { body, message, status, error } = await this._reSendCode(dataTokenAuthUser);
       if(error){return errorResponse({ res, message, status })}
 
       return successResponse({ res, 
@@ -183,25 +173,13 @@ class AuthController extends AuthService {
       // Establecer la cookie HttpOnly con el token
       if(tokens){
         const {TOKEN_REFRESH, TOKEN_DEVICE} = tokens
-  
-        const refreshTokenTTL = 30 * 24 * 60 * 60 * 1000;  // 30 días en milisegundos
+
         if(TOKEN_REFRESH){
-          res.cookie('_tkrsh', TOKEN_REFRESH, {
-            httpOnly: true, // Protege contra ataques XSS
-            maxAge: refreshTokenTTL, // 30 días en milisegundos
-            secure: process.env.NODE_ENV === 'production', // Solo en HTTPS si estás en producción
-            sameSite: process.env.NODE_ENV === 'production' ? 'strict':'lax', // lax(local) strict(produccion)
-          });
+          await generateCookieTokenRefresh(res, TOKEN_REFRESH)
         }
 
-        const fiveYearsInMilliseconds = 5 * 365 * 24 * 60 * 60 * 1000;
         if(TOKEN_DEVICE){
-          res.cookie('_tkdv', TOKEN_DEVICE, {
-            httpOnly: true, // Protege contra ataques XSS
-            maxAge: fiveYearsInMilliseconds, // (5 años)
-            secure: process.env.NODE_ENV === 'production', // Solo en HTTPS si estás en producción
-            sameSite: process.env.NODE_ENV === 'production' ? 'strict':'lax', // lax(local) strict(produccion)
-          });
+          await generateCookieTokenDevice(res, TOKEN_DEVICE)
         }
       }      
 
@@ -217,6 +195,8 @@ class AuthController extends AuthService {
     }
 
   }
+
+
   public validViewNewDevice = async (req: Request, res: Response, next:NextFunction):Promise<void> => {
     try {
       const authHeader  = req.headers['authorization'];
@@ -225,11 +205,13 @@ class AuthController extends AuthService {
         return errorResponse({ res, message: 'Token invalido', status: 401 });      
       }
 
-      // const response = await this.service_varifyToken(token)
-      // if (response.error) {
-      //   return errorResponse({res, message:response.message, status:response.status})
-      // }
-      const {body, message, status, error} = await this.fc_validViewNewDevice(token)
+
+      const { payload, message: validMessage, status: validStatus, error: validError  } = await verifyToken(token)
+      if(validError || !payload){return errorResponse({ res, message:validMessage, status:validStatus })}
+      const dataTokenAuthUser = payload as TokenAuthUser
+
+
+      const {body, message, status, error} = await this.fc_validViewNewDevice(dataTokenAuthUser)
       if(error){return errorResponse({ res, message, status })}
 
       return successResponse({ res, 
@@ -252,6 +234,10 @@ class AuthController extends AuthService {
         return errorResponse({ res, message: 'Token invalido', status: 401 });      
       }
 
+      const { payload, message: validMessage, status: validStatus, error: validError  } = await verifyToken(TokenValidDevice)
+      if(validError || !payload){return errorResponse({ res, message:validMessage, status:validStatus })}
+      const dataTokenAuthUser = payload as TokenAuthUser
+
       const { Code } = req.body;
       if(!Code){
         return errorResponse({ res, message: 'Código no exite', status: 400 }); 
@@ -260,30 +246,19 @@ class AuthController extends AuthService {
       let deviceInfo: DevicesCreationAttributes;
       deviceInfo = await this._getDataDevice(req);
 
-      const {body, tokens, message, status, error} = await this.lg_validCodeDevice(Code, TokenValidDevice, deviceInfo)
+      const {body, tokens, message, status, error} = await this.lg_validCodeDevice(Code, dataTokenAuthUser, deviceInfo)
       if(error){return errorResponse({ res, message, status })}
 
       if(tokens){
         const {TOKEN_REFRESH, TOKEN_DEVICE} = tokens
-    
-        const refreshTokenTTL = 30 * 24 * 60 * 60 * 1000;  // 30 días 
+
+        
         if(TOKEN_REFRESH){
-          res.cookie('_tkrsh', TOKEN_REFRESH, {
-            httpOnly: true, // Protege contra ataques XSS
-            maxAge: refreshTokenTTL, // 30 días
-            secure: process.env.NODE_ENV === 'production', // Solo en HTTPS si estás en producción
-            sameSite: process.env.NODE_ENV === 'production' ? 'strict':'lax', // lax(local) strict(produccion)
-          });
+          generateCookieTokenRefresh(res, TOKEN_REFRESH)
         }
 
-        const fiveYearsInMilliseconds = 5 * 365 * 24 * 60 * 60 * 1000; // (5 años)
         if(TOKEN_DEVICE){
-          res.cookie('_tkdv', TOKEN_DEVICE, {
-            httpOnly: true, // Protege contra ataques XSS
-            maxAge: fiveYearsInMilliseconds, // (5 años)
-            secure: process.env.NODE_ENV === 'production', // Solo en HTTPS si estás en producción
-            sameSite: process.env.NODE_ENV === 'production' ? 'strict':'lax', // lax(local) strict(produccion)
-          });
+          generateCookieTokenDevice(res, TOKEN_DEVICE)
         }
       }
 
@@ -323,12 +298,13 @@ class AuthController extends AuthService {
         return errorResponse({ res, message: 'Token invalido', status: 401 });      
       }
 
-      // const response = await this.service_varifyToken(token)
-      // if (response.error) {
-      //   return errorResponse({res, message:response.message, status:response.status})
-      // }
 
-      const {body, message, status, error} = await this.fc_newCode_NewDevice(token)    
+      const { payload, message: validMessage, status: validStatus, error: validError  } = await verifyToken(token)
+      if(validError || !payload){return errorResponse({ res, message:validMessage, status:validStatus })}
+      const dataTokenAuthUser = payload as TokenAuthUser
+
+
+      const {body, message, status, error} = await this.fc_newCode_NewDevice(dataTokenAuthUser)    
       if(error){ return errorResponse({res, message, status})}  
 
       return successResponse({ res, 
@@ -345,7 +321,11 @@ class AuthController extends AuthService {
   //#endregion ################ Iniciar sesión 
 
   //#region ################ CERRAR sesión 
-  public logout = async (req: Request, res: Response):Promise<void> => {
+  protected logout = async (req: Request, res: Response):Promise<void> => {
+    /**
+     * Cierre de sesión:
+     * El cliente envía el refresh token para invalidarlo en el servidor.
+     */
   }
   //#endregion ################ CERRAR sesión 
 
@@ -358,12 +338,12 @@ class AuthController extends AuthService {
         return errorResponse({ res, message: 'Token invalido', status: 401 });
       } 
 
-      // const response = await this.service_varifyToken(token)
-      // if (response.error) {
-      //   return errorResponse({res, message:response.message, status:response.status})
-      // }
+      const { payload, message: validMessage, status: validStatus, error: validError  } = await verifyToken(token)
+      if(validError || !payload){return errorResponse({ res, message:validMessage, status:validStatus })}
+      const dataTokenAuthUser = payload as TokenAuthUser
 
-      const {body, message, status, error} = await this._validDataUser(token)
+
+      const {body, message, status, error} = await this._validDataUser(dataTokenAuthUser)
       if(error){ return errorResponse({res, message, status})} 
 
       return successResponse({ res, 
@@ -398,14 +378,14 @@ class AuthController extends AuthService {
       if (!token) {
         return errorResponse({ res, message: 'Token invalido', status: 401 });      
       }
-  
-      // const response = await this.service_varifyToken(token)
-      // if (response.error) {
-      //   return errorResponse({res, message:response.message, status:response.status})
-      // }
+
+      const { payload, message: validMessage, status: validStatus, error: validError  } = await verifyToken(token)
+      if(validError || !payload){return errorResponse({ res, message:validMessage, status:validStatus })}
+      const dataTokenAuthUser = payload as TokenAuthUser
+
 
       const {Code} = req.body        
-      const {body, message, status, error} = await this._validCode(Code, token)
+      const {body, message, status, error} = await this._validCode(Code, dataTokenAuthUser)
       if(error){ return errorResponse({res, message, status})}
 
       return successResponse({ res, body, message, status});  
@@ -425,13 +405,12 @@ class AuthController extends AuthService {
         return errorResponse({ res, message: 'Token invalido', status: 401 });
       } 
 
-      // const response = await this.service_varifyToken(token)
-      // if (response.error) {
-      //   return errorResponse({res, message:response.message, status:response.status})
-      // }
+      const { payload, message: validMessage, status: validStatus, error: validError  } = await verifyToken(token)
+      if(validError || !payload){return errorResponse({ res, message:validMessage, status:validStatus })}
+      const dataTokenAuthUser = payload as TokenAuthUser
 
       const {Password} = req.body        
-      const {body, message, status, error} = await this._changePassword(Password, token)
+      const {body, message, status, error} = await this._changePassword(Password, dataTokenAuthUser)
       if(error){ return errorResponse({res, message, status})}
 
       return successResponse({ res, body, message, status});  
@@ -441,6 +420,103 @@ class AuthController extends AuthService {
     }
   }
   //#endregion ################ Solicitar cambio de contraseña 
+
+  //#region ################ TOKEN
+  public newAccessToken  = async (req: Request, res: Response, next:NextFunction): Promise<void> => {
+    // Solicitud un nuevo access token con el refresh token.
+    // El servidor devuelve un nuevo access token (si el refresh token es válido).
+    
+    // El cliente detecta un error 401 o 403 al usar el access token.
+    // Solicita un nuevo access token enviando el refresh token al servidor. TokensController
+    // El servidor devuelve un nuevo access token (si el refresh token es válido).
+
+    /**
+     * Obtener el refreshToken desde las cookies
+     * Verificar el token con la llave secreta
+     * buscar en la base de datos para verificar si el token sigue siendo válido     
+     * Si el token es válido, permite continuar
+     * Generar un nuevo accessToken
+     */
+
+          // Obtener el refreshToken desde las cookies
+      const refreshToken = req.cookies?._tkrsh ;
+
+      if (!refreshToken) {
+        return errorResponse({
+          res,
+          message:'No existe token, se requiere cerrar sesion',
+          status: 401  
+        })        
+      }
+
+    try {      
+      const { payload, message: validMessage, status: validStatus, error: validError  } = await verifyToken(refreshToken, 'refresh')
+      if(validError || !payload){return errorResponse({ res, message:validMessage, status:validStatus })}
+      const dataPayload = payload as TokenRefresh
+
+      /**Se optiene datos del usuario y se generan el Access token */
+      const response = await this._newAccessToken(dataPayload, refreshToken);    
+
+      if(response.error){
+        return errorResponse({ res, message:response.message, status:response.status })
+      }
+
+      const {tokenLogin, tokenRefresh} = response.body
+
+      if(tokenRefresh){        
+        await generateCookieTokenRefresh(res, tokenRefresh)
+      }
+
+      successResponse({
+        res,
+        status:200,
+        message:'Se a renovado su token de acceso',
+        body: tokenLogin        
+      })
+
+
+    } catch(err: any) {
+      // Manejar errores llamando al middleware de errores 
+      next(err);
+    }
+  }
+
+  public autenticationAccessToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    //servicioo para validar el token de los microservicios
+
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; // Extrae el token 
+
+    try {
+      if(!token){
+        return errorResponse({
+          res,
+          message:'No se proporcionó el token',
+          status: 401  
+        })
+      }
+
+      const { payload, message, status, error  } = await verifyToken(token)
+      if(error || !payload){return errorResponse({ res, message, status })}
+      const dataPayload = payload as TokenLogin
+
+      successResponse({
+        res,
+        status,
+        message,
+        body: dataPayload
+      })
+
+    } catch(err: any) {
+      // Manejar errores llamando al middleware de errores
+      next(err);
+    }
+
+  }
+  //#endregion ################ TOKEN
+
+
+
 
 }
 

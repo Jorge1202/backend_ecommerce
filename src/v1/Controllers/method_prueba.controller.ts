@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { MethodPruebaService } from '../Services/method_prueba.service';
 import { successResponse, errorResponse } from '../../Utils/Response/ControllerResponse';
-
 class MethodPruebaController extends MethodPruebaService {
 
   constructor() {
@@ -9,6 +8,17 @@ class MethodPruebaController extends MethodPruebaService {
   }
 
   public sendMail = async (req: Request, res: Response, next:NextFunction): Promise<void> => {
+    /**
+        {
+            "user": {
+                "Email": "yorchmistery8@gmail.com",
+                "Username": "jorge1205",
+                "Name": "Jorge",
+                "Firstname": "L",
+                "Password": "1223"
+            }
+        }
+     */
     try {
       let data = req.body;
       if(!data){

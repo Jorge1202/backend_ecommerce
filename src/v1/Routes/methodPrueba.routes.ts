@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import methodPruebaController from '../Controllers//method_prueba.controller';
+import methodPruebaController from '../Controllers/method_prueba.controller';
+import { authenticateToken } from '../../Middlewares/authenticateToken '; 
 
 const registerRoutes = Router();
 
-registerRoutes.get('/', methodPruebaController.methodPruebaErrores);
-registerRoutes.post('/', methodPruebaController.sendMail);
+registerRoutes.get('/pruebaErrors', authenticateToken, methodPruebaController.methodPruebaErrores);
+registerRoutes.post('/sendMail',  methodPruebaController.sendMail);
 
-// registerRoutes.get('/:email', historyRegisterController.getById);
 export default registerRoutes;

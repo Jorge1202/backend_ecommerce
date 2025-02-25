@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { successResponse, errorResponse } from '../../Utils/Response/ControllerResponse';
+import { successResponse, errorResponse, CustomRequest } from '../../Utils/Response/ControllerResponse';
 
 import { UserService } from '../Services/user.service';
 interface Record {
@@ -84,10 +84,18 @@ class UserController extends UserService {
     }
   }
 
-  public getById = async (req: Request, res: Response, next:NextFunction): Promise<void> => {
+  public getById = async (req: CustomRequest, res: Response, next:NextFunction): Promise<void> => {
     try {
-      const { id } = req.params;
-      const {body, message, status, error}  = await this.findByPkUser(String(id));
+
+      console.log(req.tokenData);
+      
+      // const { id } = req.params;
+      if (!req.tokenData) {
+        return errorResponse({res, message:'No se encontraron datos de autenticación', status:403});
+      }
+
+      const {IdUser} = req.tokenData;
+      const {body, message, status, error}  = await this.findByPkUser(String(IdUser));
       if(error){ return errorResponse({res, message, status})}
 
       successResponse({ res, body, message, status});

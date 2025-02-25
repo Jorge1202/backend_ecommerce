@@ -1,4 +1,11 @@
-import { Response } from 'express';
+import { Response, Request } from 'express';
+import { TokenLogin } from '../../Secure/interfaceToken';
+
+// Definir una interfaz personalizada para extender Request
+export interface CustomRequest extends Request {
+  tokenData?: TokenLogin;  // Ahora req.tokenData tiene una estructura definida
+}
+
 
 export interface SuccessResponse<T> {
   res: Response;
@@ -17,7 +24,7 @@ export const successResponse = <T>({
   if (res.headersSent) return;
 
   // Log opcional para confirmar envíos exitosos (puedes omitirlo si no lo necesitas)
-  console.log(`Éxito: ${message}, Status: ${status}`);
+  // console.log(`Éxito: ${message}, Status: ${status}`);
 
   // Enviamos la respuesta al cliente
   res.status(200).json({
@@ -29,7 +36,16 @@ export const successResponse = <T>({
 };
 
 
-// Función para manejar errores y enviar la respuesta de error 
+/**
+ * Responde a un error controlado
+ * @param param0 
+ * @returns 
+ * 400 Error de sintaxis o datos incompletos o inválidos
+ * 401 El usuario no está autenticado o el token es inválido/expirado. 
+ * 403 El usuario está autenticado, pero no tiene permisos para acceder al recurso
+ * 404 Registro no encontrado pero es error esperado y manejable
+ * 422 Reglas de negocio
+ */
 export const errorResponse = ({
   res,
   message = 'Error de sintaxis o datos incompletos', // Valor por defecto para el mensaje
@@ -43,7 +59,7 @@ export const errorResponse = ({
 }): void => {
   if (res.headersSent) return;
   // Aseguramos consistencia en el log de errores
-  console.error(`Invalid: ${message}, Status: ${status}`);
+  // console.error(`Invalid: ${message}, Status: ${status}`);
 
   // Enviamos la respuesta al cliente
   res.status(200).json({
@@ -69,7 +85,7 @@ export const MiddlewareResponse = ({
 }): void => {
 
   // Aseguramos consistencia en el log de errores
-  // console.error(`Error: ${message}, Status: ${status}`);
+  console.error(`Error: [Status: ${status}] ${message}`);
 
   // Enviamos la respuesta al cliente
   res.status(status).json({

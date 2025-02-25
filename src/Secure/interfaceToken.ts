@@ -1,42 +1,35 @@
-// Interfaz para el payload del token, donde se puede extender según sea necesario.
-export interface TokenPayload {
-    IdUser?: string;
-    IdAuth?: number;
-    IdDevice?: number;
-    IdDeviceAuth?: number;
-    IdUserPage?: number;
-    email?: string;
-    role?: string;
-    iat?: number; // Opcional: Tiempo de emisión (se incluye automáticamente en el token)
-    exp?: number; // Opcional: Tiempo de expiración (se incluye automáticamente en el token)
-  }
-  
-  export interface Token {
-      dataToken: TokenPayload
-      expiresIn?: string
-  }
-  interface DataRefresh {
-    IdRefreshToken: number
-    ExpiresAt: Date
-  }
-  
-  // Definimos las interfaces para los diferentes tipos de tokens
-  export interface TokenLogin{
-    IdAuth: number;
-    IdUserPage: number;
-    IdLogin: number;
-    dataRefresh: DataRefresh
-  }
-  
-  export interface TokenDevice{
-    IdDevice: number;
-  }
-  export interface TokenRefresh{
-    IdDeviceAuth: number; 
-  }
-  export interface Token_New_Device{
-    IdAuth: number; 
-  }
-  
-  // Ajustamos el tipo general del payload que puede ser un token de login o de dispositivo
-  export type AllToken = TokenLogin | TokenDevice;
+export interface TokenLogin {
+  IdUser: string;
+  IdAuth: number;
+  IdUserPage: number;
+  IdLogin: number;
+  dataRefresh: DataRefresh
+}
+interface DataRefresh {
+  IdRefreshToken: number
+  ExpiresAt: Date
+}
+export interface TokenDevice {
+  IdDevice: number;
+}
+export interface TokenRefresh {
+  IdAuth: number;
+  IdDeviceAuth: number;
+  IdUserPage: number;
+}
+
+export interface Token_New_Device {
+  IdAuth: number;
+}
+export interface TokenAuthUser {
+  IdAuth?: number;
+  IdUser?: string;
+}
+
+export type TokenData = TokenLogin | TokenDevice | TokenRefresh | Token_New_Device | TokenAuthUser;
+
+export interface Token {
+  dataToken: TokenData
+  expiresIn?: string
+  secretType?: string
+}

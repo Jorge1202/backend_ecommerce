@@ -6,9 +6,7 @@
  * 
  * new Date().toISOString()
  */
-
-
-export const fechaLocal = (isoDate) => {
+export const fechaLocal = (isoDate: string) => {
     // const isoDate = "2024-09-13T00:23:00.802Z";
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const locale = Intl.DateTimeFormat().resolvedOptions().locale;
@@ -23,4 +21,20 @@ export const fechaLocal = (isoDate) => {
     // console.log(newDateString);
 
     return newDateString
+}
+
+export const Date_addDays = (addDays: number) => {
+    // Sumar días
+    const fechaCon30Dias = new Date(Date.now() + addDays * 24 * 60 * 60 * 1000)
+    return fechaCon30Dias
+}
+
+
+export const isWithinOneHour = (fecha1: Date): boolean => {
+    const fecha1Date = new Date(fecha1); 
+    const fecha2Date = new Date()
+        
+    const diferenciaMs = fecha1Date.getTime() - fecha2Date.getTime();
+    const noventaMinutosMs = 90 * 60 * 1000;
+    return diferenciaMs <= noventaMinutosMs && diferenciaMs >= 0;
 }
