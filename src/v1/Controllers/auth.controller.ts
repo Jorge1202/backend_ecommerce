@@ -6,7 +6,7 @@ import { DevicesCreationAttributes } from '../models/devices';
 
 import { generateCookieTokenRefresh, generateCookieTokenDevice } from '../../Secure/generateTokens';
 import { ParamsLogin } from '../Services/auth.service';
-import { verifyToken } from '../../Secure/tokenJWT';
+import { verifyToken, extractToken } from '../../Secure/tokenJWT';
 import { TokenAuthUser, TokenLogin, TokenRefresh } from '../../Secure/interfaceToken';
 
 
@@ -454,8 +454,17 @@ class AuthController extends AuthService {
       if(validError || !payload){return errorResponse({ res, message:validMessage, status:validStatus })}
       const dataPayload = payload as TokenRefresh
 
+      const {token:stringToken} = await extractToken(refreshToken)
+      if(!stringToken){
+        return errorResponse({
+          res,
+          message:'No existe token, se requiere cerrar sesion',
+          status: 401  
+        })  
+      }
+
       /**Se optiene datos del usuario y se generan el Access token */
-      const response = await this._newAccessToken(dataPayload, refreshToken);    
+      const response = await this._newAccessToken(dataPayload, stringToken);    
 
       if(response.error){
         return errorResponse({ res, message:response.message, status:response.status })
@@ -473,7 +482,6 @@ class AuthController extends AuthService {
         message:'Se a renovado su token de acceso',
         body: tokenLogin        
       })
-
 
     } catch(err: any) {
       // Manejar errores llamando al middleware de errores 

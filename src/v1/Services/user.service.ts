@@ -1,4 +1,4 @@
-import { Transaction } from 'sequelize';
+import { Transaction, Sequelize } from 'sequelize';
 import { withTransaction } from '../../Database/transaction_helper';
 import { handleServiceError } from '../../Utils/Response/handleServiceError';
 import { MailService, MailServiceConfig, MailActions } from '../../Mails/sendMail';
@@ -11,6 +11,8 @@ import { UserPageService } from './user_page.service'
 import { ProfileService } from './profile.service';
 import { HistoryRegisterService } from './historyRegister.service';
 import { generateToken } from '../../Secure/tokenJWT';
+import { Login } from '../models/login';
+import { Auth } from '../models/auth';
 
 interface inUser {
   Username: string;
@@ -56,7 +58,7 @@ export class UserService {
   }
 
   // Obtener usuario por ID
-  protected async findByPkUser(id: string): Promise<ServiceResult<User | string>> {
+  protected async findByPkUser(id: string): Promise<ServiceResult<any>> {
     try {
       const dataUser = await User.findByPk(id);
       if (!dataUser) {
@@ -66,10 +68,30 @@ export class UserService {
         });
       }
 
+      const dataAuth = await Auth.findOne({ 
+        where: {
+          IdUser: dataUser.IdUser
+        }
+      })
+      if (!dataAuth) {
+        return errorResult({
+          message: 'No se encuentra el registro',
+          status: 404,
+        });
+      }
+
+      const firstLogin = await Login.count({
+        where: { IdAuth: dataAuth.IdAuth }
+      });
+
+
       return successResult({
         status: 200,
         message: 'Registro localizado.',
-        body: dataUser
+        body: {
+          dataUser,
+          firstLogin: firstLogin === 1
+        }
       });
 
     } catch (err: any) {
