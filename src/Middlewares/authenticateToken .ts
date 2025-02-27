@@ -1,6 +1,6 @@
 import { Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
-import { errorResponse, MiddlewareResponse } from '../Utils/Response/ControllerResponse';
+import { MiddlewareResponse } from '../Utils/Response/ControllerResponse';
 import { CustomRequest } from '../Utils/Response/ControllerResponse';
 import { verifyToken } from '../Secure/tokenJWT';
 import { TokenLogin } from '../Secure/interfaceToken';
@@ -23,9 +23,9 @@ export const authenticateToken = async (req: CustomRequest, res: Response, next:
 
     // Verificar que el token esté presente
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return errorResponse({
+        return MiddlewareResponse({
             res,
-            message: 'No se proporcionó el token',
+            message: 'Solicitud no autorizada',
             status: 401
         });
     }
@@ -40,8 +40,7 @@ export const authenticateToken = async (req: CustomRequest, res: Response, next:
         });
     }
     const dataTokenAuthUser = payload as TokenLogin
-
-    req.tokenData = dataTokenAuthUser; // Asignamos un TokenLogin válido a req.tokenData
+    req.tokenData = dataTokenAuthUser;
 
     // Continuar con la siguiente middleware o controlador
     next();

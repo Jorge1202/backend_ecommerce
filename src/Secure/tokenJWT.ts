@@ -88,7 +88,7 @@ const getToken = async (token: string, secretType: string): Promise<{ error: boo
     };
 
   } catch (error: any) {
-    console.error('Error en getToken:', error);
+    // console.error('Error en getToken:', error);
     return {
       error: true,
       status: 500,
@@ -136,8 +136,6 @@ async function decodeHeader(authorization: string, secretType: string): Promise<
     };
 
   } catch (error: any) {
-      console.error('Error en decodeHeader:', error);
-
       return {
           error: true,
           status: 500,
@@ -147,13 +145,12 @@ async function decodeHeader(authorization: string, secretType: string): Promise<
   }
 }
 
-
 /**
  * Extrae el token del header de autorización.
  * @param authorization - El header de autorización.
  * @returns Un objeto que contiene el token o un error.
  */
-function extractToken(authorization: string): { error: boolean; status: number; message: string; token?: string } {
+export function extractToken(authorization: string): { error: boolean; status: number; message: string; token?: string } {
   if (!authorization) {
       return {
           error: true,
