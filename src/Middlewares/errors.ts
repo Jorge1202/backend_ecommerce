@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { MiddlewareResponse } from '../Utils/Response/ControllerResponse';
+import { UnexpectedResponse } from '../Utils/Response/ControllerResponse';
 
 // Middleware para capturar todos los errores generados en el API
 const errorsMiddleware = (err: any, req: Request, res: Response, next: NextFunction) => {
@@ -8,7 +8,7 @@ const errorsMiddleware = (err: any, req: Request, res: Response, next: NextFunct
   const message = err.message || 'Error interno';
   const status = err.status || 500;
 
-  MiddlewareResponse({ res, message, status });
+  UnexpectedResponse({ res, message, status });
 };
 
 export { errorsMiddleware };

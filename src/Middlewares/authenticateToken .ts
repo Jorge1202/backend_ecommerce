@@ -1,6 +1,6 @@
 import { Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
-import { MiddlewareResponse } from '../Utils/Response/ControllerResponse';
+import { UnexpectedResponse } from '../Utils/Response/ControllerResponse';
 import { CustomRequest } from '../Utils/Response/ControllerResponse';
 import { verifyToken } from '../Secure/tokenJWT';
 import { TokenLogin } from '../Secure/interfaceToken';
@@ -23,7 +23,7 @@ export const authenticateToken = async (req: CustomRequest, res: Response, next:
 
     // Verificar que el token esté presente
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return MiddlewareResponse({
+        return UnexpectedResponse({
             res,
             message: 'Solicitud no autorizada',
             status: 401
@@ -33,7 +33,7 @@ export const authenticateToken = async (req: CustomRequest, res: Response, next:
     // Verificar el token
     const { payload, message, status, error } = await verifyToken(authHeader)
     if (error || !payload) { 
-        return MiddlewareResponse({
+        return UnexpectedResponse({
             res,
             message,
             status

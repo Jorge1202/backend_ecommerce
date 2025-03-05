@@ -2,6 +2,15 @@ import { Response } from 'express'
 import { TokenRefresh, TokenLogin, Token_New_Device } from './interfaceToken'; //{ IdDeviceAuth: deviceAuth.IdDevice };
 import { generateToken } from './tokenJWT';
 
+type ActionType = {
+  [key: string]: string;
+};
+
+export const actionType: ActionType = {
+  TOKEN_REFRESH: "__Secure-RTK",
+  DEVICE: "SSID",
+};
+
 // Función para generar el Refresh Token
 export const generateTokenRefresh = (IdDeviceAuth: TokenRefresh): { message: string, token: string , code: number, expiresIn:number } => {
 
@@ -58,7 +67,7 @@ export const generateTokenValidCode = (IdAuth: Token_New_Device): { message: str
  */
 export const generateCookieTokenRefresh = async (res: Response, token:string): Promise<any> => {
   const refreshTokenTTL = 30 * 24 * 60 * 60 * 1000;  // 30 días en milisegundos  
-    res.cookie('_tkrsh', token, {
+    res.cookie(actionType.TOKEN_REFRESH, token, {
       httpOnly: true, // Protege contra ataques XSS
       maxAge: refreshTokenTTL, // 30 días en milisegundos
       secure: process.env.NODE_ENV === 'production', // Solo en HTTPS si estás en producción
@@ -73,7 +82,7 @@ export const generateCookieTokenRefresh = async (res: Response, token:string): P
  */
 export const generateCookieTokenDevice = async (res: Response, token:string): Promise<any> => {
   const fiveYearsInMilliseconds = 5 * 365 * 24 * 60 * 60 * 1000;
-  res.cookie('_tkdv', token, {
+  res.cookie(actionType.DEVICE, token, {
     httpOnly: true, // Protege contra ataques XSS
     maxAge: fiveYearsInMilliseconds, // (5 años)
     secure: process.env.NODE_ENV === 'production', // Solo en HTTPS si estás en producción

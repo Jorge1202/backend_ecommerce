@@ -4,36 +4,30 @@ import type { PageServices, PageServicesId } from './page-services';
 import type { PageStore, PageStoreId } from './page-store';
 import type { Profile, ProfileId } from './profile';
 import type { TypePage, TypePageId } from './type-page';
-import type { User, UserId } from './user';
 
 export interface UserPageAttributes {
-  IdUser: string;
-  IdTypePage: number;
-  Username: string;
   IdUserPage: number;
+  Username?: string;
+  IdTypePage: number;
+  IdUser: string;
 }
 
 export type UserPagePk = "IdUserPage";
 export type UserPageId = UserPage[UserPagePk];
-export type UserPageOptionalAttributes = "IdUserPage";
+export type UserPageOptionalAttributes = "IdUserPage" | "Username";
 export type UserPageCreationAttributes = Optional<UserPageAttributes, UserPageOptionalAttributes>;
 
 export class UserPage extends Model<UserPageAttributes, UserPageCreationAttributes> implements UserPageAttributes {
-  IdUser!: string;
-  IdTypePage!: number;
-  Username!: string;
   IdUserPage!: number;
+  Username?: string;
+  IdTypePage!: number;
+  IdUser!: string;
 
   // UserPage belongsTo TypePage via IdTypePage
   IdTypePageTypePage!: TypePage;
   getIdTypePageTypePage!: Sequelize.BelongsToGetAssociationMixin<TypePage>;
   setIdTypePageTypePage!: Sequelize.BelongsToSetAssociationMixin<TypePage, TypePageId>;
   createIdTypePageTypePage!: Sequelize.BelongsToCreateAssociationMixin<TypePage>;
-  // UserPage belongsTo User via IdUser
-  IdUserUser!: User;
-  getIdUserUser!: Sequelize.BelongsToGetAssociationMixin<User>;
-  setIdUserUser!: Sequelize.BelongsToSetAssociationMixin<User, UserId>;
-  createIdUserUser!: Sequelize.BelongsToCreateAssociationMixin<User>;
   // UserPage hasMany PageServices via IdUserPage
   PageServices!: PageServices[];
   getPageServices!: Sequelize.HasManyGetAssociationsMixin<PageServices>;
@@ -73,17 +67,17 @@ export class UserPage extends Model<UserPageAttributes, UserPageCreationAttribut
 
   static initModel(sequelize: Sequelize.Sequelize): typeof UserPage {
     return UserPage.init({
-    IdUser: {
-      type: DataTypes.STRING(50),
+    IdUserPage: {
+      autoIncrement: true,
+      type: DataTypes.INTEGER,
       allowNull: false,
-      references: {
-        model: {
-          tableName: 'user',
-          schema: 'user' // Aquí se especifica el esquema
-        },
-        key: 'id_user'
-      },
-      field: 'id_user'
+      primaryKey: true,
+      field: 'id_user_page'
+    },
+    Username: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      field: 'username'
     },
     IdTypePage: {
       type: DataTypes.INTEGER,
@@ -94,17 +88,10 @@ export class UserPage extends Model<UserPageAttributes, UserPageCreationAttribut
       },
       field: 'id_type_page'
     },
-    Username: {
-      type: DataTypes.STRING(255),
+    IdUser: {
+      type: DataTypes.STRING(100),
       allowNull: false,
-      field: 'username'
-    },
-    IdUserPage: {
-      autoIncrement: true,
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      primaryKey: true,
-      field: 'id_user_page'
+      field: 'id_user'
     }
   }, {
     sequelize,
@@ -113,7 +100,7 @@ export class UserPage extends Model<UserPageAttributes, UserPageCreationAttribut
     timestamps: false,
     indexes: [
       {
-        name: "userPage_pkey",
+        name: "user_page_pkey",
         unique: true,
         fields: [
           { name: "id_user_page" },

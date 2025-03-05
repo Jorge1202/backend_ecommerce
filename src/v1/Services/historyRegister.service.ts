@@ -7,11 +7,11 @@ export class HistoryRegisterService {
 
   //#region ######################################### Metodos Public
   // Actualizar historial de registro (con o sin transacción)
-  public async updateByRegister( data: Partial<HistoryRegister>, transaction?: Transaction ): Promise<ServiceResult<HistoryRegister>> {
+  public async updateByRegister(data: Partial<HistoryRegister>, transaction?: Transaction): Promise<ServiceResult<HistoryRegister>> {
 
     try {
 
-      if(!data){
+      if (!data) {
         return errorResult({
           message: 'No se encuentra el registro',
           status: 404,
@@ -25,14 +25,14 @@ export class HistoryRegisterService {
           status: 404,
         });
       }
-      
+
       if (transaction) {
         //Aqui entra unicamente de user.service
-        await isUnique.update({ ...data, StatusRegister: 6}, { transaction });
-      } else {        
+        await isUnique.update({ ...data, StatusRegister: 6 }, { transaction });
+      } else {
         await isUnique.update(data);
       }
-      
+
       return successResult({
         status: 200,
         message: '',
@@ -44,19 +44,19 @@ export class HistoryRegisterService {
     }
   }
   //#endregion ######################################### Metodos Public
-  
-  
+
+
   //#region ######################################### Metodos Protected
-    // Crear historial de registro
+  // Crear historial de registro
   protected async _createHistory(userData: HistoryRegister): Promise<ServiceResult<HistoryRegister>> {
     try {
-      if(!userData.Email) {
+      if (!userData.Email) {
         return errorResult({
           message: 'No se encuentra el registro',
           status: 404,
         });
       }
-      
+
       const existingRecord = await this._findByEmail(userData.Email);
       if (existingRecord) {
         return errorResult({
@@ -87,15 +87,15 @@ export class HistoryRegisterService {
     }
   }
 
-  protected async valid_Email (Email:string): Promise<ServiceResult<HistoryRegister>> {
+  protected async valid_Email(Email: string): Promise<ServiceResult<HistoryRegister>> {
     try {
-      if(!Email) {
+      if (!Email) {
         return errorResult({
           message: 'No se encuentra el registro',
           status: 404,
         });
       }
-  
+
       const existingRecord = await this._findByEmail(Email);
       if (existingRecord) {
         return errorResult({
@@ -103,26 +103,26 @@ export class HistoryRegisterService {
           status: 404,
         });
       }
-  
+
       return successResult({
         status: 200,
         message: 'El correo está disponible'
       });
-    
+
     } catch (err: any) {
       handleServiceError(err, 'valid_Email', err.status);
     }
 
   }
-  protected async valid_EmailwhithID (Email:string, Id:number): Promise<ServiceResult<HistoryRegister>> {
+  protected async valid_EmailwhithID(Email: string, Id: number): Promise<ServiceResult<HistoryRegister>> {
     try {
-      if(!Email) {
+      if (!Email) {
         return errorResult({
           message: 'No se encuentra el registro',
           status: 404,
         });
       }
-  
+
       const isUnique = await this._isEmailUniqueForOtherId(Email, Id);
       if (isUnique) {
         return errorResult({
@@ -130,12 +130,12 @@ export class HistoryRegisterService {
           status: 404,
         });
       }
-  
+
       return successResult({
         status: 200,
         message: 'El correo está disponible'
       });
-      
+
     } catch (error: any) {
       handleServiceError(error, 'valid_EmailwhithID', 'HistoryRegisterService');
     }
@@ -143,20 +143,20 @@ export class HistoryRegisterService {
   }
   protected async _isEmailUniqueForOtherId(Email: string, id: number): Promise<HistoryRegister | null> {
     try {
-        const existingRecord = await HistoryRegister.findOne({
-            where: {
-                Email,               // Busca donde el campo 'Email' coincida
-                Id: { [Op.ne]: id }  // Y el id sea diferente al que estás actualizando
-            }
-        });
-        
-        return existingRecord;
+      const existingRecord = await HistoryRegister.findOne({
+        where: {
+          Email,               // Busca donde el campo 'Email' coincida
+          Id: { [Op.ne]: id }  // Y el id sea diferente al que estás actualizando
+        }
+      });
+
+      return existingRecord;
     } catch (error: any) {
       handleServiceError(error, '_isEmailUniqueForOtherId', 'HistoryRegisterService');
     }
   }
 
-  protected async valid_Username (Username:string): Promise<ServiceResult<HistoryRegister>> {
+  protected async valid_Username(Username: string): Promise<ServiceResult<HistoryRegister>> {
     try {
       const existingRecord = await this._findByUsername(Username);
       if (existingRecord) {
@@ -165,7 +165,7 @@ export class HistoryRegisterService {
           status: 404,
         });
       }
-  
+
       return successResult({
         status: 200,
         message: 'El username está disponible'
@@ -176,15 +176,15 @@ export class HistoryRegisterService {
     }
 
   }
-  protected async valid_UsernamewhithID (Username:string, Id:number): Promise<ServiceResult<HistoryRegister>> {
+  protected async valid_UsernamewhithID(Username: string, Id: number): Promise<ServiceResult<HistoryRegister>> {
     try {
-      if(!Username) {
+      if (!Username) {
         return errorResult({
           message: 'Es necesario el campo de username',
           status: 409,
         });
       }
-  
+
       const isUnique = await this._isUsernameUniqueForOtherId(Username, Id);
       if (isUnique) {
         return errorResult({
@@ -192,12 +192,12 @@ export class HistoryRegisterService {
           status: 404,
         });
       }
-  
+
       return successResult({
         status: 200,
         message: 'El Username está disponible'
       });
-    
+
     } catch (error: any) {
       handleServiceError(error, 'valid_UsernamewhithID', 'HistoryRegisterService');
     }
@@ -205,17 +205,17 @@ export class HistoryRegisterService {
   }
   protected async _isUsernameUniqueForOtherId(Username: string, id: number): Promise<HistoryRegister | null> {
     try {
-        const existingRecord = await HistoryRegister.findOne({
-            where: {
-                Username,            // Busca donde el campo 'Email' coincida
-                Id: { [Op.ne]: id }  // Y el id sea diferente al que estás actualizando
-            }
-        });
-        
-        return existingRecord;
+      const existingRecord = await HistoryRegister.findOne({
+        where: {
+          Username,            // Busca donde el campo 'Email' coincida
+          Id: { [Op.ne]: id }  // Y el id sea diferente al que estás actualizando
+        }
+      });
+
+      return existingRecord;
     } catch (error: any) {
       handleServiceError(error, '_isUsernameUniqueForOtherId', 'HistoryRegisterService');
-    }    
+    }
   }
 
   // Obtener historial de registro por Email
@@ -226,7 +226,7 @@ export class HistoryRegisterService {
       });
     } catch (error: any) {
       handleServiceError(error, '_findByEmail', 'HistoryRegisterService');
-    } 
+    }
   }
   // Obtener historial de registro por Username
   protected async _findByUsername(Username: string): Promise<HistoryRegister | null> {
@@ -236,7 +236,7 @@ export class HistoryRegisterService {
       });
     } catch (error: any) {
       handleServiceError(error, '_findByUsername', 'HistoryRegisterService');
-    } 
+    }
   }
   // Obtener historial de registro por Id
   protected async _findByID(Id: number): Promise<HistoryRegister | null> {
@@ -246,8 +246,8 @@ export class HistoryRegisterService {
       });
     } catch (error: any) {
       handleServiceError(error, '_findByID', 'HistoryRegisterService');
-    } 
+    }
   }
   //#endregion ######################################### Metodos Protected
-  
+
 }

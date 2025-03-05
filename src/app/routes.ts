@@ -3,10 +3,8 @@ import { Express } from 'express';
 //#region ############################ VERION 1
 import historyRegister_1 from '../v1/Routes/historyRegister.routes'
 import userRoutes_1 from '../v1/Routes/user.routes'
-import userPageRoutes_v1 from '../v1/Routes/user_page.routes'
-import typePageRoutes_v1 from '../v1/Routes/type_page.routes'
-import authRoutes_v1 from '../v1/Routes/auth.routes'
-import profileRoutes_v1 from '../v1/Routes/profile.routes'
+import authRoutes_v1 from '../v1/Routes/_auth.routes'
+// import profileRoutes_v1 from '../v1/Routes/profile.routes'
 import methodPruebaRoutes_v1 from '../v1/Routes/methodPrueba.routes'
 //#endregion ############################ VERION 1
 
@@ -26,9 +24,8 @@ async function loadRoutes(app: Express) {
         app.use(`/api/${VERSION_NameFile.v1}/auth`, authRoutes_v1);
         app.use(`/api/${VERSION_NameFile.v1}/users`, userRoutes_1);
         
-        app.use(`/api/${VERSION_NameFile.v1}/userpage`, userPageRoutes_v1);
-        app.use(`/api/${VERSION_NameFile.v1}/typepage`, typePageRoutes_v1);
-        app.use(`/api/${VERSION_NameFile.v1}/profile`, profileRoutes_v1);
+        // app.use(`/api/${VERSION_NameFile.v1}/userpage`, userPageRoutes_v1);
+        // app.use(`/api/${VERSION_NameFile.v1}/profile`, profileRoutes_v1);
         //#endregion referencia
         
     } catch (error) {

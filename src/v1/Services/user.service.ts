@@ -90,7 +90,8 @@ export class UserService {
         message: 'Registro localizado.',
         body: {
           dataUser,
-          firstLogin: firstLogin === 1
+          // firstLogin: firstLogin === 1
+          firstLogin: firstLogin !== 1
         }
       });
 

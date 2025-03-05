@@ -379,56 +379,7 @@ export class AuthService {
   protected async _login(params: ParamsLogin, whithCode: boolean = false): Promise<ServiceResult<any>> {
     return await this._login_pv(params, whithCode)
   }
-  private async fc_validParams_login(params: LoginParams, whithCode: boolean): Promise<ServiceResult<any>> {
-    try {
-      const { Username, Password } = params;
 
-      const dataAuth = await Auth.findOne({ where: { Username } })
-      if (!dataAuth) {
-        throw throwServerError({
-          message: 'No se encuentra el registro',
-          status: 409,
-        });
-      }
-
-      if (dataAuth.Status === 1) {
-        // --- Enviar correo con codigo de verificacion de email
-
-        return errorResult({
-          status: 422,
-          message: `Confirma tu correo electrónico, mediante el código de verificación`
-        });
-      }
-
-      //verifica el status que este activo el user
-      if (dataAuth.Status !== 2 && dataAuth.Status != 3) {
-        const status = await StatusAuth.findByPk(dataAuth.Status)
-        return errorResult({
-          status: 422,
-          message: `${status?.Description}`
-        });
-      }
-
-      if (!whithCode) {
-        const isPasswordValid = await bcrypt.compare(Password, dataAuth.Password);
-        if (!isPasswordValid) {
-          throw throwServerError({
-            status: 409,
-            message: 'No cuentas con permisos para hacer login'
-          });
-        }
-      }
-
-      return successResult({
-        status: 200,
-        message: 'Bienvenido',
-        body: dataAuth
-      });
-
-    } catch (err: any) {
-      handleServiceError(err, 'validation', 'AuthService');
-    }
-  }
   private async _login_pv(params: ParamsLogin, whithCode: boolean = false): Promise<any> {
     return await withTransaction(async (transaction) => {
       try {
@@ -484,6 +435,56 @@ export class AuthService {
         handleServiceError(err, '_login_pv', 'AuthService');
       }
     })
+  }
+
+  private async fc_validParams_login(params: LoginParams, whithCode: boolean): Promise<ServiceResult<any>> {
+    try {
+      const { Username, Password } = params;
+
+      const dataAuth = await Auth.findOne({ where: { Username } })
+      if (!dataAuth) {
+        return errorResult({
+          status: 400,
+          message: 'Usuario o contraseña incorrectas'
+        });
+      }
+
+      if (dataAuth.Status === 1) {
+        // --- Enviar correo con codigo de verificacion de email
+        return successResult({
+          status: 200,
+          message: `Confirma tu correo electrónico, mediante el código de verificación`,
+        });
+      }
+
+      //verifica el status que este activo el user
+      if (dataAuth.Status !== 2 && dataAuth.Status != 3) {
+        const status = await StatusAuth.findByPk(dataAuth.Status)
+        return errorResult({
+          status: 422,
+          message: `${status?.Description}`
+        });
+      }
+
+      if (!whithCode) {
+        const isPasswordValid = await bcrypt.compare(Password, dataAuth.Password);
+        if (!isPasswordValid) {
+          throw throwServerError({
+            status: 409,
+            message: 'No cuentas con permisos para hacer login'
+          });
+        }
+      }
+
+      return successResult({
+        status: 200,
+        message: 'Bienvenido',
+        body: dataAuth
+      });
+
+    } catch (err: any) {
+      handleServiceError(err, 'fc_validParams_login', 'AuthService');
+    }
   }
   private async lg_first_LOGIN(deviceInfo: DevicesCreationAttributes, dataAuth: Auth, transaction: any) {
 
@@ -933,7 +934,7 @@ export class AuthService {
         if (error) {
           throw throwServerError({
             status: 409,
-            message: 'Error en el servicio al generar token'
+            message: message
           });
         }
 

@@ -72,7 +72,7 @@ export const errorResponse = ({
 
 
 // Función para manejar errores inesperados del sistema se usa en el Middlewares y envia la respuesta 
-export const MiddlewareResponse = ({
+export const UnexpectedResponse = ({
   res,
   message = 'Internal server error', // Valor por defecto para el mensaje
   status = 500,
