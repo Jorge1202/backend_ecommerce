@@ -15,14 +15,14 @@ const JWT_SECRET_REFRESH = config.JWT_SECRET_REFRESH;
  * @param expiresIn Tiempo que expira el token
  * @returns Token JWT
  */
-export const generateToken = ({dataToken, expiresIn='1d', secretType = 'access'}: Token): string => {
+export const generateToken = ({ dataToken, expiresIn = '1d', secretType = 'access' }: Token): string => {
   /**
   * Ejemplos de valores que puedes pasar:
     '1h' (1 hora)
     '10m' (10 minutos)
     '7d' (7 días)
     '3600' (3600 segundos o 1 hora)
- */ 
+ */
 
   // Seleccionar la llave secreta según el tipo
   const secretKey = secretType === 'refresh' ? JWT_SECRET_REFRESH : JWT_SECRET;
@@ -31,8 +31,8 @@ export const generateToken = ({dataToken, expiresIn='1d', secretType = 'access'}
   const payload: TokenData = dataToken;
 
   // Generar el token con el payload y la llave secreta
-  const token = jwt.sign(payload, secretKey, { expiresIn });  
-  return token; 
+  const token = jwt.sign(payload, secretKey, { expiresIn });
+  return token;
 };
 
 
@@ -41,11 +41,11 @@ export const generateToken = ({dataToken, expiresIn='1d', secretType = 'access'}
  * @param token 
  * @returns 
  */
-type secretType = 'access' | 'refresh' ;
+type secretType = 'access' | 'refresh';
 
 
-export const verifyToken = async (token: string, secretType: secretType = 'access'): 
-Promise<{ error: boolean; message: string; status: number; payload?: TokenData }> => {
+export const verifyToken = async (token: string, secretType: secretType = 'access'):
+  Promise<{ error: boolean; message: string; status: number; payload?: TokenData }> => {
   try {
     if (!token) {
       return { status: 401, error: true, message: 'No se proporcionó el token' };
@@ -56,7 +56,7 @@ Promise<{ error: boolean; message: string; status: number; payload?: TokenData }
 
     if (error || !payload) {
       return { status, error, message };
-    } 
+    }
 
     return { status, error, message, payload };
 
@@ -69,14 +69,14 @@ Promise<{ error: boolean; message: string; status: number; payload?: TokenData }
 const getToken = async (token: string, secretType: string): Promise<{ error: boolean; message: string; status: number; payload: TokenData | null }> => {
   try {
     // Verificar el header y extraer el token
-    const {error, status, message, payload} = await decodeHeader(token, secretType);
+    const { error, status, message, payload } = await decodeHeader(token, secretType);
 
     if (error) {
       return {
         error,
         status,
         message,
-        payload: null 
+        payload: null
       };
     }
 
@@ -84,7 +84,7 @@ const getToken = async (token: string, secretType: string): Promise<{ error: boo
       error,
       status,
       message,
-      payload  
+      payload
     };
 
   } catch (error: any) {
@@ -93,7 +93,7 @@ const getToken = async (token: string, secretType: string): Promise<{ error: boo
       error: true,
       status: 500,
       message: 'Error interno al procesar el token',
-      payload: null 
+      payload: null
     };
   }
 };
@@ -105,43 +105,43 @@ const getToken = async (token: string, secretType: string): Promise<{ error: boo
  */
 async function decodeHeader(authorization: string, secretType: string): Promise<{ error: boolean; status: number; message: string; payload: TokenData | null }> {
   try {
-      // 🔹 Extraer el token
-      const token = extractToken(authorization);
-      if (token.error || !token.token) {
-          return {
-              error: token.error,
-              status: token.status,
-              message: token.message,
-              payload: null 
-          };
-      }
+    // 🔹 Extraer el token
+    const token = extractToken(authorization);
+    if (token.error || !token.token) {
+      return {
+        error: token.error,
+        status: token.status,
+        message: token.message,
+        payload: null
+      };
+    }
 
-      // 🔹 Verificar el JWT
-      const decoded = await verifyJWT(token.token, secretType);
-      if (decoded.error || !decoded.payload) {
-          return {
-              error: decoded.error,
-              status: decoded.status,
-              message: decoded.message,
-              payload: null 
-          };
-      }
-
-      // 🔹 Validar y retornar el payload
+    // 🔹 Verificar el JWT
+    const decoded = await verifyJWT(token.token, secretType);
+    if (decoded.error || !decoded.payload) {
       return {
         error: decoded.error,
         status: decoded.status,
         message: decoded.message,
-        payload: decoded.payload, 
+        payload: null
+      };
+    }
+
+    // 🔹 Validar y retornar el payload
+    return {
+      error: decoded.error,
+      status: decoded.status,
+      message: decoded.message,
+      payload: decoded.payload,
     };
 
   } catch (error: any) {
-      return {
-          error: true,
-          status: 500,
-          message: 'Error interno al procesar el token',
-          payload: null 
-      };
+    return {
+      error: true,
+      status: 500,
+      message: 'Error interno al procesar el token',
+      payload: null
+    };
   }
 }
 
@@ -152,19 +152,19 @@ async function decodeHeader(authorization: string, secretType: string): Promise<
  */
 export function extractToken(authorization: string): { error: boolean; status: number; message: string; token?: string } {
   if (!authorization) {
-      return {
-          error: true,
-          status: 401,
-          message: 'Se requiere un token para esta operación'
-      };
+    return {
+      error: true,
+      status: 401,
+      message: 'Se requiere un token para esta operación'
+    };
   }
 
   if (!authorization.startsWith('Bearer ')) {
-      return {
-          error: true,
-          status: 401,
-          message: 'Formato de token incorrecto'
-      };
+    return {
+      error: true,
+      status: 401,
+      message: 'Formato de token incorrecto'
+    };
   }
 
   // Extraer y limpiar el token
@@ -182,20 +182,20 @@ export function extractToken(authorization: string): { error: boolean; status: n
 async function verifyJWT(token: string, secretType: string): Promise<{ error: boolean; status: number; message: string; payload?: TokenData }> {
   try {
 
-  // Seleccionar la llave secreta según el tipo
-  const secretKey = secretType === 'refresh' ? JWT_SECRET_REFRESH : JWT_SECRET;
+    // Seleccionar la llave secreta según el tipo
+    const secretKey = secretType === 'refresh' ? JWT_SECRET_REFRESH : JWT_SECRET;
 
-      const decoded = jwt.verify(token, secretKey) as TokenData;
-      return { error: false, status: 200, message: 'Token válido', payload: decoded };
+    const decoded = jwt.verify(token, secretKey) as TokenData;
+    return { error: false, status: 200, message: 'Token válido', payload: decoded };
 
   } catch (err: any) {
-      if (err instanceof TokenExpiredError) {
-          return { error: true, status: 403, message: 'El token ha expirado. Por favor, renueva tu autenticación' };
-      } else if (err instanceof JsonWebTokenError) {
-          return { error: true, status: 401, message: 'Token inválido' };
-      } else {
-          console.error('Error desconocido en verifyJWT:', err);
-          return { error: true, status: 500, message: 'Error interno al verificar el token' };
-      }
+    if (err instanceof TokenExpiredError) {
+      return { error: true, status: 403, message: 'El token ha expirado. Por favor, renueva tu autenticación' };
+    } else if (err instanceof JsonWebTokenError) {
+      return { error: true, status: 401, message: 'Token inválido' };
+    } else {
+      console.error('Error desconocido en verifyJWT:', err);
+      return { error: true, status: 500, message: 'Error interno al verificar el token' };
+    }
   }
 }

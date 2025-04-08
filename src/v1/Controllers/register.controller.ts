@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { NewUserService } from '../Services/register.service';
 import { CustomRequest, successResponse, errorResponse } from '../../Utils/Response/ControllerResponse';
-import { TokenAuthUser, TokenLogin, TokenRefresh } from '../../Secure/interfaceToken';
+import { TokenAuthUser } from '../../Secure/interfaceToken';
 import { DevicesCreationAttributes } from '../models/devices';
 import { ParamsLogin } from '../Services/auth.service';
 const UAParser = require('ua-parser-js');
@@ -49,7 +49,7 @@ class NewUserController extends NewUserService {
 
             const { tokenData } = req
             const dataTokenAuthUser = tokenData as TokenAuthUser
-            const { Code } = req.query
+            const { Code } = req.body
 
             // if (!Email || (typeof Email === 'string' && Email.trim() === "")) {
             //   return errorResponse({res, message:'El Email es requerido', status:409});  
@@ -164,6 +164,7 @@ class NewUserController extends NewUserService {
             errorResponse({ res, message: 'Ingresa la contraseña', status: 400, });
             return false;
         }
+        return true
 
     }
 

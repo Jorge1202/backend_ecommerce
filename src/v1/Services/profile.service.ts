@@ -2,7 +2,6 @@ import { Transaction } from 'sequelize';
 import { Profile, ProfileCreationAttributes  } from '../models/profile'; 
 import { handleServiceError } from '../../Utils/Response/handleServiceError';
 import { StatisticsProfileService } from './statics_profile.service';
-import { ServiceResult, successResult, errorResult } from '../../Utils/Response/ServiceResult';
 
 
 export class ProfileService {

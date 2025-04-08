@@ -7,6 +7,7 @@ const startServer = async () => {
         
         app.listen(config.api.PORT, () => {
             console.log(`Api escuchando en puerto http://localhost:${config.api.PORT}/api`);
+            console.log(`Swagger en: http://localhost:${config.api.PORT}/api-docs`);
         });
     } catch (error) {
         console.error('Error al iniciar el servidor:', error);

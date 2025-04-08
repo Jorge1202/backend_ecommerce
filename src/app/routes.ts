@@ -3,7 +3,7 @@ import { Express } from 'express';
 //#region ############################ VERION 1
 import historyRegister_1 from '../v1/Routes/historyRegister.routes'
 import userRoutes_1 from '../v1/Routes/user.routes'
-import authRoutes_v1 from '../v1/Routes/_auth.routes'
+import authRoutes_v1 from '../v1/Routes/auth.routes'
 // import profileRoutes_v1 from '../v1/Routes/profile.routes'
 import methodPruebaRoutes_v1 from '../v1/Routes/methodPrueba.routes'
 //#endregion ############################ VERION 1
@@ -17,9 +17,7 @@ const VERSION_NameFile = {
 async function loadRoutes(app: Express) {
     try {
 
-        //#region referencia v1
         app.use(`/api/${VERSION_NameFile.v1}/methodPrueba`, methodPruebaRoutes_v1);
-        
         app.use(`/api/${VERSION_NameFile.v1}/history-register`, historyRegister_1);
         app.use(`/api/${VERSION_NameFile.v1}/auth`, authRoutes_v1);
         app.use(`/api/${VERSION_NameFile.v1}/users`, userRoutes_1);

@@ -26,11 +26,36 @@ export class HistoryRegisterService {
         });
       }
 
+      const {StatusRegister} = isUnique
+      if(!StatusRegister){
+        return errorResult({
+          message: 'No se actualizo el estatus del registro',
+          status: 404,
+        });
+      }
+
+      const statusMap: Record<number, number> = {
+        1: 5,
+        2: 5,
+        3: 5,
+        4: 5,
+        5: 6,
+        6: 7,
+        7: 7,
+      };
+
+      // Actualizar StatusRegister si existe en el mapeo
+      if (statusMap.hasOwnProperty(StatusRegister)) {
+        data.StatusRegister = statusMap[StatusRegister];
+      }
+
       if (transaction) {
         //Aqui entra unicamente de user.service
-        await isUnique.update({ ...data, StatusRegister: 6 }, { transaction });
+        await isUnique.update(data, { transaction })
       } else {
-        await isUnique.update(data);
+        
+        // Mapeo de StatusRegister a su nuevo valor
+        await isUnique.update(data)
       }
 
       return successResult({
@@ -60,7 +85,7 @@ export class HistoryRegisterService {
       const existingRecord = await this._findByEmail(userData.Email);
       if (existingRecord) {
         return errorResult({
-          message: 'No se encuentra el registro',
+          message: `El email ${userData.Email} ya ese encuentra en uso`,
           status: 404,
         });
       }
@@ -99,7 +124,7 @@ export class HistoryRegisterService {
       const existingRecord = await this._findByEmail(Email);
       if (existingRecord) {
         return errorResult({
-          message: 'No se encuentra el registro',
+          message: `El correo ${Email} ya se encuentra en uso`,
           status: 404,
         });
       }
@@ -126,7 +151,7 @@ export class HistoryRegisterService {
       const isUnique = await this._isEmailUniqueForOtherId(Email, Id);
       if (isUnique) {
         return errorResult({
-          message: 'No se encuentra el registro',
+          message: `El correo ${Email} ya se encuentra en uso`,
           status: 404,
         });
       }
@@ -188,7 +213,7 @@ export class HistoryRegisterService {
       const isUnique = await this._isUsernameUniqueForOtherId(Username, Id);
       if (isUnique) {
         return errorResult({
-          message: 'No se encuentra el registro',
+          message: `El username ${Username} se encuentra en uso`,
           status: 404,
         });
       }
@@ -207,7 +232,7 @@ export class HistoryRegisterService {
     try {
       const existingRecord = await HistoryRegister.findOne({
         where: {
-          Username,            // Busca donde el campo 'Email' coincida
+          Username,            // Busca donde el campo 'Username' coincida
           Id: { [Op.ne]: id }  // Y el id sea diferente al que estás actualizando
         }
       });

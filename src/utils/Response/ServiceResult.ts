@@ -28,6 +28,7 @@ interface ErrorResultParams {
  * 
  * @param param0 
  * @returns 
+ * 205: 'Reset Content', // La solicitud fue exitosa y el cliente debe reiniciar la vista.  
  */
 export function successResult<T>({
     body = null,

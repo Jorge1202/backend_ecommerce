@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { PasswordService } from '../Services/password.service';
 import { CustomRequest, successResponse, errorResponse } from '../../Utils/Response/ControllerResponse';
-import { TokenAuthUser, TokenLogin, TokenRefresh } from '../../Secure/interfaceToken';
+import { TokenAuthUser } from '../../Secure/interfaceToken';
 
 
 class PasswordController extends PasswordService {

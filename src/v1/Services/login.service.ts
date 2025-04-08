@@ -1,4 +1,4 @@
-import { Transaction, where } from 'sequelize';
+import { Transaction } from 'sequelize';
 import { handleServiceError } from '../../Utils/Response/handleServiceError';
 import { ServiceResult, successResult, errorResult, throwServerError } from '../../Utils/Response/ServiceResult';
 import { MailService, MailServiceConfig, MailActions } from '../../Mails/sendMail';
@@ -17,6 +17,7 @@ import { User } from '../models/user';
 import { Date_addDays } from '../../Utils/fecha';
 import { RefreshToken, RefreshTokenAttributes } from '../models/refresh-token';
 import { maskEmail } from '../../Mails/maskEmail';
+import { generateToken } from '../../Secure/tokenJWT';
 
 
 const bcrypt = require("bcrypt");
@@ -34,9 +35,11 @@ export interface ParamsLogin {
     withToken: boolean;
     deviceToken?: string; // Opcional si ya existe el token del dispositivo
     deviceInfo?: DevicesCreationAttributes; // Opcional si no hay token
-}
+}   
 
 export class LoginService {
+
+    //#region ########################## Login
     public async _login(params: ParamsLogin, whithCode: boolean = false): Promise<ServiceResult<any>> {
         return await this._login_pv(params, whithCode)
     }
@@ -48,6 +51,15 @@ export class LoginService {
 
                 //Valida parametros
                 const infoAuth = await this.fc_validParams_login(params.Login, whithCode);
+                const { body } = infoAuth
+                if (infoAuth.status === 205) {
+                    return successResult({
+                        status: infoAuth.status,
+                        message: infoAuth.message,
+                        body: body
+                    });
+                } 
+
                 if (infoAuth.status !== 200) {
                     return errorResult({
                         status: infoAuth.status,
@@ -56,7 +68,6 @@ export class LoginService {
                 }
 
                 //obtiene lista de login
-                const { body } = infoAuth
                 const IdAuth = body.IdAuth;
                 const listLogin = await Login.findAll({
                     where: { IdAuth }
@@ -98,55 +109,6 @@ export class LoginService {
         })
     }
 
-    private async fc_validParams_login(params: LoginParams, whithCode: boolean): Promise<ServiceResult<any>> {
-        try {
-            const { Username, Password } = params;
-
-            const dataAuth = await Auth.findOne({ where: { Username } })
-            if (!dataAuth) {
-                return errorResult({
-                    status: 400,
-                    message: 'Usuario o contraseña incorrectas'
-                });
-            }
-
-            if (dataAuth.Status === 1) {
-                // --- Enviar correo con codigo de verificacion de email
-                return successResult({
-                    status: 200,
-                    message: `Confirma tu correo electrónico, mediante el código de verificación`,
-                });
-            }
-
-            //verifica el status que este activo el user
-            if (dataAuth.Status !== 2 && dataAuth.Status != 3) {
-                const status = await StatusAuth.findByPk(dataAuth.Status)
-                return errorResult({
-                    status: 422,
-                    message: `${status?.Description}`
-                });
-            }
-
-            if (!whithCode) {
-                const isPasswordValid = await bcrypt.compare(Password, dataAuth.Password);
-                if (!isPasswordValid) {
-                    throw throwServerError({
-                        status: 409,
-                        message: 'No cuentas con permisos para hacer login'
-                    });
-                }
-            }
-
-            return successResult({
-                status: 200,
-                message: 'Bienvenido',
-                body: dataAuth
-            });
-
-        } catch (err: any) {
-            handleServiceError(err, 'fc_validParams_login', 'AuthService');
-        }
-    }
     private async lg_first_LOGIN(deviceInfo: DevicesCreationAttributes, dataAuth: Auth, transaction: any) {
 
         try {
@@ -217,107 +179,7 @@ export class LoginService {
             handleServiceError(err, 'lg_first_LOGIN', 'AuthService');
         }
     }
-    private async _createDevice(deviceInfo: DevicesCreationAttributes, transaction?: Transaction): Promise<Devices> {
-        try {
-            const devices = await Devices.create(deviceInfo, { transaction });
-            return devices
-        } catch (err: any) {
-            handleServiceError(err, '_createDevice', 'AuthService');
-        }
-    }
-    private async _createLogin(IdAuth: number, IdDeviceAuth: number, transaction?: Transaction): Promise<Login> {
-        try {
 
-            return await Login.create({
-                IdAuth,
-                IdDeviceAuth
-            }, { transaction });
-        } catch (err: any) {
-            handleServiceError(err, '_createLogin', 'AuthService');
-        }
-    }
-
-    private async newRefreshToken({ IdAuth, IdDeviceAuth, IdUserPage }: TokenRefresh, transaction?: Transaction): Promise<ServiceResult<any>> {
-        try {
-
-            if (!IdAuth && !IdDeviceAuth && !IdUserPage) {
-                return errorResult({
-                    status: 409,
-                    message: 'Se necesita la información para generar token'
-                })
-            }
-
-            // const tokenRefresh = await this._generateToken(dataRefreshToken, 'Refresh', `${expiracionDias}d`);
-            const tokenRefresh = generateTokenRefresh({ IdAuth, IdDeviceAuth, IdUserPage })
-            if (!tokenRefresh.token || tokenRefresh.code != 200) {
-                throw throwServerError({
-                    status: 409,
-                    message: 'Error en el servicio al generar token'
-                });
-            }
-
-            const insertTokenRefresh = {
-                IdRefreshToken: 0,
-                IsActive: true,
-                Token: tokenRefresh.token,
-                IdAuth: IdAuth,
-                IdDeviceAuth: IdDeviceAuth,
-                IdUserPage: IdUserPage,
-                ExpiresAt: Date_addDays(tokenRefresh.expiresIn)
-            };
-
-            const dataTokenRefresh = await this.createRefreshToken(insertTokenRefresh, transaction)
-            if (!dataTokenRefresh) {
-                throw throwServerError({
-                    status: 500,
-                    message: 'Falla en la base de datos.'
-                });
-            }
-
-            const dataRefresh = {
-                IdRefreshToken: dataTokenRefresh.IdRefreshToken,
-                ExpiresAt: dataTokenRefresh.ExpiresAt || new Date(),
-            }
-            return successResult({
-                body: {
-                    dataRefresh,
-                    token: dataTokenRefresh.Token
-                },
-                status: 200,
-                message: 'Se creo el token Refresh'
-            })
-
-        } catch (err: any) {
-            handleServiceError(err, 'newRefreshToken', 'AuthResult');
-        }
-
-    }
-    private async createRefreshToken(
-        { Token, ExpiresAt, IsActive = true, IdAuth, IdDeviceAuth, LastUsedAt }: RefreshTokenAttributes,
-        transaction?: Transaction): Promise<RefreshToken> {
-        try {
-            const refreshToken = await RefreshToken.create({
-                Token,
-                ExpiresAt,
-                IsActive,
-                IdAuth,
-                IdDeviceAuth,
-                LastUsedAt
-            }, { transaction });
-
-            return refreshToken;
-        } catch (err: any) {
-            handleServiceError(err, 'createRefreshToken', 'AuthResult');
-        }
-    }
-    private async _updateDevice(deviceInfo: Devices, transaction: Transaction): Promise<Devices> {
-        try {
-            const devices = await deviceInfo.update({ ...deviceInfo, Token: deviceInfo.Token }, { transaction });
-            return devices
-        } catch (err: any) {
-            handleServiceError(err, '_updateDevice', 'AuthService');
-        }
-    }
     private async lg_existDevice_LOGIN(deviceToken: string, dataAuth: Auth, transaction: any) {
         try {
             const IdAuth = dataAuth.IdAuth;
@@ -416,15 +278,7 @@ export class LoginService {
             handleServiceError(err, 'lg_existDevice_LOGIN', 'AuthService');
         }
     }
-    private async _updateLoginToInactive(IdDeviceAuth: number, IdAuth: number): Promise<void> {
-        try {
-            await Login.update({ Active: false }, {
-                where: { IdAuth, IdDeviceAuth }
-            })
-        } catch (err: any) {
-            handleServiceError(err, '_updateLoginToInactive', 'AuthService');
-        }
-    }
+
     private async lg_newDevice_LOGIN(dataAuth: Auth, transaction: any) {
         /** Se usa mismo metodo para generar un codigo nuevo y enviar por correo cuando:
          * es nuevo dispositivo y 
@@ -484,72 +338,118 @@ export class LoginService {
             handleServiceError(err, 'lg_validCodeDevice', 'AuthService');
         }
     }
-    private async _sendMailVerifyDevice(Email: string, Name: string, Firstname: string, Code: string): Promise<any> {
+    private async _updateDevice(deviceInfo: Devices, transaction: Transaction): Promise<Devices> {
         try {
-            const mailConfig: MailServiceConfig = {
-                accion: MailActions.NuevoDispositivo,
-                to: Email,
-                subject: 'Verificar nuevo dispositivo',
-                dataMail: {
-                    name: Name,
-                    firstname: Firstname,
-                    code: Code,
-                }
-            };
-            const mailService = new MailService(mailConfig);
-            const responseMail = await mailService.send();
+            const devices = await deviceInfo.update({ ...deviceInfo, Token: deviceInfo.Token }, { transaction });
+            return devices
         } catch (err: any) {
-            handleServiceError(err, '_sendMailVerifyDevice', 'AuthService');
+            handleServiceError(err, '_updateDevice', 'AuthService');
         }
-
     }
-    protected async fc_validViewNewDevice(dataToken: TokenAuthUser): Promise<ServiceResult<any>> {
+    private async _updateLoginToInactive(IdDeviceAuth: number, IdAuth: number): Promise<void> {
         try {
+            await Login.update({ Active: false }, {
+                where: { IdAuth, IdDeviceAuth }
+            })
+        } catch (err: any) {
+            handleServiceError(err, '_updateLoginToInactive', 'AuthService');
+        }
+    }
+    private async fc_validParams_login(params: LoginParams, whithCode: boolean): Promise<ServiceResult<any>> {
+        try {
+            const { Username, Password } = params;
 
-            const { IdAuth } = dataToken
-            if (!IdAuth) {
+            const dataAuth = await Auth.findOne({ where: { Username } })
+            if (!dataAuth) {
                 return errorResult({
-                    message: `Token invalido`,
                     status: 400,
+                    message: 'Usuario o contraseña incorrectas'
+                }); 
+            }
+
+            if (dataAuth.Status === 1) {
+                // --- Enviar correo con codigo de verificacion de email
+                const user = await User.findByPk(dataAuth.IdUser)
+                if (!user) {
+                    throw throwServerError({
+                        message: 'No se encuentra el registro',
+                        status: 409,
+                    });
+                }
+
+                const code_AutService = new CodeAutenticationService();
+                const codeAuth = await code_AutService.createNewwCode({
+                    IdAuth: dataAuth.IdAuth,
+                    IdTypeCode: 1
+                });
+
+                // Envía el correo
+                const mailConfig: MailServiceConfig = {
+                    accion: MailActions.CodeAuth,
+                    to: user.Email,
+                    subject: 'Código de verificación',
+                    dataMail: {
+                        name: user.Name,
+                        firstname: user.Firstname,
+                        code: codeAuth.Code ?? '',
+                    }
+                };
+                const mailService = new MailService(mailConfig);
+                const { send, response } = await mailService.send();
+                if (!send) {
+                    console.error('mailService.send()', response);
+                }
+
+                const token = generateToken({
+                                dataToken: {
+                                    IdAuth: dataAuth.IdAuth,
+                                },
+                                expiresIn: '15m',
+                            });
+
+                return successResult({
+                    status: 205,
+                    message: `Confirma tu correo electrónico, mediante el código de verificación`,
+                    body: {token}
                 });
             }
 
-            const auth = await Auth.findOne({
-                where: { IdAuth }
-            })
-            if (!auth) {
-                throw throwServerError({
-                    message: 'No se encuentra el registro',
-                    status: 409,
-                });
-            }
-            const user = await User.findOne({
-                where: { IdUser: auth.IdUser }
-            })
-            if (!user) {
-                throw throwServerError({
-                    message: 'No se encuentra el registro',
-                    status: 409,
+            //verifica el status que este activo el user
+            if (dataAuth.Status !== 2 && dataAuth.Status != 3) {
+                const status = await StatusAuth.findByPk(dataAuth.Status)
+                return errorResult({
+                    status: 422,
+                    message: `${status?.Description}`
                 });
             }
 
+            if (!whithCode) {
+                const isPasswordValid = await bcrypt.compare(Password, dataAuth.Password);
+                if (!isPasswordValid) {
+                    throw throwServerError({
+                        status: 409,
+                        message: 'No cuentas con permisos para hacer login'
+                    });
+                }
+            }
 
             return successResult({
                 status: 200,
-                message: 'Se permite su acceso para validar el dispositivo',
-                body: {
-                    email: maskEmail(user.Email)
-                }
+                message: 'Bienvenido',
+                body: dataAuth
             });
 
         } catch (err: any) {
-            handleServiceError(err, 'lg_validCodeDevice', 'AuthService');
+            handleServiceError(err, 'fc_validParams_login', 'AuthService');
         }
     }
+    //#endregion ########################## Login
 
+    //#region ########################## AL HACER LOGIN SE DETECTA QUE ES NUEVO DISPOSITIVO
     protected async lg_validCodeDevice(Code: string, TOKEN_NEWDEVICE: TokenAuthUser, deviceInfo: DevicesCreationAttributes): Promise<ServiceResult<any>> {
         return await this.lg_ValidCodeDevic_pv(Code, TOKEN_NEWDEVICE, deviceInfo)
     }
+
     private async lg_ValidCodeDevic_pv(Code: string, dataToken: TokenAuthUser, deviceInfo: DevicesCreationAttributes): Promise<any> {
         return await withTransaction(async (transaction) => {
             try {
@@ -562,9 +462,6 @@ export class LoginService {
                         status: 401,
                     });
                 }
-
-
-
 
                 const authData = await Auth.findByPk(IdAuth)
                 if (!authData) {
@@ -648,6 +545,29 @@ export class LoginService {
             }
         })
     }
+    private async _createDevice(deviceInfo: DevicesCreationAttributes, transaction?: Transaction): Promise<Devices> {
+        try {
+            const devices = await Devices.create(deviceInfo, { transaction });
+            return devices
+        } catch (err: any) {
+            handleServiceError(err, '_createDevice', 'AuthService');
+        }
+    }
+    private async _createLogin(IdAuth: number, IdDeviceAuth: number, transaction?: Transaction): Promise<Login> {
+        try {
+
+            return await Login.create({
+                IdAuth,
+                IdDeviceAuth
+            }, { transaction });
+        } catch (err: any) {
+            handleServiceError(err, '_createLogin', 'AuthService');
+        }
+    }
+
+    //#endregion ########################## AL HACER LOGIN SE DETECTA QUE ES NUEVO DISPOSITIVO
+
+    //#region ##########################   SOLICITUD DE REENVIO DE UN NUEVO CÓDIGO PARA VALIDAR EL NUEVO DISPOSITIVO 
     protected async fc_newCode_NewDevice(dataToken: TokenAuthUser): Promise<ServiceResult<any>> {
         try {
             /**Se obtiene los datos con el token */
@@ -702,5 +622,154 @@ export class LoginService {
             handleServiceError(err, 'lg_validCodeDevice', 'AuthService');
         }
     }
+    //#endregion ##########################     SOLICITUD DE REENVIO DE UN NUEVO CÓDIGO PARA VALIDAR EL NUEVO DISPOSITIVO 
+
+    //#region ##########################     SOLICITUD PARA VALIDAR LA VISTA PARA VERIFICAR EL DISPOSITIVO
+    protected async fc_validViewNewDevice(dataToken: TokenAuthUser): Promise<ServiceResult<any>> {
+        try {
+
+            const { IdAuth } = dataToken
+            if (!IdAuth) {
+                return errorResult({
+                    message: `Token invalido`,
+                    status: 400,
+                });
+            }
+
+            const auth = await Auth.findOne({
+                where: { IdAuth }
+            })
+            if (!auth) {
+                throw throwServerError({
+                    message: 'No se encuentra el registro',
+                    status: 409,
+                });
+            }
+            const user = await User.findOne({
+                where: { IdUser: auth.IdUser }
+            })
+            if (!user) {
+                throw throwServerError({
+                    message: 'No se encuentra el registro',
+                    status: 409,
+                });
+            }
+
+
+            return successResult({
+                status: 200,
+                message: 'Se permite su acceso para validar el dispositivo',
+                body: {
+                    email: maskEmail(user.Email)
+                }
+            });
+
+        } catch (err: any) {
+            handleServiceError(err, 'lg_validCodeDevice', 'AuthService');
+        }
+    }
+    //#endregion ##########################     SOLICITUD PARA VALIDAR LA VISTA PARA VERIFICAR EL DISPOSITIVO
+
+
+
+    
+    private async _sendMailVerifyDevice(Email: string, Name: string, Firstname: string, Code: string): Promise<any> {
+        try {
+            const mailConfig: MailServiceConfig = {
+                accion: MailActions.NuevoDispositivo,
+                to: Email,
+                subject: 'Verificar nuevo dispositivo',
+                dataMail: {
+                    name: Name,
+                    firstname: Firstname,
+                    code: Code,
+                }
+            };
+            const mailService = new MailService(mailConfig);
+            const responseMail = await mailService.send();
+        } catch (err: any) {
+            handleServiceError(err, '_sendMailVerifyDevice', 'AuthService');
+        }
+
+    }
+
+    private async newRefreshToken({ IdAuth, IdDeviceAuth, IdUserPage }: TokenRefresh, transaction?: Transaction): Promise<ServiceResult<any>> {
+        try {
+
+            if (!IdAuth && !IdDeviceAuth && !IdUserPage) {
+                return errorResult({
+                    status: 409,
+                    message: 'Se necesita la información para generar token'
+                })
+            }
+
+            // const tokenRefresh = await this._generateToken(dataRefreshToken, 'Refresh', `${expiracionDias}d`);
+            const tokenRefresh = generateTokenRefresh({ IdAuth, IdDeviceAuth, IdUserPage })
+            if (!tokenRefresh.token || tokenRefresh.code != 200) {
+                throw throwServerError({
+                    status: 409,
+                    message: 'Error en el servicio al generar token'
+                });
+            }
+
+            const insertTokenRefresh = {
+                IdRefreshToken: 0,
+                IsActive: true,
+                Token: tokenRefresh.token,
+                IdAuth: IdAuth,
+                IdDeviceAuth: IdDeviceAuth,
+                IdUserPage: IdUserPage,
+                ExpiresAt: Date_addDays(tokenRefresh.expiresIn)
+            };
+
+            const dataTokenRefresh = await this.createRefreshToken(insertTokenRefresh, transaction)
+            if (!dataTokenRefresh) {
+                throw throwServerError({
+                    status: 500,
+                    message: 'Falla en la base de datos.'
+                });
+            }
+
+            const dataRefresh = {
+                IdRefreshToken: dataTokenRefresh.IdRefreshToken,
+                ExpiresAt: dataTokenRefresh.ExpiresAt || new Date(),
+            }
+            return successResult({
+                body: {
+                    dataRefresh,
+                    token: dataTokenRefresh.Token
+                },
+                status: 200,
+                message: 'Se creo el token Refresh'
+            })
+
+        } catch (err: any) {
+            handleServiceError(err, 'newRefreshToken', 'AuthResult');
+        }
+
+    }
+    private async createRefreshToken({ Token, ExpiresAt, IsActive = true, IdAuth, IdDeviceAuth, LastUsedAt }: RefreshTokenAttributes,
+        transaction?: Transaction): Promise<RefreshToken> {
+        try {
+            const refreshToken = await RefreshToken.create({
+                Token,
+                ExpiresAt,
+                IsActive,
+                IdAuth,
+                IdDeviceAuth,
+                LastUsedAt
+            }, { transaction });
+
+            return refreshToken;
+        } catch (err: any) {
+            handleServiceError(err, 'createRefreshToken', 'AuthResult');
+        }
+    }
+
+
+
+
+
+
 
 }

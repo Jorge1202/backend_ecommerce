@@ -13,6 +13,7 @@ import { HistoryRegisterService } from './historyRegister.service';
 import { generateToken } from '../../Secure/tokenJWT';
 import { Login } from '../models/login';
 import { Auth } from '../models/auth';
+import { maskEmail } from '../../Mails/maskEmail';
 
 interface inUser {
   Username: string;
@@ -29,7 +30,7 @@ interface RegisterData {
 export class UserService {
 
   //#region ######################################### Metodos ServiceResponse 
-  //Obtener usuario por se usa para Auth
+  //Obtener datos del usuario por id
   public async findByPkUser_forAuth(id: string): Promise<ServiceResult<User>> {
     try {
       const dataUser = await User.findByPk(id);
@@ -51,180 +52,43 @@ export class UserService {
       handleServiceError(err, 'findByPkUser_forAuth', 'UserService');
     }
   }
+  //#endregion ######################################### Metodos ServiceResponse 
 
-  //Registro de usuarios
   protected async _registerUser(user: inUser): Promise<ServiceResult<any>> {
     return await this._registerUser_pv(user)
   }
-
-  // Obtener usuario por ID
-  protected async findByPkUser(id: string): Promise<ServiceResult<any>> {
-    try {
-      const dataUser = await User.findByPk(id);
-      if (!dataUser) {
-        return errorResult({
-          message: 'No se encuentra el registro',
-          status: 404,
-        });
-      }
-
-      const dataAuth = await Auth.findOne({ 
-        where: {
-          IdUser: dataUser.IdUser
-        }
-      })
-      if (!dataAuth) {
-        return errorResult({
-          message: 'No se encuentra el registro',
-          status: 404,
-        });
-      }
-
-      const firstLogin = await Login.count({
-        where: { IdAuth: dataAuth.IdAuth }
-      });
-
-
-      return successResult({
-        status: 200,
-        message: 'Registro localizado.',
-        body: {
-          dataUser,
-          // firstLogin: firstLogin === 1
-          firstLogin: firstLogin !== 1
-        }
-      });
-
-    } catch (err: any) {
-      handleServiceError(err, 'findByPkUser', 'UserService');
-    }
-  }
-
-  // Obtener todos los usuarios
-  protected async _findAll(): Promise<ServiceResult<User[]>> {
-    try {
-      const list = await User.findAll();
-
-      return successResult({
-        status: 200,
-        message: 'Lista de Registros',
-        body: list
-      });
-
-    } catch (err: any) {
-      handleServiceError(err, '_findAll', 'UserService')
-    }
-  }
-
-  // Actualizar usuario
-  protected async _updateUser(id: string, data: Partial<User>): Promise<ServiceResult<User | null>> {
-    try {
-      const user = await User.findByPk(id);
-      if (!user) {
-        return errorResult({
-          message: 'No se encuentra el registro',
-          status: 404,
-        });
-
-      }
-
-      await user.update(data);
-      return successResult({
-        status: 200,
-        message: 'Registro actualizado.',
-        body: user
-      });
-
-    } catch (err: any) {
-      handleServiceError(err, '_updateUser', 'UserService')
-    }
-  }
-
-  // Eliminar usuario
-  protected async _destroyUser(id: string): Promise<ServiceResult<number>> {
-    try {
-      const result = await User.destroy({ where: { IdUser: id } });
-      if (!result) {
-        return errorResult({
-          message: 'No se encuentra el registro',
-          status: 404,
-        });
-      }
-
-      return successResult({
-        status: 200,
-        message: 'Registro eliminado.',
-        body: result
-      });
-
-
-    } catch (err: any) {
-      handleServiceError(err, '_destroyUser', 'UserService')
-    }
-  }  
-  //#endregion ######################################### Metodos ServiceResponse
-
-
-  //#region ######################################### Metodos Private 
-  /**
-   * 
-   * @param user 
-   * @returns errorResult() o successResult()
-   */
   private async _registerUser_pv(user: inUser): Promise<any> {
     return await withTransaction(async (transaction) => {
       try {
 
+        // 1. Validación de datos
         const responeValid = await this._validExite(user)
         if (responeValid.code != 200) {
           throw errorResult({
             message: responeValid.message,
             status: responeValid.code,
           });
-        }
+        } 
 
-        // 1. Crear usuario
-        const newUser = await this._createUser({
+
+        // 2. Crear usuario
+        const newUser = await User.create({
           Username: user.Username,
           Name: user.Name,
           Firstname: user.Firstname,
           Lastname: user.Lastname,
           Email: user.Email,
           Phone: user.Phone,
-        }, transaction);
-
-
-        // 2. Crear userPage
-        const userPageService = new UserPageService();
-        const newUserPage = await userPageService.createUserPage({
-          IdTypePage: 1,
-          Username: user.Username,
-          IdUser: newUser.IdUser,
-        }, transaction);
-
-
-        // 3. Crear perfil de la página del usuario
-        const profileService = new ProfileService();
-
-        const infoUserPage = newUserPage.body
-
-        if (!infoUserPage) {
+        }, { transaction });
+        
+        if (!newUser) {
           throw errorResult({
-            message: newUserPage.message,
-            status: newUserPage.status,
+            message: 'Error al crear el usuario',
+            status: 500,
           });
         }
-
-        await profileService.createProfile({
-          Name: user.Name,
-          Firstname: user.Firstname,
-          Lastname: user.Lastname,
-          Email: user.Email,
-          Phone: user.Phone,
-          IdUserPage: infoUserPage.IdUserPage // Relación obligatoria
-        }, transaction);
-
-        // 4. Crear autenticación        
+  
+        // 3. Crear autenticación        
         const authService = new AuthService();
         const resultAuth = await authService.createAuth({
           IdUser: newUser.IdUser,
@@ -233,14 +97,14 @@ export class UserService {
           Pw: user.Password
         }, transaction);
 
-        if (!resultAuth.error) {
+        const { body, error} = resultAuth
+        if (error) {
           throw errorResult({
             message: resultAuth.message,
             status: resultAuth.status,
           });
         }
 
-        const { body } = resultAuth
         if (!body || !body.codeAuth) {
           throw errorResult({
             message: resultAuth.message,
@@ -248,7 +112,7 @@ export class UserService {
           });
         }
 
-        // Envía el correo
+        // 4. Envía el correo
         const mailConfig: MailServiceConfig = {
           accion: MailActions.CodeAuth,
           to: user.Email,
@@ -260,16 +124,16 @@ export class UserService {
           }
         };
         const mailService = new MailService(mailConfig);
-        const {send, response} = await mailService.send();
-        if(!send){
-          console.error('mailService.send()', response);     
+        const { send, response } = await mailService.send();
+        if (!send) {
+          console.error('mailService.send()', response);
         }
-        // if(responseMail){}
 
-        // 4. Crear autenticación
+        // 5. Actualiza estatus del historial de registro
         const historyRegisterService = new HistoryRegisterService();
         await historyRegisterService.updateByRegister(user, transaction);
 
+        // 6. Genera token
         const { auth } = body
         const token = generateToken({
           dataToken: {
@@ -279,9 +143,13 @@ export class UserService {
         });
 
         return successResult({
-          status: 200,
+          status: 201,
           message: 'Usuario registrado exitosamente. ¡Verifica tu cuenta!',
-          body: token
+          body: {
+            token,
+            maskEmail: maskEmail(user.Email),
+            email: user.Email,
+          }  //mandar email y email en mask
         });
 
       } catch (err: any) {
@@ -289,26 +157,7 @@ export class UserService {
       }
     })
   }
-  
-  /**
-   * 
-   * @param userData 
-   * @param transaction 
-   * @returns {User}
-   */
-  private async _createUser(userData: UserCreationAttributes, transaction: Transaction): Promise<User> {
-    try {
-      return await User.create(userData, { transaction });
-    } catch (err: any) {
-      handleServiceError(err, '_createUser', 'UserService')
-    }
-  }
 
-  /**
-   * 
-   * @param user 
-   * @returns { message: '', code: 409 }
-   */
   private async _validExite(user: inUser): Promise<any> {
     try {
       const userExit = await User.findOne({
@@ -335,6 +184,5 @@ export class UserService {
       handleServiceError(err, '_validExite', 'UserService');
     }
   }
-  //#endregion ######################################### Metodos Private
 
 }

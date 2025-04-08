@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
-import { successResponse, errorResponse, CustomRequest } from '../../Utils/Response/ControllerResponse';
-
+import { successResponse, errorResponse } from '../../Utils/Response/ControllerResponse';
 import { UserService } from '../Services/user.service';
+
 interface Record {
     Username: string;
     Name: string;
@@ -67,73 +67,9 @@ class UserController extends UserService {
       errorResponse({ res, message: 'Ingresa la contraseña', status: 400, });
       return false;
     }
-    
+    return true
   }
 
-  public getAll = async (req: Request, res: Response, next:NextFunction): Promise<void> => {
-    try {
-
-      const {body, message, status, error}  = await this._findAll();
-      if(error){ return errorResponse({res, message, status})}
-
-      successResponse({ res, body, message, status});
-
-    } catch(err: any) {
-      // Manejar errores llamando al middleware de errores
-      next(err);
-    }
-  }
-
-  public getById = async (req: CustomRequest, res: Response, next:NextFunction): Promise<void> => {
-    try {
-
-      console.log(req.tokenData);
-      
-      // const { id } = req.params;
-      if (!req.tokenData) {
-        return errorResponse({res, message:'No se encontraron datos de autenticación', status:403});
-      }
-
-      const {IdUser} = req.tokenData;
-      const {body, message, status, error}  = await this.findByPkUser(String(IdUser));
-      if(error){ return errorResponse({res, message, status})}
-
-      successResponse({ res, body, message, status});
-
-    
-    } catch(err: any) {
-      // Manejar errores llamando al middleware de errores
-      next(err);
-    }
-  }
-  
-  public updateById = async (req: Request, res: Response, next:NextFunction): Promise<void> => {
-    try {
-      const { id } = req.params;
-      const {body, message, status, error}  = await this._updateUser(String(id), req.body); // Llamada al servicio
-      if(error){ return errorResponse({res, message, status})}
-
-      successResponse({ res, body, message, status});
-
-    } catch(err: any) {
-      // Manejar errores llamando al middleware de errores
-      next(err);
-    }
-  }
-
-  public deleteById = async (req: Request, res: Response, next:NextFunction): Promise<void> => {
-    try {
-      const { id } = req.params;
-      const {body, message, status, error}  = await this._destroyUser(String(id)); // Llamada al servicio
-      if(error){ return errorResponse({res, message, status})}
-
-      successResponse({ res, body, message, status});
-
-    } catch(err: any) {
-      // Manejar errores llamando al middleware de errores
-      next(err);
-    }
-  }
 }
 
 

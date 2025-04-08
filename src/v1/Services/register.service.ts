@@ -2,6 +2,8 @@ import { handleServiceError } from '../../Utils/Response/handleServiceError';
 import { Transaction } from 'sequelize';
 import { withTransaction } from '../../Database/transaction_helper';
 
+
+import { CodeAutentication } from '../models/code-autentication';
 import { ServiceResult, successResult, errorResult, throwServerError } from '../../Utils/Response/ServiceResult';
 import { MailService, MailServiceConfig, MailActions } from '../../Mails/sendMail';
 import { User, UserCreationAttributes } from '../models/user';
@@ -9,14 +11,14 @@ import { UserPageService } from './user_page.service'
 import { ProfileService } from './profile.service';
 import { AuthService } from './auth.service';
 import { HistoryRegisterService } from './historyRegister.service';
+import { CodeAutenticationService } from './code_autentication.service';
 
-import { CodeAutentication } from '../models/code-autentication';
 import { generateToken } from '../../Secure/tokenJWT';
 import { TokenAuthUser } from '../../Secure/interfaceToken';
 import { Auth } from '../models/auth';
-import { CodeAutenticationService } from './code_autentication.service';
 import { DevicesCreationAttributes } from '../models/devices';
 import { LoginService } from './login.service';
+import { maskEmail } from '../../Mails/maskEmail';
 
 interface inUser {
     Username: string;
@@ -33,6 +35,10 @@ interface LoginParams {
     Username: string;
     Password?: string;
     Code?: string;
+}
+interface CreateRrofileParams {
+    Username: Auth;
+    Password?: CodeAutentication;
 }
 
 export interface ParamsLogin {
@@ -69,36 +75,12 @@ export class NewUserService {
                     Phone: user.Phone,
                 }, transaction);
 
-
-                // 2. Crear userPage
-                const userPageService = new UserPageService();
-                const newUserPage = await userPageService.createUserPage({
-                    IdTypePage: 1,
-                    Username: user.Username,
-                    IdUser: newUser.IdUser,
-                }, transaction);
-
-
-                // 3. Crear perfil de la página del usuario
-                const profileService = new ProfileService();
-
-                const infoUserPage = newUserPage.body
-
-                if (!infoUserPage) {
+                if (!newUser) {
                     throw errorResult({
-                        message: newUserPage.message,
-                        status: newUserPage.status,
+                        message: 'Error al crear el registro',
+                        status: 500,
                     });
                 }
-
-                await profileService.createProfile({
-                    Name: user.Name,
-                    Firstname: user.Firstname,
-                    Lastname: user.Lastname,
-                    Email: user.Email,
-                    Phone: user.Phone,
-                    IdUserPage: infoUserPage.IdUserPage // Relación obligatoria
-                }, transaction);
 
                 // 4. Crear autenticación        
                 const authService = new AuthService();
@@ -109,7 +91,7 @@ export class NewUserService {
                     Pw: user.Password
                 }, transaction);
 
-                if (!resultAuth.error) {
+                if (resultAuth.error) {
                     throw errorResult({
                         message: resultAuth.message,
                         status: resultAuth.status,
@@ -140,7 +122,6 @@ export class NewUserService {
                 if (!send) {
                     console.error('mailService.send()', response);
                 }
-                // if(responseMail){}
 
                 // 4. Crear autenticación
                 const historyRegisterService = new HistoryRegisterService();
@@ -151,17 +132,20 @@ export class NewUserService {
                     dataToken: {
                         IdAuth: auth.IdAuth,
                     },
-                    expiresIn: '30m',
+                    expiresIn: '15m',
                 });
 
                 return successResult({
-                    status: 200,
+                    status: 201,
                     message: 'Usuario registrado exitosamente. ¡Verifica tu cuenta!',
-                    body: token
+                    body: {
+                        token,
+                        maskEmail: maskEmail(user.Email),
+                    } 
                 });
 
             } catch (err: any) {
-                handleServiceError(err, '_registerUser', 'UserService');
+                handleServiceError(err, '_registerUser', 'NewUserService');
             }
         })
     }
@@ -170,7 +154,7 @@ export class NewUserService {
         try {
             return await User.create(userData, { transaction });
         } catch (err: any) {
-            handleServiceError(err, '_createUser', 'UserService')
+            handleServiceError(err, '_createUser', 'NewUserService')
         }
     }
 
@@ -197,7 +181,7 @@ export class NewUserService {
 
         }
         catch (err: any) {
-            handleServiceError(err, '_validExite', 'UserService');
+            handleServiceError(err, '_validExite', 'NewUserService');
         }
     }
 
@@ -215,15 +199,6 @@ export class NewUserService {
                 });
             }
 
-            const userData = await User.findOne({
-                where: { IdUser: authData.IdUser }
-            })
-            if (!userData) {
-                throw throwServerError({
-                    message: 'No se encuentra el registro',
-                    status: 409,
-                });
-            }
 
             const code_AutService = new CodeAutenticationService();
             const dataCode = await code_AutService.validCode(Code, authData.IdAuth);
@@ -234,14 +209,14 @@ export class NewUserService {
                 });
             }
 
-            authData.Status = 2; //status de auth queda activo=2
-            authData.save();
+            const {userData, codeAuth} = await this.__createPageProfile(authData);
+            if (!userData || !codeAuth) {
+                throw throwServerError({
+                    message: 'Error al crear el registro',
+                    status: 500,
+                });
+            }
 
-            // 6. Crea code para Iniciar sesión  Tipo=5
-            const codeAuth = await code_AutService.createNewwCode({
-                IdAuth: authData.IdAuth,
-                IdTypeCode: 5
-            });
             return successResult({
                 message: 'El Cóodigo generado',
                 status: 200,
@@ -254,6 +229,67 @@ export class NewUserService {
         } catch (error: any) {
             handleServiceError(error, '_validCodeByEmail', 'AuthService')
         }
+    }
+
+    private async __createPageProfile(authData: Auth): Promise<any> {
+        return await withTransaction(async (transaction) => {
+            try {
+    
+                const userData = await User.findOne({
+                    where: { IdUser: authData.IdUser }
+                })
+                if (!userData) {
+                    throw throwServerError({
+                        message: 'No se encuentra el registro',
+                        status: 409,
+                    });
+                }
+    
+                authData.Status = 2; //status de auth queda activo=2
+                authData.save();
+    
+                // 2. Crear userPage
+                const userPageService = new UserPageService();
+                const newUserPage = await userPageService.createUserPage({
+                IdTypePage: 1,
+                Username: userData.Username,
+                IdUser: userData.IdUser,
+                }, transaction);       
+                
+                const infoUserPage = newUserPage.body        
+                if (!infoUserPage) {
+                    return {
+                        message: newUserPage.message,
+                        status: newUserPage.status,
+                    };
+                }
+                
+                const profileService = new ProfileService();
+                await profileService.createProfile({
+                Name: userData.Name,
+                Firstname: userData.Firstname,
+                Lastname: userData.Lastname,
+                Email: userData.Email,
+                Phone: userData.Phone,
+                IdUserPage: infoUserPage.IdUserPage // Relación obligatoria
+                }, transaction);
+    
+                // 6. Crea code para Iniciar sesión  Tipo=5
+                const code_AutService = new CodeAutenticationService();
+                const codeAuth = await code_AutService.createNewwCode({
+                    IdAuth: authData.IdAuth,
+                    IdTypeCode: 5
+                }, transaction);
+    
+                return {
+                    codeAuth, 
+                    userData
+                }
+    
+            } catch (err: any) {
+                handleServiceError(err, 'findByPkUser_forAuth', 'NewUserService');
+            }
+        })
     }
 
     protected async loginAfterRegister(params: ParamsLogin): Promise<ServiceResult<any>> {
@@ -335,8 +371,8 @@ export class NewUserService {
                 });
             }
 
-            //Validar si cuenta con un code estatus 3
-            const IdTypeCode = 3;
+            //Validar si cuenta con un code estatus 1
+            const IdTypeCode = 1;
             const codeValid = await CodeAutentication.findOne({
                 where: { IdTypeCode, IdAuth: IdAuth }
             });
@@ -349,7 +385,7 @@ export class NewUserService {
 
             return successResult({
                 status: 200,
-                message: 'Vista autorizada'
+                message: 'Vista autorizada' //mandar email y email en mask
             });
 
         } catch (error: any) {

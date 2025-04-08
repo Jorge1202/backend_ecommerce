@@ -1,34 +1,55 @@
 import { Router } from 'express';
-import authController from '../Controllers/auth.controller';
 import { authenticateToken } from '../../Middlewares/authenticateToken '; 
 
-const userRoutes = Router(); 
+import registerController from '../Controllers/register.controller';
+import loginController from '../Controllers/login.controller';
+import passwordController from '../Controllers/password.controller';
+import authController from '../Controllers/auth.controller';
+
+const auth = Router(); 
+
+/**
+ * @swagger
+ * tags:
+ *   name: Autenticación
+ *   description: Endpoints relacionados con la autenticación de usuarios
+ */
 
 //#region  ################ Generar cuenta  
-userRoutes.get('/validCodeByEmail', authenticateToken, authController.validCodeByEmail); 
-userRoutes.get('/ViewVerifyEmail',authenticateToken, authController.validViewVerifyEmail); 
-userRoutes.get('/reSendCode',authenticateToken, authController.reSendCode);  
+/**
+ * @swagger
+ * /api/v1/auth/:
+ *   post:
+ *     summary: Registrar un nuevo usuario
+ *     tags: [Autenticación]
+ *     responses:
+ *       201:
+ *         description: Usuario creado exitosamente
+ */
+auth.post('/', registerController.create); 
+auth.get('/ViewVerifyEmail',authenticateToken, registerController.validViewVerifyEmail); 
+auth.post('/validCodeByEmail', authenticateToken, registerController.validCodeByEmail); 
+auth.get('/reSendCode',authenticateToken, registerController.reSendCode);  
 //#endregion  ################ Generar codigo al crear cuenta 
 
 //#region ################ Iniciar y cerrar sesión 
-userRoutes.post('/login', authController.login);
-userRoutes.get('/verifyViewCodeDevice', authenticateToken, authController.validViewNewDevice);
-userRoutes.post('/validCodeDevice', authenticateToken, authController.validCodeDevice); 
-userRoutes.get('/newCodeDevice', authenticateToken, authController.newCode_NewDevice); 
-// userRoutes.get('/logout/', authController.logout); 
+auth.post('/login', loginController.login);
+auth.get('/verifyViewCodeDevice', authenticateToken, loginController.validViewNewDevice);
+auth.post('/validCodeDevice', authenticateToken, loginController.validCodeDevice); 
+auth.get('/newCodeDevice', authenticateToken, loginController.newCode_NewDevice); 
+// auth.get('/logout/', authController.logout); 
 //#endregion ################ Iniciar y cerrar sesión 
 
 //#region ################ Solicitar cambio de contraseña 
-userRoutes.post('/validCodePassword', authenticateToken, authController.validCodePassword);
-userRoutes.put('/changePassword', authenticateToken, authController.changePassword); 
-userRoutes.get('/validarUser', authenticateToken, authController.validDataUser); 
-userRoutes.post('/recoverypassword', authController.recoveryPassword);
+auth.post('/validCodePassword', authenticateToken, passwordController.validCodePassword);
+auth.put('/changePassword', authenticateToken, passwordController.changePassword); 
+auth.get('/validarUser', authenticateToken, passwordController.validDataUser); 
+auth.post('/recoverypassword', passwordController.recoveryPassword);
 //#endregion ################ Solicitar cambio de contraseña
 
 //#region ################ Token
-userRoutes.get('/autentication', authController.autenticationAccessToken);
-userRoutes.post('/newAccesToken', authController.newAccessToken);
+auth.get('/autentication', authController.autenticationAccessToken);
+auth.post('/newAccesToken', authController.newAccessToken);
 //#endregion ################ Token
 
-export default userRoutes;
-  
+export default auth;

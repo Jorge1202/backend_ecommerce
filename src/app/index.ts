@@ -1,5 +1,7 @@
 //Configuración principal de la aplicación
 import express, { Request, Response } from 'express';
+import swaggerUI from "swagger-ui-express";
+import swaggerSpec from "../Config/swagger";
 const cors = require('cors');
 
 import routes from './routes';
@@ -33,6 +35,9 @@ app.get("/", (req: Request, res: Response) => {
 app.get("/api", (req: Request, res: Response) => {
     res.send("Api documentacion...");
 });
+
+// Documentación Swagger
+app.use("/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 
 app.use(cookieParser());
 

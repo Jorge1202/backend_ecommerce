@@ -1,10 +1,10 @@
 import { handleServiceError } from '../../Utils/Response/handleServiceError';
 import { ServiceResult, successResult, errorResult, throwServerError } from '../../Utils/Response/ServiceResult';
 import { MailService, MailServiceConfig, MailActions } from '../../Mails/sendMail';
-import { TokenLogin, Token_New_Device, TokenRefresh, TokenAuthUser } from '../../Secure/interfaceToken';
+import { TokenAuthUser } from '../../Secure/interfaceToken';
 import { UserService } from './user.service';
 import { User } from '../models/user';
-import { Auth, AuthCreationAttributes } from '../models/auth';
+import { Auth } from '../models/auth';
 import { CodeAutenticationService } from './code_autentication.service';
 import { generateToken } from '../../Secure/tokenJWT';
 const bcrypt = require("bcrypt");

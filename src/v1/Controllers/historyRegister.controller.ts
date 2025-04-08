@@ -12,8 +12,10 @@ class historyRegisterController extends HistoryRegisterService {
   public create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       let data = req.body;
+      console.log(data); 
 
       // 2. Llamar al servicio para crear registro 
+      // estatus 1
       const response = await this._createHistory(data);
       const {status, message, body} = response
       successResponse({ res, body, message, status: status});
@@ -82,6 +84,9 @@ class historyRegisterController extends HistoryRegisterService {
   
   public updataRegister = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+
+      console.log(req.body);
+
       const updatedRecord = await this.updateByRegister(req.body);
       if (!updatedRecord) {
         errorResponse({ res, message: 'Record not found', status: 400, });

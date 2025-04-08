@@ -4,6 +4,7 @@ export const statusMessage: Record<number, string> = {
         200: 'OK', // La solicitud fue exitosa.
         201: 'Created', // La solicitud fue exitosa y se creó un nuevo recurso.
         204: 'No Content', // La solicitud fue exitosa, pero no hay contenido para enviar.
+        205: 'Reset Content', // La solicitud fue exitosa y el cliente debe reiniciar la vista.   
         206: 'Partial Content', // El servidor está enviando solo una parte del recurso solicitado.
         
         // Respuestas de Redirección (3xx)
@@ -41,8 +42,7 @@ export const statusMessage: Record<number, string> = {
         102: 'Processing', // El servidor está procesando la solicitud pero aún no tiene una respuesta final.
 
         // Respuestas Exitosas (2xx)
-        203: 'Non-Authoritative Information', // La solicitud fue exitosa, pero la información podría no ser la misma que la del servidor.        
-        205: 'Reset Content', // La solicitud fue exitosa y el cliente debe reiniciar la vista.        
+        203: 'Non-Authoritative Information', // La solicitud fue exitosa, pero la información podría no ser la misma que la del servidor.                     
         207: 'Multi-Status', // La respuesta contiene múltiples códigos de estado para diferentes partes de la solicitud.
         208: 'Already Reported', // Los miembros de una colección ya han sido reportados.
         226: 'IM Used', // El servidor ha cumplido con una solicitud de rango para un recurso, y la respuesta es un documento que describe los cambios.

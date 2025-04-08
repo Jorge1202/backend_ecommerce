@@ -47,8 +47,6 @@ export class CodeAutenticationService {
   }
   //#endregion ######################################### Metodos Public
 
-  //#region ######################################### Metodos Protected
-  //#endregion ######################################### Metodos Protected
   
   //#region ######################################### Metodos Private
   private async _changeToInactive (codeData: CodeAutenticationCreationAttributes): Promise<any> {
