@@ -1,0 +1,106 @@
+paths:
+  /api/v1/register/history:
+    post:
+      tags: [Register User]
+      summary: Valida y genera un historial de los nuevos usuarios
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Email:
+                  type: string
+                  format: Email
+                  description: Email del usuario
+                  example: "usuario@ejemplo.com"
+      responses:
+        201:
+          description: Registro fue creado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 201
+                  message:
+                    type: string
+                    example: "Registro fue creado"
+                  body:
+                    type: object
+                    properties:
+                        DateCreate:
+                          type: string
+                          format: date-time
+                          example: "2025-04-06T02:48:27.544Z"
+                          description: Fecha de creación del registro
+                        Id:
+                          type: integer
+                          example: 0
+                          description: Identificador único del registro
+                        Email:
+                          type: string
+                          format: email
+                          example: ""
+                          description: Correo electrónico del usuario (opcional)
+                        Name:
+                          type: string
+                          example: ""
+                          description: Nombre del usuario (opcional)
+                        Firstname:
+                          type: string
+                          example: ""
+                          description: Primer nombre del usuario (opcional)
+                        Lastname:
+                          type: string
+                          example: ""
+                          description: Apellido del usuario (opcional)
+                        Username:
+                          type: string
+                          example: ""
+                          description: Nombre de usuario (opcional)
+                        StatusRegister:
+                          type: string
+                          example: ""
+                          description: Estado del registro (opcional)
+                        DateUpdate:
+                          type: string
+                          format: date-time
+                          example: ""
+                          description: Fecha de actualización del registro (opcional)
+                        HasPassword:               
+                          type: boolean
+                          example: ""
+                          description: Si el usuario tiene contraseña configurada (opcional)
+        400:
+          description: Error en los datos enviados
+        500:
+          description: Error interno del servidor
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

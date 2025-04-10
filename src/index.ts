@@ -1,18 +1,24 @@
-//Punto de entrada para levantar el servidor
-import { app } from "./app";
-import { config } from "./Config";
+import {app} from './app';
+import { connectAndSyncDatabase } from './core/database/connectAndSyn'; // Importar la función de conexión y sincronización de la base de datos 
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const PORT = process.env.PORT || 3005;
 
 const startServer = async () => {
-    try {
-        
-        app.listen(config.api.PORT, () => {
-            console.log(`Api escuchando en puerto http://localhost:${config.api.PORT}/api`);
-            console.log(`Swagger en: http://localhost:${config.api.PORT}/api-docs`);
-        });
-    } catch (error) {
-        console.error('Error al iniciar el servidor:', error);
-        process.exit(1); // Salir en caso de error grave
-    }
+  try {
+    await connectAndSyncDatabase()  // Conectar y sincronizar la base de datos
+
+    console.log(`📄 Swagger en: http://localhost:${PORT}/swagger`);
+
+    app.listen(PORT, () => {
+      console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error('❌ Error al iniciar el servidor:', error);
+    process.exit(1);
+  }
 };
 
 startServer();

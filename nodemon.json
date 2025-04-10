@@ -3,9 +3,9 @@
     "_comment_ext": "Define las extensiones de archivo que nodemon observará (en este caso, archivos .ts).",
     "_comment_ignore": "Ignora la carpeta dist donde van los archivos compilados.",
     "_comment_exec": "Le indica a nodemon cómo ejecutar los archivos TypeScript con ts-node.",
-    "watch": ["src"],
+    "watch": ["src_1"],
     "ext": "ts",
     "ignore": ["dist"],
-    "exec": "ts-node ./src/server.ts"
+    "exec": "ts-node ./src_1/server.ts"
   }
   
