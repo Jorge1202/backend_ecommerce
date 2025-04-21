@@ -1,6 +1,6 @@
 Estructura final 
 /proyecto
- ├── src_1/                          # Código fuente principal
+ ├── src/                          # Código fuente principal
 
  │   ├── api/                      # Reciben peticiones, validan y responden
  │   │   ├── models/               # Versión 1 de la API

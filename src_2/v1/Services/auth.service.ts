@@ -13,17 +13,17 @@ import { maskEmail } from '../../Mails/maskEmail';
 
 import { Auth, AuthCreationAttributes } from '../models/auth';
 import { CodeAutentication } from '../models/code-autentication';
+import { Login } from '../models/login';
+import { Devices, DevicesCreationAttributes } from '../models/devices';
+import { RefreshToken, RefreshTokenAttributes } from '../models/refresh-token';
+import { CodeAutenticationService } from './code_autentication.service';
+import { Date_addDays, isWithinOneHour } from '../../Utils/fecha';
 import { User } from '../models/user';
 import { UserPage } from '../models/user-page';
 import { StatusAuth } from '../models/status-auth';
-import { Login } from '../models/login';
-import { Devices, DevicesCreationAttributes } from '../models/devices';
 import { DeviceAuth } from '../models/device-auth';
-import { RefreshToken, RefreshTokenAttributes } from '../models/refresh-token';
 
-import { CodeAutenticationService } from './code_autentication.service';
 import { UserService } from './user.service';
-import { Date_addDays, isWithinOneHour } from '../../Utils/fecha';
 
 
 const { v4: uuidv4 } = require('uuid');

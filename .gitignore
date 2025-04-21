@@ -9,8 +9,9 @@ package-lock.json
 .pnp.js
 
 # Dependency directories
+/src_2/ 
 /.pnp
-.pnp.js
+.pnp.js 
 
 # TypeScript
 *.tsbuildinfo

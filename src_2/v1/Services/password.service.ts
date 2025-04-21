@@ -149,7 +149,7 @@ export class PasswordService {
           message: `Token invalido`,
           status: 400,
         });
-      }
+      }   
 
       const authUser = await Auth.findOne({
         where: { IdUser }

@@ -8,24 +8,7 @@ import authController from '../Controllers/auth.controller';
 
 const auth = Router(); 
 
-/**
- * @swagger
- * tags:
- *   name: Autenticación
- *   description: Endpoints relacionados con la autenticación de usuarios
- */
-
 //#region  ################ Generar cuenta  
-/**
- * @swagger
- * /api/v1/auth/:
- *   post:
- *     summary: Registrar un nuevo usuario
- *     tags: [Autenticación]
- *     responses:
- *       201:
- *         description: Usuario creado exitosamente
- */
 auth.post('/', registerController.create); 
 auth.get('/ViewVerifyEmail',authenticateToken, registerController.validViewVerifyEmail); 
 auth.post('/validCodeByEmail', authenticateToken, registerController.validCodeByEmail); 
@@ -50,6 +33,6 @@ auth.post('/recoverypassword', passwordController.recoveryPassword);
 //#region ################ Token
 auth.get('/autentication', authController.autenticationAccessToken);
 auth.post('/newAccesToken', authController.newAccessToken);
-//#endregion ################ Token
+//#endregion ################ Token  
 
 export default auth;

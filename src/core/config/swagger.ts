@@ -10,7 +10,7 @@ const options: swaggerJSDoc.Options = {
     },
     servers: [{ url: "http://localhost:3005" }],
   },
-  apis: ["./src_1/api/v1/docs/**/*.yaml"], // Ubicación de las rutas documentadas
+  apis: ["./src/api/v1/docs/**/*.yaml"], // Ubicación de las rutas documentadas
   
 };
 

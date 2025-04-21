@@ -7,7 +7,7 @@ const logging = process.env.DB_LOGGING === 'true';
 
 
 const getModelsPath = (version: string) => {
-  return path.join(__dirname, `/src_1/api/${version}/models`); // Esto carga los modelos de la versión indicada
+  return path.join(__dirname, `/src/api/${version}/models`); // Esto carga los modelos de la versión indicada
 };
 
 const db = new Sequelize({

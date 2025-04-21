@@ -1,5 +1,5 @@
 import { db } from "../config/database.core";
-import { initModel } from '../../api/shared/models/initModels'; 
+import { initModel } from '../../api/v1/shared/initModels'; 
 
 // Función para autenticar y sincronizar la base de datos
 export const connectAndSyncDatabase = async () => {

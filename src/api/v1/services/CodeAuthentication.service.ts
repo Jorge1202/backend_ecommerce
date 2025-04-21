@@ -2,7 +2,7 @@ import { Transaction } from 'sequelize';
 import { CodeAutentication, CodeAutenticationCreationAttributes } from '../models/code-autentication';
 import { ErrorHandler } from '../../../common/utils/response-servece/error-handler';
 
-export class CodeAuthenticationService {
+class CodeAuthenticationService {
   public async createNewCode(
     codeData: CodeAutenticationCreationAttributes,
     transaction?: Transaction
@@ -46,3 +46,6 @@ export class CodeAuthenticationService {
     return Math.floor(100000 + Math.random() * 900000).toString(); // Código de 6 dígitos
   }
 }
+
+
+export default new CodeAuthenticationService();

@@ -14,12 +14,12 @@ export interface AuthAttributes {
   DateUpdate?: Date;
   Pw?: string;
   Username: string;
-  Email?: string;
+  Email: string;
 }
 
 export type AuthPk = "IdAuth";
 export type AuthId = Auth[AuthPk];
-export type AuthOptionalAttributes = "IdAuth" | "Status" | "DateCreate" | "DateUpdate" | "Pw" | "Email";
+export type AuthOptionalAttributes = "IdAuth" | "Status" | "DateCreate" | "DateUpdate" | "Pw";
 export type AuthCreationAttributes = Optional<AuthAttributes, AuthOptionalAttributes>;
 
 export class Auth extends Model<AuthAttributes, AuthCreationAttributes> implements AuthAttributes {
@@ -31,7 +31,7 @@ export class Auth extends Model<AuthAttributes, AuthCreationAttributes> implemen
   DateUpdate?: Date;
   Pw?: string;
   Username!: string;
-  Email?: string;
+  Email!: string;
 
   // Auth hasMany CodeAutentication via IdAuth
   CodeAutentications!: CodeAutentication[];
@@ -129,7 +129,7 @@ export class Auth extends Model<AuthAttributes, AuthCreationAttributes> implemen
     },
     Email: {
       type: DataTypes.STRING(100),
-      allowNull: true,
+      allowNull: false,
       field: 'email'
     }
   }, {

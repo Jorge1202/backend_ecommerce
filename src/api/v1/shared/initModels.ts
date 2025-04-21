@@ -1,8 +1,8 @@
 import { Sequelize } from 'sequelize';
 
 //#region ######################### VERSION 1
-import { User } from '../../v1/models/user';
-import { HistoryRegister } from '../../v1/models/history-register';
+import { User } from '../models/user';
+import { HistoryRegister } from '../models/history-register';
 //#endregion ######################### VERSION 1
 
 //#region ######################### VERSION 2

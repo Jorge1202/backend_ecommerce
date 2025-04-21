@@ -1,7 +1,7 @@
 // common/utils/serviceResponse.ts
 import { ServiceResponse, SuccessParams, ErrorParams, CriticalErrorParams } from "../../interfaces/service-response";
 
-export function SuccessResult<T>({body = null, message, status = 200}: SuccessParams<T>): ServiceResponse<T> {
+export function SuccessResult<T>({body = undefined , message, status = 200}: SuccessParams<T>): ServiceResponse<T> {
   return {
     error: false,
     body,

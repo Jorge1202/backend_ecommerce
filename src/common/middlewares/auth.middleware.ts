@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthService } from './auth.service';
+import { AuthService } from '../utils/auth/auth.service';
 
 // Middleware para verificar el JWT
 export function checkToken(req: Request, res: Response, next: NextFunction): void | Response {
