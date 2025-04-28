@@ -8,6 +8,9 @@ Estructura final
  │   │   │   ├── initModels.ts     # Inicializa los modelos
  │   │   ├── v1/                   # Versión 1 de la API
  │   │   │   ├── controllers/      # Controladores, gestionan la lógica de las rutas (responden las peticiones)
+ │   │   │   ├── docs/             # Documentación swagger 
+ │   │   │   │   ├── paths/              # Archivos de operacion 
+ │   │   │   │   ├── /paths.swagger.yaml # Paths
  │   │   │   ├── services/         # Lógica de negocio, procesamiento de datos
  │   │   │   ├── models/           # Modelos de base de datos (por ejemplo, Sequelize models)
  │   │   │   ├── routes/           # Rutas de la API para esta versión
@@ -15,6 +18,9 @@ Estructura final
  │   │   │   ├── validators/       # Funciones para validar datos de entrada
  │   │   ├── v2/                   # Versión 2 de la API
  │   │   │   ├── controllers/      # Controladores, gestionan la lógica de las rutas (responden las peticiones)
+ │   │   │   ├── docs/             # Documentación swagger 
+ │   │   │   │   ├── paths/              # Archivos de operacion 
+ │   │   │   │   ├── /paths.swagger.yaml # Paths
  │   │   │   ├── services/         # Lógica de negocio, procesamiento de datos
  │   │   │   ├── models/           # Modelos de base de datos (por ejemplo, Sequelize models)
  │   │   │   ├── routes/           # Rutas de la API para esta versión
@@ -40,13 +46,16 @@ Estructura final
  │   │   │   ├── response-controller/ # Funciones para controlar las respuestas de la API
  │   │   │   ├── response-service/   # Servicios para manipular y devolver respuestas
 
- │   ├── core/                     # (Lógica de negocio) Ideal para tener la lógica central de la app
+ │   ├── core/                               # (Lógica de negocio) Ideal para tener la lógica central de la app
  │   │   ├── config/               # Configuración general del sistema
  │   │   │   ├── database.ts       # Configuración de la base de datos
  │   │   │   ├── swagger.ts        # Configuración de Swagger para la documentación de la API
  │   │   │   ├── security.ts      # Configuración de JWT y seguridad general
  │   │   ├── database/             # Conexión a la base de datos
  │   │   │   ├── connectAndSyn.ts   # Funciones apara la coneccion y sincronizacion de la bd
+ │   │   ├── docs/                           # Configuración de la documentación
+ │   │   │   ├── definition.swagger.yaml     # Definicion de swagger
+ │   │   │   ├── swagger.ts        # Configuración de Swagger para la documentación de la API
  │   │   ├── logger/               # Configuración de logs para registrar errores y actividades
  │   │   │   ├── index.ts          # Punto de entrada de configuración de 
  

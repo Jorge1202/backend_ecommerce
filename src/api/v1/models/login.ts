@@ -9,12 +9,12 @@ export interface LoginAttributes {
   DateCreate?: Date;
   DateUpdate?: Date;
   IdAuth?: number;
-  IdDeviceAuth?: number;
+  IdDevice?: number;
 }
 
 export type LoginPk = "IdLogin";
 export type LoginId = Login[LoginPk];
-export type LoginOptionalAttributes = "IdLogin" | "Active" | "DateCreate" | "DateUpdate" | "IdAuth" | "IdDeviceAuth";
+export type LoginOptionalAttributes = "IdLogin" | "Active" | "DateCreate" | "DateUpdate" | "IdAuth" | "IdDevice";
 export type LoginCreationAttributes = Optional<LoginAttributes, LoginOptionalAttributes>;
 
 export class Login extends Model<LoginAttributes, LoginCreationAttributes> implements LoginAttributes {
@@ -23,18 +23,18 @@ export class Login extends Model<LoginAttributes, LoginCreationAttributes> imple
   DateCreate?: Date;
   DateUpdate?: Date;
   IdAuth?: number;
-  IdDeviceAuth?: number;
+  IdDevice?: number;
 
   // Login belongsTo Auth via IdAuth
   IdAuthAuth!: Auth;
   getIdAuthAuth!: Sequelize.BelongsToGetAssociationMixin<Auth>;
   setIdAuthAuth!: Sequelize.BelongsToSetAssociationMixin<Auth, AuthId>;
   createIdAuthAuth!: Sequelize.BelongsToCreateAssociationMixin<Auth>;
-  // Login belongsTo DeviceAuth via IdDeviceAuth
-  IdDeviceAuthDeviceAuth!: DeviceAuth;
-  getIdDeviceAuthDeviceAuth!: Sequelize.BelongsToGetAssociationMixin<DeviceAuth>;
-  setIdDeviceAuthDeviceAuth!: Sequelize.BelongsToSetAssociationMixin<DeviceAuth, DeviceAuthId>;
-  createIdDeviceAuthDeviceAuth!: Sequelize.BelongsToCreateAssociationMixin<DeviceAuth>;
+  // Login belongsTo DeviceAuth via IdDevice
+  IdDeviceDeviceAuth!: DeviceAuth;
+  getIdDeviceDeviceAuth!: Sequelize.BelongsToGetAssociationMixin<DeviceAuth>;
+  setIdDeviceDeviceAuth!: Sequelize.BelongsToSetAssociationMixin<DeviceAuth, DeviceAuthId>;
+  createIdDeviceDeviceAuth!: Sequelize.BelongsToCreateAssociationMixin<DeviceAuth>;
 
   static initModel(sequelize: Sequelize.Sequelize): typeof Login {
     return Login.init({
@@ -70,14 +70,14 @@ export class Login extends Model<LoginAttributes, LoginCreationAttributes> imple
       },
       field: 'id_auth'
     },
-    IdDeviceAuth: {
+    IdDevice: {
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: 'device_auth',
-        key: 'id_device_auth'
+        model: 'device',
+        key: 'id_device'
       },
-      field: 'id_device_auth'
+      field: 'id_device'
     }
   }, {
     sequelize,

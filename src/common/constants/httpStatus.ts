@@ -31,7 +31,7 @@ export const HTTP_STATUS = {
     401: { CODE: 401, STATUS: "Unauthorized", DESCRIPTION: "Se requiere autenticación para acceder al recurso." },
     403: { CODE: 403, STATUS: "Forbidden", DESCRIPTION: "El servidor entendió la solicitud pero se niega a autorizarla." },
     404: { CODE: 404, STATUS: "Not Found", DESCRIPTION: "El recurso solicitado no se encontró en el servidor." },
-    409: { CODE: 409, STATUS: "Conflict 22", DESCRIPTION: "La solicitud no pudo ser completada debido a un conflicto con el estado actual del recurso. (ej: email ya usado)." },
+    409: { CODE: 409, STATUS: "Conflict", DESCRIPTION: "La solicitud no pudo ser completada debido a un conflicto con el estado actual del recurso. (ej: email ya usado)." },
     422: { CODE: 422, STATUS: "Unprocessable Entity", DESCRIPTION: "La solicitud estaba bien formada, pero los datos son lógicamente inválidos o no cumplen con las reglas de negocio." },    
     429: { CODE: 429, STATUS: "Too Many Requests", DESCRIPTION: "El usuario ha enviado demasiadas solicitudes en un período de tiempo dado." },
     

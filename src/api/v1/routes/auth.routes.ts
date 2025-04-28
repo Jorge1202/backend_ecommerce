@@ -5,15 +5,16 @@ const authRoutes = Router();
 
 
 //#region  ################ Iniciar y cerrar sesión    
-authRoutes.post('/loginHash', AuthController.loginByHash_Auth);
-authRoutes.post('/login', AuthController.loginByHash_Auth);
-authRoutes.post('/logout', AuthController.loginByHash_Auth);
+authRoutes.post('/loginHash', AuthController.postLoginByHash);
+authRoutes.post('/login', AuthController.postLogin);
+authRoutes.post('/logout', AuthController.postLogout);
+authRoutes.post('/verifyNewDevice', AuthController.postValidCodeDevice);
 //#endregion  ################ Iniciar y cerrar sesión    
 
 //#region ################ Login en nuevo Dispositivo
-authRoutes.post('/verifyToken', AuthController.loginByHash_Auth);
-authRoutes.post('/verifyCode', AuthController.loginByHash_Auth);
-authRoutes.post('/newCodeAgain', AuthController.loginByHash_Auth);
+// authRoutes.post('/verifyToken', AuthController.postLogout);
+// authRoutes.post('/verifyCode', AuthController.postLogout);
+// authRoutes.post('/newCodeAgain', AuthController.postLogout);
 //#endregion ################ Login en nuevo Dispositivo
 
 

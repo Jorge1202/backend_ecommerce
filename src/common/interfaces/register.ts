@@ -12,3 +12,7 @@ export interface NewUser {
     Phone?: string;
 } 
 
+export interface RegisterResult {
+    Token: string;
+    maskedEmail: string;
+}

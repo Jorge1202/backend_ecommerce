@@ -1,0 +1,15 @@
+components:
+  PropertiesResponse:
+    properties:
+      error:
+        type: boolean
+        example: false
+      status:
+        type: integer
+        example: 200
+      message:
+        type: string
+        example: "Operación exitosa"
+      body:
+        type: object # La estructura específica del body se definirá en otro esquema
+        nullable: true # Permite que el body esté ausente o sea nulo si es necesario

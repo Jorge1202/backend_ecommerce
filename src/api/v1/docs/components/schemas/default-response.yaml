@@ -1,0 +1,17 @@
+components:
+  schemas:
+    DefaultResponse:
+      type: object
+      properties:
+        error:
+          type: boolean
+          example: false
+        status:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: "Operación exitosa"
+        body:
+          type: object
+          nullable: true

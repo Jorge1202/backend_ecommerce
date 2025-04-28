@@ -3,10 +3,15 @@ import { CodeAutentication, CodeAutenticationCreationAttributes } from '../model
 import { ErrorHandler } from '../../../common/utils/response-servece/error-handler';
 
 class CodeAuthenticationService {
-  public async createNewCode(
-    codeData: CodeAutenticationCreationAttributes,
-    transaction?: Transaction
-  ): Promise<CodeAutentication> {
+  /**
+   * 
+   * @param codeData 
+   *    IdAuth,
+        IdTypeCode, 
+   * @param transaction 
+   * @returns 
+   */
+  public async createNewCode(codeData: CodeAutenticationCreationAttributes,transaction?: Transaction): Promise<CodeAutentication> {
     try {
       // 1️⃣ Desactivar códigos anteriores
       await this._deactivatePreviousCodes(codeData, transaction);

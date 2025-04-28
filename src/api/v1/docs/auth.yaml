@@ -1,0 +1,175 @@
+/v1/auth/firstLogin:
+  post:
+    tags:
+      - Auth
+    summary: Primer inicio de sesión
+    security:
+      - BearerAuth: []
+    responses:
+      200:
+        description: Success
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: boolean
+                  example: false
+                status:
+                  type: integer
+                  example: 200
+                message:
+                  type: string
+                  example: "¡Inicio de sesión exitoso! Bienvenido."
+                body:
+                  type: object
+                  properties:
+                      newDevice:
+                        type: boolean
+                        example: true
+                        description: Muestra si el dispositivo es nuevo
+                      firstLogin:
+                        type: integer
+                        example: true
+                        description: Muestra si primer login
+                      TOKEN_ACCESS:
+                        type: string
+                        example: ""
+                        description: Token de autenticación                      
+
+/v1/auth/login:
+  post:
+    tags: 
+      - Auth
+    summary: Inicio de sesión
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              Email:
+                type: string
+                format: Email
+                description: Email del usuario
+                example: usuario@ejemplo.com
+              Password:
+                type: string
+                description: Password del usuario
+                example: "******"
+    responses:
+      200:
+        description: Inicio de sesión por token
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: boolean
+                  example: false
+                status:
+                  type: integer
+                  example: 200
+                message:
+                  type: string
+                  example: "¡Inicio de sesión exitoso! Bienvenido."
+                body:
+                  type: object
+                  properties:
+                      newDevice:
+                        type: boolean
+                        example: true
+                        description: Muestra si el dispositivo es nuevo
+                      firstLogin:
+                        type: integer
+                        example: true
+                        description: Muestra si primer login
+                      TOKEN_ACCESS:
+                        type: string
+                        example: ""
+                        description: Token de autenticación 
+
+/v1/auth/verifyNewDevice:
+  post:
+    tags: 
+      - Auth
+    summary: Verifica el nuevo dispositivo
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              Email:
+                type: string
+                format: Email
+                description: Email del usuario
+                example: string
+              Password:
+                type: string
+                description: Password del usuario
+                example: string
+              Code:
+                type: string
+                description: Código de verificación
+                example: string
+    responses:
+      200:
+        description: Success
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: boolean
+                  example: false
+                status:
+                  type: integer
+                  example: 200
+                message:
+                  type: string
+                  example: "¡Inicio de sesión exitoso! Bienvenido."
+                body:
+                  type: object
+                  properties:
+                      newDevice:
+                        type: boolean
+                        example: true
+                        description: Muestra si el dispositivo es nuevo
+                      firstLogin:
+                        type: integer
+                        example: true
+                        description: Muestra si primer login
+                      TOKEN_ACCESS:
+                        type: string
+                        example: ""
+                        description: Token de autenticación 
+                        
+/v1/auth/logout:
+  post:
+    tags: [Auth]
+    summary: Cierre de sesión
+    security:
+      - BearerAuth: []
+    responses:
+      200:
+        description: Cierre de sesión exitoso
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: boolean
+                  example: false
+                status:
+                  type: integer
+                  example: 200
+                message:
+                  type: string
+                  example: "Sesión cerrada correctamente"

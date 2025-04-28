@@ -9,10 +9,11 @@ const registerRoutes = Router();
 // registerRoutes.put('/history', NewUserController.createHistory);
 
 registerRoutes.post('/validEmail', NewUserController.validEmail);
+registerRoutes.post('/validUsername', NewUserController.validEmail);
 registerRoutes.post('/', NewUserController.newUser);
 registerRoutes.post('/verifyToken', NewUserController.verifyToken);
 registerRoutes.post('/verifyCode', NewUserController.verifyCodeEmail);
-registerRoutes.post('/sendCodeAgain', NewUserController.sendCodeAgain);
+registerRoutes.post('/newCode', NewUserController.sendCodeAgain);
 
 export default registerRoutes;
 

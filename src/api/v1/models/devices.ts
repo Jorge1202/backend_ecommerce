@@ -16,6 +16,7 @@ export interface DevicesAttributes {
   Browser?: string;
   IdDevices: number;
   IsActive?: boolean;
+  IdAuth: number;
 }
 
 export type DevicesPk = "IdDevices";
@@ -37,6 +38,7 @@ export class Devices extends Model<DevicesAttributes, DevicesCreationAttributes>
   Browser?: string;
   IdDevices!: number;
   IsActive?: boolean;
+  IdAuth!: number;
 
   // Devices hasMany DeviceAuth via IdDevice
   DeviceAuths!: DeviceAuth[];
@@ -121,6 +123,11 @@ export class Devices extends Model<DevicesAttributes, DevicesCreationAttributes>
       allowNull: true,
       defaultValue: true,
       field: 'isActive'
+    },
+    IdAuth: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      field: 'id_auth'
     }
   }, {
     sequelize,

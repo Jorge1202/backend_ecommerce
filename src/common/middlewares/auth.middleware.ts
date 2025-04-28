@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthService } from '../utils/auth/auth.service';
+import TokenService from '../../core/services/tokens/tokens_2.service';
 
 // Middleware para verificar el JWT
 export function checkToken(req: Request, res: Response, next: NextFunction): void | Response {
@@ -10,8 +10,7 @@ export function checkToken(req: Request, res: Response, next: NextFunction): voi
   }
 
   try {
-    const authService = new AuthService();
-    const decoded = authService.verifyAccessToken(token);
+    const decoded = TokenService.verifyAccessToken(token);
     req.dataToken = decoded;  // Pasa la información decodificada al siguiente middleware
     next();  // Llama a `next()` para pasar al siguiente middleware
   } catch (err) {

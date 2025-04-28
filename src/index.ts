@@ -10,7 +10,7 @@ const startServer = async () => {
   try {
     await connectAndSyncDatabase()  // Conectar y sincronizar la base de datos
 
-    console.log(`📄 Swagger en: http://localhost:${PORT}/swagger`);
+    console.log(`📄 Swagger en: http://localhost:${PORT}/api/swagger`);
 
     app.listen(PORT, () => {
       console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);

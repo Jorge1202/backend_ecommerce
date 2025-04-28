@@ -1,11 +1,12 @@
 import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
-import swaggerUI from "swagger-ui-express";
 const cors = require('cors');
 
+import swaggerUI from "swagger-ui-express";
+import swaggerSpec from "./core/docs/swagger";
+
 import routes from './routes'; // tus rutas principales
-import swaggerSpec from "./core/config/swagger";
 import { accessLogStream } from './core/logger/access';
 
 // import './types/express'; 
@@ -39,6 +40,6 @@ app.use('/api', routes);
 
 
 // Documentación Swagger
-app.use("/swagger", swaggerUI.serve, swaggerUI.setup(swaggerSpec));
+app.use("/api/swagger", swaggerUI.serve, swaggerUI.setup(swaggerSpec));
 
 export {app};

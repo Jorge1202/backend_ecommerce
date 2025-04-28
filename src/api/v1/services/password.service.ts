@@ -1,9 +1,9 @@
 import { withTransaction } from '../../../common/database/transaction_helper';
 import { HttpStatus } from '../../../common/constants/httpStatus';
-import { ServiceResponse } from 'src/common/interfaces/service-response';
+import { ServiceResponse } from '../../../common/interfaces/service-response';
 import { SuccessResult, ErrorResult, CriticalError } from '../../../common/utils/response-servece/service-response';
 import { ErrorHandler } from '../../../common/utils/response-servece/error-handler';
-import { generateToken } from '../../../common/utils/auth/authenticationToken';
+import { generateToken } from '../../../common/utils/authenticationToken';
 import { MailService } from '../../../common/email';
 import { MailServiceConfig, MailActions } from '../../../common/interfaces/mail';
 
@@ -13,14 +13,14 @@ import { Auth } from '../models/auth';
 import CodeAuthenticationService from './CodeAuthentication.service';
 import { AuthTokens } from '../models/auth-tokens';
 import { User } from '../models/user';
-import { AuthPayload } from 'src/common/interfaces/auth';
+import { AuthPayload } from '../../../common/interfaces/tokens';
 import { CodeAutentication } from '../models/code-autentication';
-import { TokenService } from './token.service';
+import TokenService from '../../../core/services/tokens/token.service';
 
 const bcrypt = require("bcrypt");
 
 export class PasswordService {
-    protected async recovery(Email:string): Promise<ServiceResponse<null>> {
+    protected async recovery(Email:string): Promise<ServiceResponse<{Token:string}>> {
         try {
             return await withTransaction(async (transaction) => {
                 const auth = await Auth.findOne({
@@ -83,6 +83,7 @@ export class PasswordService {
                 return SuccessResult({
                     status: HttpStatus.OK,
                     message: `¡Solicitud aprovada!, Accede al correo (${Email}) para seguir el proceso`,
+                    body: {Token}
                 })
             })
         } catch (error: any) {
@@ -132,7 +133,7 @@ export class PasswordService {
             ErrorHandler.handleServiceError(error, 'verifyToken', 'PasswordService');
         }
     }
-    protected async validCode(Code:string, dataToken: AuthPayload):Promise<ServiceResponse<null>>{
+    protected async validCode(dataToken: AuthPayload, Code:string):Promise<ServiceResponse<null>>{
         try {
 
             const {body, status, error, message} = await TokenService.validateToken(dataToken)
@@ -220,7 +221,7 @@ export class PasswordService {
         }
 
     }
-    protected async newCode(dataToken:AuthPayload):Promise<ServiceResponse<null>>{
+    protected async newCode(dataToken:AuthPayload, Token: string):Promise<ServiceResponse<null>>{
         try {
             const {body, status, error, message} = await TokenService.validateToken(dataToken)
             if (error || !body) {
@@ -232,22 +233,48 @@ export class PasswordService {
             const {IdAuth, auth} = body
 
 
+            /**Valida el estatus del usuario que este en estatus  */
 
+
+            const codeData = {
+                IdAuth,
+                IdTypeCode: 3,
+            }
+            const responseCode = await CodeAuthenticationService.createNewCode(codeData)
+            
+
+            const user = await User.findOne({
+                where: {IdUser: auth.IdUser}
+            })
+            if(!user){
+                CriticalError({
+                    status: HttpStatus.INTERNAL_SERVER_ERROR,
+                    message: 'Error en base de datos'
+                })
+            }
+
+            const mailConfig: MailServiceConfig = {
+                accion: MailActions.RecoveryPassword,
+                to: auth.Email,
+                subject: 'Solicitud de cambio de contraseña',
+                dataMail: {
+                    name: user.Name,
+                    firstname: user.Firstname,
+                    token:Token,
+                    code: responseCode.Code,
+                }
+            };
+            await MailService.send(mailConfig);
+
+            
             return SuccessResult({
                 status: HttpStatus.OK,
-                message:'',                
+                message: `Código enviado`,
             })
-            
+
+
         } catch (error: any) {
             ErrorHandler.handleServiceError(error, 'newCode', 'PasswordService');
         }
     }
 }
-
-/**
- * '/recovery', Au
-'/verifyChange'
-'/validCode', A
-'/change', Auth
-'/newCode', Aut
- */

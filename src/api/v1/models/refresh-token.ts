@@ -89,6 +89,16 @@ export class RefreshToken extends Model<RefreshTokenAttributes, RefreshTokenCrea
       allowNull: false,
       defaultValue: true,
       field: 'is_active'
+    },
+    CreatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      field: 'CreatedAt'
+    },
+    UpdatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      field: 'UpdatedAt'
     }
   }, {
     sequelize,

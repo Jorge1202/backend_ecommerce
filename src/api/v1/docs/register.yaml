@@ -1,0 +1,257 @@
+/v1/register/verifyEmail: 
+  post:
+    tags: [Register User]
+    summary: Valida el Email y crea un historial del nuevo registro
+    # parameters:
+    #   - name: tags
+    #     in: query
+    #     description: Tags to filter by
+    #     required: false
+    #     explode: true
+    #     schema:
+    #       type: array
+    #       items:
+    #         type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              Email:
+                type: string
+                format: Email
+                description: Email del usuario
+                example: "usuario@ejemplo.com"
+    responses:
+      201:
+        description: Registro fue creado
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: boolean
+                  example: false
+                status:
+                  type: integer
+                  example: 201
+                message:
+                  type: string
+                  example: "Registro fue creado"
+                body:
+                  type: object
+                  properties:
+                      DateCreate:
+                        type: string
+                        format: date-time
+                        example: "2025-04-06T02:48:27.544Z"
+                        description: Fecha de creación del registro
+                      Id:
+                        type: integer
+                        example: 0
+                        description: Identificador único del registro
+                      Email:
+                        type: string
+                        format: email
+                        example: ""
+                        description: Correo electrónico del usuario (opcional)
+                      Name:
+                        type: string
+                        example: ""
+                        description: Nombre del usuario (opcional)
+                      Firstname:
+                        type: string
+                        example: ""
+                        description: Primer nombre del usuario (opcional)
+                      Lastname:
+                        type: string
+                        example: ""
+                        description: Apellido del usuario (opcional)
+                      Username:
+                        type: string
+                        example: ""
+                        description: Nombre de usuario (opcional)
+                      StatusRegister:
+                        type: string
+                        example: ""
+                        description: Estado del registro (opcional)
+                      DateUpdate:
+                        type: string
+                        format: date-time
+                        example: ""
+                        description: Fecha de actualización del registro (opcional)
+                      HasPassword:               
+                        type: boolean
+                        example: ""
+                        description: Si el usuario tiene contraseña configurada (opcional)
+      400:
+        description: Error en los datos enviados
+      500:
+        description: Error interno del servidor
+
+/v1/register:
+  post:
+    tags: [Register User]
+    summary: Create user
+    description: Registra un nuevo usuario
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              Email:
+                type: string
+                format: Email
+                description: Email del usuario
+                example: ""
+              Password:
+                type: string
+                format: Password
+                description: Password del usuario
+                example: ""
+              Name:
+                type: string
+                description: Nombre del usuario
+                example: ""   
+              Firstname:
+                type: string
+                description: Primer nombre del usuario
+                example: ""    
+              Lastname:    
+                type: string
+                description: Apellido del usuario
+                example: ""  
+              Username:
+                type: string
+                description: Nombre de usuario
+                example: ""
+              StatusRegister: 
+                type: string
+                description: Estado del registro
+                example: ""                     
+
+    responses:       
+      200:
+        description: Respuesta exitosa
+        content:
+          application/json:
+            schema:    
+              type: object          
+              properties:
+                error:
+                  type: boolean
+                  example: false
+                status:
+                  type: integer
+                  example: 200
+                message:
+                  type: string
+                  example: "Operación exitosa"
+                body:
+                  type: object  
+                  properties:
+                    Email:
+                      type: string
+                      example: "pru.....@g....com"
+                      description: Correo electrónico del usuario
+                    Token:
+                      type: string
+                      example: ""
+                      description: Correo electrónico del usuario
+
+/v1/register/verifyToken:
+  get:
+      tags: [Register User]
+      summary: Verifica la vista por medio de un token
+      security:
+        - BearerAuth: []
+      responses:       
+        200:
+          description: Respuesta exitosa
+          content:
+            application/json:
+              schema:    
+                type: object          
+                properties:
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "Vista autorizada"
+    
+/v1/register/validCode:  
+  post:
+      tags: [Register User]
+      summary: Se verifica el codigo de verificación del correo electrónico
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Code:
+                  type: string
+                  format: Code
+                  description: Codigo de verificación del correo electrónico
+                  example: ""
+      responses:       
+        200:
+          description: Respuesta exitosa
+          content:
+            application/json:
+              schema:    
+                type: object          
+                properties:
+                  error:
+                    type: boolean
+                    example: false
+                  status:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "Operación exitosa"
+                  body:
+                    type: object  
+                    properties:
+                      Hash:
+                        type: string
+                        example: "Hash para primer iniciar sesión"
+                        description: Hash de inicio de sesión para el primer inicio de sesión (opcional)
+            
+/v1/register/newCode:
+  get:
+    tags: [Register User]
+    summary: Reenviando un nuevo código de verificación al correo electrónico
+    security:
+      - BearerAuth: []     
+    responses:       
+      200:
+        description: Respuesta exitosa
+        content:
+          application/json:
+            schema:    
+              type: object          
+              properties:
+                error:
+                  type: boolean
+                  example: false
+                status:
+                  type: integer
+                  example: 200
+                message:
+                  type: string
+                  example: "Se ha enviado el nuevo código de verificación"
+                

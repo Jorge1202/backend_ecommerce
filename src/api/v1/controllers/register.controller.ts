@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { NewUserService } from '../services/register.service';
 import { ResponseHandler } from '../../../common/utils/response-controller/response-handler';
 import { CustomRequest } from '../../../common/interfaces/controller-response';
-import { AuthPayload } from '../../../common/interfaces/auth';
+import { AuthPayload } from '../../../common/interfaces/tokens';
 
 
 class NewUserController extends NewUserService {
@@ -11,19 +11,6 @@ class NewUserController extends NewUserService {
     super();
   }
 
-  public listaHistory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      // 2. Llamar al servicio para crear registro 
-      // estatus 1
-      const response = await this.listHistoryRegister();
-      const { status, message, body } = response
-      ResponseHandler.success(res, status, message, body);
-
-    } catch (err: any) {
-      // Manejar errores llamando al middleware de errores
-      next(err);
-    }
-  }
   public updateHistory = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       let data = req.body;
@@ -41,7 +28,6 @@ class NewUserController extends NewUserService {
     }
   }
 
-
   public validEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       let data = req.body;
@@ -57,6 +43,22 @@ class NewUserController extends NewUserService {
       next(err);
     }
   }
+  public postValidUsername = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      
+      const { Username } = req.body;
+      // 2. Llamar al servicio para crear registro 
+      // estatus 1
+      const response = await this.verifyUsername(Username);
+      const { status, message, body } = response
+      ResponseHandler.success(res, status, message, body);
+
+    } catch (err: any) {
+      // Manejar errores llamando al middleware de errores
+      next(err);
+    }
+  }
+  
   public newUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       let data = req.body;
@@ -116,6 +118,7 @@ class NewUserController extends NewUserService {
       next(err);
     }
   }
+
   public sendCodeAgain = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
 

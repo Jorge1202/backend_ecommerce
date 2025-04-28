@@ -7,52 +7,24 @@ import { AuthTokens } from '../models/auth-tokens';
 
 import CodeAuthenticationService from './CodeAuthentication.service';
 
-import { MailService } from 'src/common/email';
-import { logger } from 'src/core/logger';
-import { withTransaction } from 'src/common/database/transaction_helper';
-import { HttpStatus } from 'src/common/constants/httpStatus';
-import { SuccessResult, ErrorResult, CriticalError } from 'src/common/utils/response-servece/service-response';
-import { ErrorHandler } from 'src/common/utils/response-servece/error-handler';
-import { generateToken } from 'src/common/utils/auth/authenticationToken';
-import { maskEmail } from 'src/common/utils/maskEmail'
+import { MailService } from '../../../common/email';
+import { logger } from '../../../core/logger';
+import { withTransaction } from '../../../common/database/transaction_helper';
+import { HttpStatus } from '../../../common/constants/httpStatus';
+import { SuccessResult, ErrorResult, CriticalError } from '../../../common/utils/response-servece/service-response';
+import { ErrorHandler } from '../../../common/utils/response-servece/error-handler';
+import { generateToken } from '../../../common/utils/authenticationToken';
+import { maskEmail } from '../../../common/utils/maskEmail'
 
-import { ServiceResponse } from 'src/common/interfaces/service-response';
-import { NewUser } from 'src/common/interfaces/register';
-import { AuthPayload } from 'src/common/interfaces/auth';
-import { MailServiceConfig, MailActions } from 'src/common/interfaces/mail';
-import { TokenService } from './token.service';
+import { ServiceResponse } from '../../../common/interfaces/service-response';
+import { NewUser, RegisterResult } from '../../../common/interfaces/register';
+import { AuthPayload } from '../../../common/interfaces/tokens';
+import { MailServiceConfig, MailActions } from '../../../common/interfaces/mail';
+import TokenService from '../../../core/services/tokens/token.service';
 
 const bcrypt = require("bcrypt");
-// const { v4: uuidv4 } = require('uuid');
-
-// console.log(`🚀 UUID: ${uuidv4()}`); // Genera un nuevo UUID cada vez que se ejecuta el script
-
-interface RegisterResult {
-    Token: string;
-    maskedEmail: string;
-}
 
 export class NewUserService {
-    protected async listHistoryRegister(): Promise<ServiceResponse<HistoryRegister[]>> {
-        try {
-
-            logger.info('listHistoryRegister');
-            // logger.info(`📥 POST /register/history - Datos recibidos`);
-            // logger.warn(`⚠️ Registro duplicado detectado`);
-            // logger.error(`❌ Error al registrar: ${error.message}`);
-
-
-            const listRecord = await HistoryRegister.findAll();
-            return SuccessResult({
-                status: HttpStatus.OK,
-                message: 'lista de registros',
-                body: listRecord
-            });
-
-        } catch (error: any) {
-            ErrorHandler.handleServiceError(error, 'listHistoryRegister', 'NewUserService');
-        }
-    }
     protected async updateHistoryRegister(userData: HistoryRegister): Promise<ServiceResponse<number>> {
         try {
 
@@ -129,6 +101,29 @@ export class NewUserService {
 
     }
 
+    public async verifyUsername(Username: string): Promise<ServiceResponse<HistoryRegister>> {
+        try {
+            // Validar si el email ya existe en la base de datos
+            const existingUser = await Auth.findOne({ where: { Username } });
+            if (existingUser) {
+                return ErrorResult({
+                    status: HttpStatus.BAD_REQUEST,
+                    message: 'El Username proporcionado no esta disponible',
+                })
+            }
+
+            return SuccessResult({
+                status: HttpStatus.OK,
+                message: 'El Username proporcionado esta disponible',
+            })
+
+
+        } catch (error) {
+            ErrorHandler.handleServiceError(error, 'verifyEmail', 'NewUserService');
+        }
+
+    }
+
     /**
      * Registra un nuevo usuario en la base de datos y envía un correo de verificación.
      * @param userData - Datos del nuevo usuario.
@@ -141,9 +136,11 @@ export class NewUserService {
 
                 // Validar Email y Username que no exista
                 const existing = await Auth.findOne({ where: { Email }, transaction });
-                if (existing) return ErrorResult({ status: HttpStatus.UNPROCESSABLE_ENTITY, message: 'Ya existe un usuario con ese email' });
+                if (existing) return ErrorResult({ status: HttpStatus.CONFLICT, message: 'Ya existe un usuario con ese email' });
+
+
                 const existingUsername = await Auth.findOne({ where: { Username }, transaction });
-                if (existingUsername) return ErrorResult({ status: HttpStatus.UNPROCESSABLE_ENTITY, message: 'Ya existe un usuario con ese Username' });
+                if (existingUsername) return ErrorResult({ status: HttpStatus.CONFLICT, message: 'Ya existe un usuario con ese Username' });
 
                 // Crear el registro en la tabla User
                 const objDataUser: UserCreationAttributes = {
@@ -205,7 +202,8 @@ export class NewUserService {
                 // Generar el token de verificación
                 const { Token, ExpiresIn } = generateToken({
                     dataToken: {
-                        IdAuth
+                        IdAuth,
+                        IdUser
                     },
                     expiresIn: '15m',
                 });
@@ -298,7 +296,7 @@ export class NewUserService {
             return await withTransaction(async (transaction) => {
 
                 // 1️⃣ Valida el token de verificación
-                const {body, status, error, message} = await TokenService.validateToken(dataToken, transaction)
+                const {body, status, error, message} = await TokenService.validateToken(dataToken)
                 if (error || !body) {
                     return ErrorResult({
                         status,
@@ -355,6 +353,7 @@ export class NewUserService {
                 const { Token, ExpiresIn } = generateToken({
                     dataToken: {
                         IdAuth,
+                        IdUser:auth.IdUser
                     },
                     expiresIn: '15m',
                 });
@@ -391,7 +390,7 @@ export class NewUserService {
         try {
             return await withTransaction(async (transaction) => {
 
-                const {body, status, error, message} = await TokenService.validateToken(dataToken, transaction)
+                const {body, status, error, message} = await TokenService.validateToken(dataToken)
                 if (error || !body) {
                     return ErrorResult({
                         status,
