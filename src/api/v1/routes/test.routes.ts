@@ -6,6 +6,7 @@ const registerRoutes = Router();
 
 //#region  ################ Metodos de prueba   
 registerRoutes.get('/history', TestController.listaHistory);
+registerRoutes.get('/listAuth', TestController.getlistaAuth);
 
 
 export default registerRoutes;

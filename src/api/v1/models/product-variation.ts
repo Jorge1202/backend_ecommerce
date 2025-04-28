@@ -55,7 +55,10 @@ export class ProductVariation extends Model<ProductVariationAttributes, ProductV
       type: DataTypes.STRING(50),
       allowNull: false,
       references: {
-        model: 'products',
+        model: {
+          tableName: 'products',
+          schema: 'products'
+        },
         key: 'id_product'
       },
       field: 'id_product'

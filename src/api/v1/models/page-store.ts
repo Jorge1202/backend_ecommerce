@@ -1,7 +1,6 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
 import type { StatisticsStore, StatisticsStoreId } from './statistics-store';
-import type { UserPage, UserPageId } from './user-page';
 
 export interface PageStoreAttributes {
   IdPageStore: string;
@@ -47,11 +46,6 @@ export class PageStore extends Model<PageStoreAttributes, PageStoreCreationAttri
   hasStatisticsStore!: Sequelize.HasManyHasAssociationMixin<StatisticsStore, StatisticsStoreId>;
   hasStatisticsStores!: Sequelize.HasManyHasAssociationsMixin<StatisticsStore, StatisticsStoreId>;
   countStatisticsStores!: Sequelize.HasManyCountAssociationsMixin;
-  // PageStore belongsTo UserPage via IdUserPage
-  IdUserPageUserPage!: UserPage;
-  getIdUserPageUserPage!: Sequelize.BelongsToGetAssociationMixin<UserPage>;
-  setIdUserPageUserPage!: Sequelize.BelongsToSetAssociationMixin<UserPage, UserPageId>;
-  createIdUserPageUserPage!: Sequelize.BelongsToCreateAssociationMixin<UserPage>;
 
   static initModel(sequelize: Sequelize.Sequelize): typeof PageStore {
     return PageStore.init({
@@ -111,10 +105,6 @@ export class PageStore extends Model<PageStoreAttributes, PageStoreCreationAttri
     IdUserPage: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: {
-        model: 'user_page',
-        key: 'id_user_page'
-      },
       field: 'id_user_page'
     }
   }, {

@@ -32,6 +32,7 @@ export class BannersServices extends Model<BannersServicesAttributes, BannersSer
     return BannersServices.init({
     IdBannersServices: {
       autoIncrement: true,
+      primaryKey: true,
       type: DataTypes.INTEGER,
       allowNull: false,
       field: 'id_banners_services'

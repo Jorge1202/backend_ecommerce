@@ -23,4 +23,29 @@
                 body:
                   type: array
                   example: "[]"
+/v1/pruebas/listAuth:
+  get:
+    tags:
+      - Test
+    summary: Lista de auth
+    responses:
+      200:
+        description: Success
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: boolean
+                  example: false
+                status:
+                  type: integer
+                  example: 200
+                message:
+                  type: string
+                  example: "Lista de pre registros"
+                body:
+                  type: array
+                  example: "[]"
         

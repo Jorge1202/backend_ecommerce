@@ -23,6 +23,19 @@ class TestController extends TokenService {
           next(err);
         }
     }
+    public getlistaAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+          // 2. Llamar al servicio para crear registro 
+          // estatus 1
+          const response = await this.listAuth();
+          const { status, message, body } = response
+          ResponseHandler.success(res, status, message, body);
+    
+        } catch (err: any) {
+          // Manejar errores llamando al middleware de errores
+          next(err);
+        }
+    }
     
     
 }

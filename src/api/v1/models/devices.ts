@@ -1,6 +1,7 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
 import type { DeviceAuth, DeviceAuthId } from './device-auth';
+import type { Login, LoginId } from './login';
 
 export interface DevicesAttributes {
   UserAgent?: string;
@@ -14,14 +15,14 @@ export interface DevicesAttributes {
   VersionPlataform?: string;
   Cpu?: string;
   Browser?: string;
-  IdDevices: number;
+  IdDevice: number;
   IsActive?: boolean;
   IdAuth: number;
 }
 
-export type DevicesPk = "IdDevices";
+export type DevicesPk = "IdDevice";
 export type DevicesId = Devices[DevicesPk];
-export type DevicesOptionalAttributes = "UserAgent" | "Plataform" | "Token" | "Mobile" | "Ip" | "Location" | "DateCreate" | "DateUpdate" | "VersionPlataform" | "Cpu" | "Browser" | "IdDevices" | "IsActive";
+export type DevicesOptionalAttributes = "UserAgent" | "Plataform" | "Token" | "Mobile" | "Ip" | "Location" | "DateCreate" | "DateUpdate" | "VersionPlataform" | "Cpu" | "Browser" | "IdDevice" | "IsActive";
 export type DevicesCreationAttributes = Optional<DevicesAttributes, DevicesOptionalAttributes>;
 
 export class Devices extends Model<DevicesAttributes, DevicesCreationAttributes> implements DevicesAttributes {
@@ -36,7 +37,7 @@ export class Devices extends Model<DevicesAttributes, DevicesCreationAttributes>
   VersionPlataform?: string;
   Cpu?: string;
   Browser?: string;
-  IdDevices!: number;
+  IdDevice!: number;
   IsActive?: boolean;
   IdAuth!: number;
 
@@ -52,6 +53,18 @@ export class Devices extends Model<DevicesAttributes, DevicesCreationAttributes>
   hasDeviceAuth!: Sequelize.HasManyHasAssociationMixin<DeviceAuth, DeviceAuthId>;
   hasDeviceAuths!: Sequelize.HasManyHasAssociationsMixin<DeviceAuth, DeviceAuthId>;
   countDeviceAuths!: Sequelize.HasManyCountAssociationsMixin;
+  // Devices hasMany Login via IdDevices
+  Logins!: Login[];
+  getLogins!: Sequelize.HasManyGetAssociationsMixin<Login>;
+  setLogins!: Sequelize.HasManySetAssociationsMixin<Login, LoginId>;
+  addLogin!: Sequelize.HasManyAddAssociationMixin<Login, LoginId>;
+  addLogins!: Sequelize.HasManyAddAssociationsMixin<Login, LoginId>;
+  createLogin!: Sequelize.HasManyCreateAssociationMixin<Login>;
+  removeLogin!: Sequelize.HasManyRemoveAssociationMixin<Login, LoginId>;
+  removeLogins!: Sequelize.HasManyRemoveAssociationsMixin<Login, LoginId>;
+  hasLogin!: Sequelize.HasManyHasAssociationMixin<Login, LoginId>;
+  hasLogins!: Sequelize.HasManyHasAssociationsMixin<Login, LoginId>;
+  countLogins!: Sequelize.HasManyCountAssociationsMixin;
 
   static initModel(sequelize: Sequelize.Sequelize): typeof Devices {
     return Devices.init({
@@ -111,12 +124,12 @@ export class Devices extends Model<DevicesAttributes, DevicesCreationAttributes>
       allowNull: true,
       field: 'browser'
     },
-    IdDevices: {
+    IdDevice: {
       autoIncrement: true,
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true,
-      field: 'id_devices'
+      field: 'id_device'
     },
     IsActive: {
       type: DataTypes.BOOLEAN,

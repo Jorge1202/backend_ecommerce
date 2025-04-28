@@ -1,7 +1,6 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
 import type { StatisticsProfile, StatisticsProfileId } from './statistics-profile';
-import type { UserPage, UserPageId } from './user-page';
 
 export interface ProfileAttributes {
   IdProfile: string;
@@ -55,11 +54,6 @@ export class Profile extends Model<ProfileAttributes, ProfileCreationAttributes>
   hasStatisticsProfile!: Sequelize.HasManyHasAssociationMixin<StatisticsProfile, StatisticsProfileId>;
   hasStatisticsProfiles!: Sequelize.HasManyHasAssociationsMixin<StatisticsProfile, StatisticsProfileId>;
   countStatisticsProfiles!: Sequelize.HasManyCountAssociationsMixin;
-  // Profile belongsTo UserPage via IdUserPage
-  IdUserPageUserPage!: UserPage;
-  getIdUserPageUserPage!: Sequelize.BelongsToGetAssociationMixin<UserPage>;
-  setIdUserPageUserPage!: Sequelize.BelongsToSetAssociationMixin<UserPage, UserPageId>;
-  createIdUserPageUserPage!: Sequelize.BelongsToCreateAssociationMixin<UserPage>;
 
   static initModel(sequelize: Sequelize.Sequelize): typeof Profile {
     return Profile.init({
@@ -139,10 +133,6 @@ export class Profile extends Model<ProfileAttributes, ProfileCreationAttributes>
     IdUserPage: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: {
-        model: 'user_page',
-        key: 'id_user_page'
-      },
       field: 'id_user_page'
     }
   }, {

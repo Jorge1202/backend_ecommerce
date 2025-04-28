@@ -1,6 +1,5 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
-import type { Auth, AuthId } from './auth';
 
 export interface UserAttributes {
   IdUser: string;
@@ -18,7 +17,7 @@ export interface UserAttributes {
 
 export type UserPk = "IdUser";
 export type UserId = User[UserPk];
-export type UserOptionalAttributes = "IdUser" | "Lastname" | "Phone" | "Genero" | "Active" | "DateCreate" | "DateUpdate";
+export type UserOptionalAttributes = "Lastname" | "Phone" | "Genero" | "Active" | "DateCreate" | "DateUpdate";
 export type UserCreationAttributes = Optional<UserAttributes, UserOptionalAttributes>;
 
 export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
@@ -34,18 +33,6 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
   DateCreate?: Date;
   DateUpdate?: Date;
 
-  // User hasMany Auth via IdUser
-  Auths!: Auth[];
-  getAuths!: Sequelize.HasManyGetAssociationsMixin<Auth>;
-  setAuths!: Sequelize.HasManySetAssociationsMixin<Auth, AuthId>;
-  addAuth!: Sequelize.HasManyAddAssociationMixin<Auth, AuthId>;
-  addAuths!: Sequelize.HasManyAddAssociationsMixin<Auth, AuthId>;
-  createAuth!: Sequelize.HasManyCreateAssociationMixin<Auth>;
-  removeAuth!: Sequelize.HasManyRemoveAssociationMixin<Auth, AuthId>;
-  removeAuths!: Sequelize.HasManyRemoveAssociationsMixin<Auth, AuthId>;
-  hasAuth!: Sequelize.HasManyHasAssociationMixin<Auth, AuthId>;
-  hasAuths!: Sequelize.HasManyHasAssociationsMixin<Auth, AuthId>;
-  countAuths!: Sequelize.HasManyCountAssociationsMixin;
 
   static initModel(sequelize: Sequelize.Sequelize): typeof User {
     return User.init({
@@ -114,6 +101,13 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
     indexes: [
       {
         name: "id_user_pkey",
+        unique: true,
+        fields: [
+          { name: "id_user" },
+        ]
+      },
+      {
+        name: "user_pkey",
         unique: true,
         fields: [
           { name: "id_user" },

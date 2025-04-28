@@ -127,7 +127,10 @@ export class Products extends Model<ProductsAttributes, ProductsCreationAttribut
       type: DataTypes.STRING(50),
       allowNull: false,
       references: {
-        model: 'page_store',
+        model: {
+          tableName: 'page_store',
+          schema: 'pages'
+        },
         key: 'id_page_store'
       },
       field: 'id_store'

@@ -1,7 +1,6 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
 import type { StaticsService, StaticsServiceId } from './statics-service';
-import type { UserPage, UserPageId } from './user-page';
 
 export interface PageServicesAttributes {
   IdPageServices: string;
@@ -47,11 +46,6 @@ export class PageServices extends Model<PageServicesAttributes, PageServicesCrea
   hasStaticsService!: Sequelize.HasManyHasAssociationMixin<StaticsService, StaticsServiceId>;
   hasStaticsServices!: Sequelize.HasManyHasAssociationsMixin<StaticsService, StaticsServiceId>;
   countStaticsServices!: Sequelize.HasManyCountAssociationsMixin;
-  // PageServices belongsTo UserPage via IdUserPage
-  IdUserPageUserPage!: UserPage;
-  getIdUserPageUserPage!: Sequelize.BelongsToGetAssociationMixin<UserPage>;
-  setIdUserPageUserPage!: Sequelize.BelongsToSetAssociationMixin<UserPage, UserPageId>;
-  createIdUserPageUserPage!: Sequelize.BelongsToCreateAssociationMixin<UserPage>;
 
   static initModel(sequelize: Sequelize.Sequelize): typeof PageServices {
     return PageServices.init({
@@ -111,10 +105,6 @@ export class PageServices extends Model<PageServicesAttributes, PageServicesCrea
     IdUserPage: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: {
-        model: 'user_page',
-        key: 'id_user_page'
-      },
       field: 'id_user_page'
     }
   }, {

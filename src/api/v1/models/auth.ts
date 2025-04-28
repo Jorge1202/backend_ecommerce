@@ -3,7 +3,6 @@ import { DataTypes, Model, Optional } from 'sequelize';
 import type { CodeAutentication, CodeAutenticationId } from './code-autentication';
 import type { DeviceAuth, DeviceAuthId } from './device-auth';
 import type { Login, LoginId } from './login';
-import type { RefreshToken, RefreshTokenId } from './refresh-token';
 
 export interface AuthAttributes {
   IdAuth: number;
@@ -69,18 +68,6 @@ export class Auth extends Model<AuthAttributes, AuthCreationAttributes> implemen
   hasLogin!: Sequelize.HasManyHasAssociationMixin<Login, LoginId>;
   hasLogins!: Sequelize.HasManyHasAssociationsMixin<Login, LoginId>;
   countLogins!: Sequelize.HasManyCountAssociationsMixin;
-  // Auth hasMany RefreshToken via IdAuth
-  RefreshTokens!: RefreshToken[];
-  getRefreshTokens!: Sequelize.HasManyGetAssociationsMixin<RefreshToken>;
-  setRefreshTokens!: Sequelize.HasManySetAssociationsMixin<RefreshToken, RefreshTokenId>;
-  addRefreshToken!: Sequelize.HasManyAddAssociationMixin<RefreshToken, RefreshTokenId>;
-  addRefreshTokens!: Sequelize.HasManyAddAssociationsMixin<RefreshToken, RefreshTokenId>;
-  createRefreshToken!: Sequelize.HasManyCreateAssociationMixin<RefreshToken>;
-  removeRefreshToken!: Sequelize.HasManyRemoveAssociationMixin<RefreshToken, RefreshTokenId>;
-  removeRefreshTokens!: Sequelize.HasManyRemoveAssociationsMixin<RefreshToken, RefreshTokenId>;
-  hasRefreshToken!: Sequelize.HasManyHasAssociationMixin<RefreshToken, RefreshTokenId>;
-  hasRefreshTokens!: Sequelize.HasManyHasAssociationsMixin<RefreshToken, RefreshTokenId>;
-  countRefreshTokens!: Sequelize.HasManyCountAssociationsMixin;
 
   static initModel(sequelize: Sequelize.Sequelize): typeof Auth {
     return Auth.init({

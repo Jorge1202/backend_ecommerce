@@ -84,7 +84,10 @@ export class StatisticsStore extends Model<StatisticsStoreAttributes, Statistics
       allowNull: false,
       defaultValue: 1,
       references: {
-        model: 'type_prestige',
+        model: {
+          tableName: 'type_prestige',
+          schema: 'pages'
+        },
         key: 'id_type_prestige'
       },
       field: 'id_type_prestige'

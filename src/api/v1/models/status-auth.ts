@@ -44,6 +44,13 @@ export class StatusAuth extends Model<StatusAuthAttributes, StatusAuthCreationAt
     timestamps: false,
     indexes: [
       {
+        name: "status_auth_pkey",
+        unique: true,
+        fields: [
+          { name: "id" },
+        ]
+      },
+      {
         name: "status_pkey",
         unique: true,
         fields: [

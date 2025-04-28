@@ -42,7 +42,10 @@ export class ProductMultimedia extends Model<ProductMultimediaAttributes, Produc
       type: DataTypes.STRING,
       allowNull: true,
       references: {
-        model: 'products',
+        model: {
+          tableName: 'products',
+          schema: 'products'
+        },
         key: 'id_product'
       },
       field: 'id_product'
@@ -51,7 +54,10 @@ export class ProductMultimedia extends Model<ProductMultimediaAttributes, Produc
       type: DataTypes.STRING,
       allowNull: false,
       references: {
-        model: 'multimedia',
+        model: {
+          tableName: 'multimedia',
+          schema: 'multimedia'
+        },
         key: 'id_multimedia'
       },
       field: 'id_multimedia'

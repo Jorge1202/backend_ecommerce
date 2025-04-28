@@ -88,7 +88,10 @@ export class Publications extends Model<PublicationsAttributes, PublicationsCrea
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: 'posts',
+        model: {
+          tableName: 'posts',
+          schema: 'post'
+        },
         key: 'id'
       },
       field: 'id_post_product'

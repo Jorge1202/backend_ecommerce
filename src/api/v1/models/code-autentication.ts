@@ -107,6 +107,13 @@ export class CodeAutentication extends Model<CodeAutenticationAttributes, CodeAu
         ]
       },
       {
+        name: "code_autentication_pkey",
+        unique: true,
+        fields: [
+          { name: "id_code_autentication" },
+        ]
+      },
+      {
         name: "codigosAutentication_pkey",
         unique: true,
         fields: [

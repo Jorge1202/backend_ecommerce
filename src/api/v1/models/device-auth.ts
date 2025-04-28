@@ -2,8 +2,6 @@ import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
 import type { Auth, AuthId } from './auth';
 import type { Devices, DevicesId } from './devices';
-import type { Login, LoginId } from './login';
-import type { RefreshToken, RefreshTokenId } from './refresh-token';
 
 export interface DeviceAuthAttributes {
   IdDeviceAuth: number;
@@ -26,30 +24,6 @@ export class DeviceAuth extends Model<DeviceAuthAttributes, DeviceAuthCreationAt
   getIdAuthAuth!: Sequelize.BelongsToGetAssociationMixin<Auth>;
   setIdAuthAuth!: Sequelize.BelongsToSetAssociationMixin<Auth, AuthId>;
   createIdAuthAuth!: Sequelize.BelongsToCreateAssociationMixin<Auth>;
-  // DeviceAuth hasMany Login via IdDeviceAuth
-  Logins!: Login[];
-  getLogins!: Sequelize.HasManyGetAssociationsMixin<Login>;
-  setLogins!: Sequelize.HasManySetAssociationsMixin<Login, LoginId>;
-  addLogin!: Sequelize.HasManyAddAssociationMixin<Login, LoginId>;
-  addLogins!: Sequelize.HasManyAddAssociationsMixin<Login, LoginId>;
-  createLogin!: Sequelize.HasManyCreateAssociationMixin<Login>;
-  removeLogin!: Sequelize.HasManyRemoveAssociationMixin<Login, LoginId>;
-  removeLogins!: Sequelize.HasManyRemoveAssociationsMixin<Login, LoginId>;
-  hasLogin!: Sequelize.HasManyHasAssociationMixin<Login, LoginId>;
-  hasLogins!: Sequelize.HasManyHasAssociationsMixin<Login, LoginId>;
-  countLogins!: Sequelize.HasManyCountAssociationsMixin;
-  // DeviceAuth hasMany RefreshToken via IdDeviceAuth
-  RefreshTokens!: RefreshToken[];
-  getRefreshTokens!: Sequelize.HasManyGetAssociationsMixin<RefreshToken>;
-  setRefreshTokens!: Sequelize.HasManySetAssociationsMixin<RefreshToken, RefreshTokenId>;
-  addRefreshToken!: Sequelize.HasManyAddAssociationMixin<RefreshToken, RefreshTokenId>;
-  addRefreshTokens!: Sequelize.HasManyAddAssociationsMixin<RefreshToken, RefreshTokenId>;
-  createRefreshToken!: Sequelize.HasManyCreateAssociationMixin<RefreshToken>;
-  removeRefreshToken!: Sequelize.HasManyRemoveAssociationMixin<RefreshToken, RefreshTokenId>;
-  removeRefreshTokens!: Sequelize.HasManyRemoveAssociationsMixin<RefreshToken, RefreshTokenId>;
-  hasRefreshToken!: Sequelize.HasManyHasAssociationMixin<RefreshToken, RefreshTokenId>;
-  hasRefreshTokens!: Sequelize.HasManyHasAssociationsMixin<RefreshToken, RefreshTokenId>;
-  countRefreshTokens!: Sequelize.HasManyCountAssociationsMixin;
   // DeviceAuth belongsTo Devices via IdDevice
   IdDeviceDevice!: Devices;
   getIdDeviceDevice!: Sequelize.BelongsToGetAssociationMixin<Devices>;
@@ -70,7 +44,7 @@ export class DeviceAuth extends Model<DeviceAuthAttributes, DeviceAuthCreationAt
       allowNull: false,
       references: {
         model: 'devices',
-        key: 'id_devices'
+        key: 'id_device'
       },
       field: 'id_device'
     },
@@ -89,6 +63,13 @@ export class DeviceAuth extends Model<DeviceAuthAttributes, DeviceAuthCreationAt
     schema: 'user',
     timestamps: false,
     indexes: [
+      {
+        name: "device_auth_pkey",
+        unique: true,
+        fields: [
+          { name: "id_device_auth" },
+        ]
+      },
       {
         name: "user_device_pkey",
         unique: true,

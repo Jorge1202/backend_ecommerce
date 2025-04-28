@@ -43,7 +43,10 @@ export class PostMultimedia extends Model<PostMultimediaAttributes, PostMultimed
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'posts',
+        model: {
+          tableName: 'posts',
+          schema: 'post'
+        },
         key: 'id'
       },
       field: 'id_post'
@@ -52,7 +55,10 @@ export class PostMultimedia extends Model<PostMultimediaAttributes, PostMultimed
       type: DataTypes.STRING,
       allowNull: false,
       references: {
-        model: 'multimedia',
+        model: {
+          tableName: 'multimedia',
+          schema: 'multimedia'
+        },
         key: 'id_multimedia'
       },
       field: 'id_multimedia'

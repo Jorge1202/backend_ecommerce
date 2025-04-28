@@ -25,7 +25,7 @@
                 description: Email del usuario
                 example: "usuario@ejemplo.com"
     responses:
-      201:
+      200:
         description: Registro fue creado
         content:
           application/json:
@@ -91,6 +91,54 @@
         description: Error en los datos enviados
       500:
         description: Error interno del servidor
+
+/v1/register/validUsername: 
+  post:
+    tags: [Register User]
+    summary: Valida el Username ingresado
+    # parameters:
+    #   - name: tags
+    #     in: query
+    #     description: Tags to filter by
+    #     required: false
+    #     explode: true
+    #     schema:
+    #       type: array
+    #       items:
+    #         type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              Username:
+                type: string
+                description: Username del usuario
+                example: "string"
+    responses:
+      200:
+        description: Username disponible
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: boolean
+                  example: false
+                status:
+                  type: integer
+                  example: 201
+                message:
+                  type: string
+                  example: "El Username proporcionado esta disponible"                
+      400:
+        description: Error en los datos enviados
+      500:
+        description: Error interno del servidor
+
 
 /v1/register:
   post:

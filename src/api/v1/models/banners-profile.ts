@@ -28,6 +28,7 @@ export class BannersProfile extends Model<BannersProfileAttributes, BannersProfi
     return BannersProfile.init({
     IdBannersProfile: {
       autoIncrement: true,
+      primaryKey: true,
       type: DataTypes.INTEGER,
       allowNull: false,
       field: 'id_banners_profile'

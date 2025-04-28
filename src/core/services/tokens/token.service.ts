@@ -85,7 +85,7 @@ export class TokenService {
             const resToken = await RefreshToken.create({
                 Token:'sin Token',
                 IdAuth,
-                IdDeviceAuth: IdDevice,
+                IdDevice,
             }, { transaction });
             
             

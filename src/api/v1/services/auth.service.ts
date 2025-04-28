@@ -1,26 +1,28 @@
-import { Op } from 'sequelize';
-import { HttpStatus } from '../../../common/constants/httpStatus';
-import { AuthPayload } from '../../../common/interfaces/tokens';
-import { ResponseLogin, ResponseDeviceLogin} from '../../../common/interfaces/auth';
-import { ServiceResponse } from '../../../common/interfaces/service-response';
-import { SuccessResult, ErrorResult, CriticalError } from '../../../common/utils/response-servece/service-response';
+import { Transaction, Op } from 'sequelize';
+
 import { AuthTokens } from '../models/auth-tokens';
 import  { Devices, DevicesCreationAttributes } from '../models/devices';
-import TokenService from '../../../core/services/tokens/token.service';
-import { ErrorHandler } from '../../../common/utils/response-servece/error-handler';
-import { withTransaction } from '../../../common/database/transaction_helper';
-import { Transaction } from 'sequelize';
 import { Auth } from '../models/auth';
 import { Login } from '../models/login';
 import { UserPage } from '../models/user-page';
 import { StatusAuth } from '../models/status-auth';
 import { User } from '../models/user';
-import CodeAuthenticationService from './CodeAuthentication.service';
-import { generateToken } from '../../../common/utils/authenticationToken';
+import { CodeAutentication } from '../models/code-autentication';
+import { DeviceAuth, DeviceAuthAttributes } from '../models/device-auth';
 
+import CodeAuthenticationService from './CodeAuthentication.service';
+import TokenService from '../../../core/services/tokens/token.service';
+
+import { HttpStatus } from '../../../common/constants/httpStatus';
+import { AuthPayload } from '../../../common/interfaces/tokens';
+import { ResponseLogin, ResponseDeviceLogin} from '../../../common/interfaces/auth';
+import { ServiceResponse } from '../../../common/interfaces/service-response';
+import { SuccessResult, ErrorResult, CriticalError } from '../../../common/utils/response-servece/service-response';
+import { ErrorHandler } from '../../../common/utils/response-servece/error-handler';
+import { withTransaction } from '../../../common/database/transaction_helper';
+import { generateToken } from '../../../common/utils/authenticationToken';
 import { MailActions } from '../../../common/interfaces/mail';
 import { prepareAndSendMail } from '../../../common/email/prepareAndSendMail ';
-import { CodeAutentication } from '../models/code-autentication';
 
 const bcrypt = require("bcrypt");
 const { v4: uuidv4 } = require('uuid');
@@ -61,7 +63,7 @@ export class AuthService {
                 const TOKEN_DEVICE = uuidv4();
                 await resDevices.update({ Token: TOKEN_DEVICE }, { transaction }); // 7. Se genera un hash device y se actualiza en bd
 
-                const resCreateLogin = await this.createLogin({dataAuth: responseAuth, IdDevice: resDevices.IdDevices, IdUserPage:resUserPage.IdUserPage})
+                const resCreateLogin = await this.createLogin({dataAuth: responseAuth, IdDevice: resDevices.IdDevice, IdUserPage:resUserPage.IdUserPage})
                 if(resCreateLogin.error){
                     return CriticalError({
                         status: HttpStatus.BAD_REQUEST,
@@ -200,9 +202,9 @@ export class AuthService {
                     
                 const TOKEN_DEVICE = uuidv4();
                 await resDevices.update({ Token: TOKEN_DEVICE }, { transaction }); 
-                const {IdDevices} = resDevices
+                const {IdDevice} = resDevices
 
-                const resCreateLogin = await this.createLogin({dataAuth:dataAuth, IdDevice:IdDevices, IdUserPage:resUserPage.IdUserPage})
+                const resCreateLogin = await this.createLogin({dataAuth:dataAuth, IdDevice, IdUserPage:resUserPage.IdUserPage})
                 if(resCreateLogin.error){
                     return CriticalError({
                         status: HttpStatus.BAD_REQUEST,
@@ -441,7 +443,6 @@ export class AuthService {
     private async validateDevice(hash:string, dataAuth:Auth): Promise<{ error: boolean, IdDevice:number }>{
         try {
             //Si existe el registro del dispositivo      
-
             const device = await Devices.findOne({
                 where: { Token: hash, IsActive:true }
             })
@@ -456,12 +457,25 @@ export class AuthService {
                 }
             }
 
-            //verificar que este sociado a este dispositivo en DeviceAuth
-            // si no asociarlo hacer un insert 
+            if(device.IdAuth !== dataAuth.IdAuth){
+
+                const findDeviceAuth = await DeviceAuth.findOne({
+                    where: {
+                        IdDevice: device.IdDevice, 
+                        IdAuth:dataAuth.IdAuth
+                    }
+                })
+
+                if (!findDeviceAuth) {
+                    const objUserPage:DeviceAuthAttributes = {IdDeviceAuth: 0, IdDevice: device.IdDevice, IdAuth:dataAuth.IdAuth }
+                    await DeviceAuth.create(objUserPage)
+                }
+
+            }
             
             return {
                 error: false,
-                IdDevice: device.IdDevices
+                IdDevice: device.IdDevice
             }     
      
         } catch (error: any) {

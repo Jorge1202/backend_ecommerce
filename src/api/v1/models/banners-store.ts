@@ -32,6 +32,7 @@ export class BannersStore extends Model<BannersStoreAttributes, BannersStoreCrea
     return BannersStore.init({
     IdBannersStore: {
       autoIncrement: true,
+      primaryKey: true,
       type: DataTypes.INTEGER,
       allowNull: false,
       field: 'id_banners_store'

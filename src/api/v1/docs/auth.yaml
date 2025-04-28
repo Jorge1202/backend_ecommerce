@@ -50,7 +50,7 @@
           schema:
             type: object
             properties:
-              Email:
+              Username:
                 type: string
                 format: Email
                 description: Email del usuario
@@ -104,10 +104,9 @@
           schema:
             type: object
             properties:
-              Email:
+              Username:
                 type: string
-                format: Email
-                description: Email del usuario
+                description: Username del usuario
                 example: string
               Password:
                 type: string
@@ -149,7 +148,7 @@
                         type: string
                         example: ""
                         description: Token de autenticación 
-                        
+
 /v1/auth/logout:
   post:
     tags: [Auth]

@@ -1,14 +1,12 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
-import type { Auth, AuthId } from './auth';
-import type { DeviceAuth, DeviceAuthId } from './device-auth';
 
 export interface RefreshTokenAttributes {
   IdRefreshToken: number;
   Token: string;
   ExpiresAt?: Date;
   IdAuth: number;
-  IdDeviceAuth: number;
+  IdDevice: number;
   LastUsedAt?: Date;
   CreatedAt: Date;
   UpdatedAt: Date;
@@ -25,22 +23,12 @@ export class RefreshToken extends Model<RefreshTokenAttributes, RefreshTokenCrea
   Token!: string;
   ExpiresAt?: Date;
   IdAuth!: number;
-  IdDeviceAuth!: number;
+  IdDevice!: number;
   LastUsedAt?: Date;
   CreatedAt!: Date;
   UpdatedAt!: Date;
   IsActive!: boolean;
 
-  // RefreshToken belongsTo Auth via IdAuth
-  IdAuthAuth!: Auth;
-  getIdAuthAuth!: Sequelize.BelongsToGetAssociationMixin<Auth>;
-  setIdAuthAuth!: Sequelize.BelongsToSetAssociationMixin<Auth, AuthId>;
-  createIdAuthAuth!: Sequelize.BelongsToCreateAssociationMixin<Auth>;
-  // RefreshToken belongsTo DeviceAuth via IdDeviceAuth
-  IdDeviceAuthDeviceAuth!: DeviceAuth;
-  getIdDeviceAuthDeviceAuth!: Sequelize.BelongsToGetAssociationMixin<DeviceAuth>;
-  setIdDeviceAuthDeviceAuth!: Sequelize.BelongsToSetAssociationMixin<DeviceAuth, DeviceAuthId>;
-  createIdDeviceAuthDeviceAuth!: Sequelize.BelongsToCreateAssociationMixin<DeviceAuth>;
 
   static initModel(sequelize: Sequelize.Sequelize): typeof RefreshToken {
     return RefreshToken.init({
@@ -64,20 +52,12 @@ export class RefreshToken extends Model<RefreshTokenAttributes, RefreshTokenCrea
     IdAuth: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: {
-        model: 'auth',
-        key: 'id_auth'
-      },
       field: 'id_auth'
     },
-    IdDeviceAuth: {
+    IdDevice: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: {
-        model: 'device_auth',
-        key: 'id_device_auth'
-      },
-      field: 'id_device_auth'
+      field: 'id_device'
     },
     LastUsedAt: {
       type: DataTypes.DATE,
@@ -92,13 +72,14 @@ export class RefreshToken extends Model<RefreshTokenAttributes, RefreshTokenCrea
     },
     CreatedAt: {
       type: DataTypes.DATE,
-      allowNull: false,
-      field: 'CreatedAt'
+      allowNull: true,
+      defaultValue: Sequelize.NOW,
+      field: 'created_at'
     },
     UpdatedAt: {
       type: DataTypes.DATE,
       allowNull: false,
-      field: 'UpdatedAt'
+      field: 'updated_at'
     }
   }, {
     sequelize,

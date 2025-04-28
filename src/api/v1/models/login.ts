@@ -1,7 +1,7 @@
 import * as Sequelize from 'sequelize';
 import { DataTypes, Model, Optional } from 'sequelize';
 import type { Auth, AuthId } from './auth';
-import type { DeviceAuth, DeviceAuthId } from './device-auth';
+import type { Devices, DevicesId } from './devices';
 
 export interface LoginAttributes {
   IdLogin: number;
@@ -30,11 +30,11 @@ export class Login extends Model<LoginAttributes, LoginCreationAttributes> imple
   getIdAuthAuth!: Sequelize.BelongsToGetAssociationMixin<Auth>;
   setIdAuthAuth!: Sequelize.BelongsToSetAssociationMixin<Auth, AuthId>;
   createIdAuthAuth!: Sequelize.BelongsToCreateAssociationMixin<Auth>;
-  // Login belongsTo DeviceAuth via IdDevice
-  IdDeviceDeviceAuth!: DeviceAuth;
-  getIdDeviceDeviceAuth!: Sequelize.BelongsToGetAssociationMixin<DeviceAuth>;
-  setIdDeviceDeviceAuth!: Sequelize.BelongsToSetAssociationMixin<DeviceAuth, DeviceAuthId>;
-  createIdDeviceDeviceAuth!: Sequelize.BelongsToCreateAssociationMixin<DeviceAuth>;
+  // Login belongsTo Devices via IdDevices
+  IdDevicesDevice!: Devices;
+  getIdDevicesDevice!: Sequelize.BelongsToGetAssociationMixin<Devices>;
+  setIdDevicesDevice!: Sequelize.BelongsToSetAssociationMixin<Devices, DevicesId>;
+  createIdDevicesDevice!: Sequelize.BelongsToCreateAssociationMixin<Devices>;
 
   static initModel(sequelize: Sequelize.Sequelize): typeof Login {
     return Login.init({
@@ -74,7 +74,7 @@ export class Login extends Model<LoginAttributes, LoginCreationAttributes> imple
       type: DataTypes.INTEGER,
       allowNull: true,
       references: {
-        model: 'device',
+        model: 'devices',
         key: 'id_device'
       },
       field: 'id_device'

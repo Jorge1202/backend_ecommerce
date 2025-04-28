@@ -1,3 +1,11 @@
+
+import { Auth } from '../models/auth';
+import { AuthTokens } from '../models/auth-tokens';
+import { User } from '../models/user';
+import { CodeAutentication } from '../models/code-autentication';
+
+import CodeAuthenticationService from './CodeAuthentication.service';
+
 import { withTransaction } from '../../../common/database/transaction_helper';
 import { HttpStatus } from '../../../common/constants/httpStatus';
 import { ServiceResponse } from '../../../common/interfaces/service-response';
@@ -6,17 +14,11 @@ import { ErrorHandler } from '../../../common/utils/response-servece/error-handl
 import { generateToken } from '../../../common/utils/authenticationToken';
 import { MailService } from '../../../common/email';
 import { MailServiceConfig, MailActions } from '../../../common/interfaces/mail';
-
-import { logger } from '../../../core/logger';
-
-import { Auth } from '../models/auth';
-import CodeAuthenticationService from './CodeAuthentication.service';
-import { AuthTokens } from '../models/auth-tokens';
-import { User } from '../models/user';
 import { AuthPayload } from '../../../common/interfaces/tokens';
-import { CodeAutentication } from '../models/code-autentication';
+
 import TokenService from '../../../core/services/tokens/token.service';
 
+import { logger } from '../../../core/logger';
 const bcrypt = require("bcrypt");
 
 export class PasswordService {

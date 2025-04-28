@@ -69,8 +69,8 @@ export class NewUserService {
 
             const createdRecord = await HistoryRegister.create(userData);
             return SuccessResult({
-                status: HttpStatus.CREATED,
-                message: 'Registro fue creado',
+                status: HttpStatus.OK,
+                message:  responseValid.message,
                 body: createdRecord
             });
 
@@ -82,7 +82,7 @@ export class NewUserService {
         try {
             // Validar si el email ya existe en la base de datos
             const existingUser = await Auth.findOne({ where: { Email } });
-            if (existingUser) {
+            if (!!existingUser) {
                 return {
                     error: true,
                     message: 'El corrreo proporcionado no esta disponible',
@@ -144,6 +144,7 @@ export class NewUserService {
 
                 // Crear el registro en la tabla User
                 const objDataUser: UserCreationAttributes = {
+                    IdUser: '',
                     Username,
                     Name,
                     Firstname,
