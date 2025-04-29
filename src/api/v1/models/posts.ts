@@ -9,7 +9,7 @@ export interface PostsAttributes {
   ContentHtml?: string;
   Tags?: string;
   IdModePost?: number;
-  DataCreate: string;
+  DateCreate: string;
   DateUpdate?: string;
   UserCreate: string;
   UserUpdate?: string;
@@ -28,7 +28,7 @@ export class Posts extends Model<PostsAttributes, PostsCreationAttributes> imple
   ContentHtml?: string;
   Tags?: string;
   IdModePost?: number;
-  DataCreate!: string;
+  DateCreate!: string;
   DateUpdate?: string;
   UserCreate!: string;
   UserUpdate?: string;
@@ -86,7 +86,7 @@ export class Posts extends Model<PostsAttributes, PostsCreationAttributes> imple
       },
       field: 'id_mode_post'
     },
-    DataCreate: {
+    DateCreate: {
       type: DataTypes.DATEONLY,
       allowNull: false,
       field: 'data_create'
@@ -123,8 +123,8 @@ export class Posts extends Model<PostsAttributes, PostsCreationAttributes> imple
     tableName: 'posts',
     schema: 'post',
     timestamps: true, // ✅ activa los timestamps
-    createdAt: 'DataCreate', 
-    updatedAt: 'DataUpdate', 
+    createdAt: 'DateCreate', 
+    updatedAt: 'DateUpdate', 
     indexes: [
       {
         name: "posts_pkey",

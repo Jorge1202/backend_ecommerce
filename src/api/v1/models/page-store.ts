@@ -11,14 +11,14 @@ export interface PageStoreAttributes {
   PhoneNumber?: string;
   IsActive: boolean;
   IsVerificado: boolean;
-  DataCreate: string;
-  DataUpdate?: string;
+  DateCreate: string;
+  DateUpdate?: string;
   IdUserPage: number;
 }
 
 export type PageStorePk = "IdPageStore";
 export type PageStoreId = PageStore[PageStorePk];
-export type PageStoreOptionalAttributes = "Descripcion" | "ProfilePicture" | "Email" | "PhoneNumber" | "IsActive" | "DataUpdate";
+export type PageStoreOptionalAttributes = "Descripcion" | "ProfilePicture" | "Email" | "PhoneNumber" | "IsActive" | "DateUpdate";
 export type PageStoreCreationAttributes = Optional<PageStoreAttributes, PageStoreOptionalAttributes>;
 
 export class PageStore extends Model<PageStoreAttributes, PageStoreCreationAttributes> implements PageStoreAttributes {
@@ -30,8 +30,8 @@ export class PageStore extends Model<PageStoreAttributes, PageStoreCreationAttri
   PhoneNumber?: string;
   IsActive!: boolean;
   IsVerificado!: boolean;
-  DataCreate!: string;
-  DataUpdate?: string;
+  DateCreate!: string;
+  DateUpdate?: string;
   IdUserPage!: number;
 
   // PageStore hasMany StatisticsStore via IdPageStore
@@ -92,15 +92,15 @@ export class PageStore extends Model<PageStoreAttributes, PageStoreCreationAttri
       defaultValue: false,
       field: 'is_verificado'
     },
-    DataCreate: {
+    DateCreate: {
       type: DataTypes.DATEONLY,
       allowNull: false,
-      field: 'data_create'
+      field: 'date_create'
     },
-    DataUpdate: {
+    DateUpdate: {
       type: DataTypes.DATEONLY,
       allowNull: true,
-      field: 'data_update'
+      field: 'date_update'
     },
     IdUserPage: {
       type: DataTypes.INTEGER,
@@ -112,8 +112,8 @@ export class PageStore extends Model<PageStoreAttributes, PageStoreCreationAttri
     tableName: 'page_store',
     schema: 'pages',
     timestamps: true, // ✅ activa los timestamps
-    createdAt: 'DataCreate', 
-    updatedAt: 'DataUpdate', 
+    createdAt: 'DateCreate', 
+    updatedAt: 'DateUpdate', 
     indexes: [
       {
         name: "pageStore_pkey",

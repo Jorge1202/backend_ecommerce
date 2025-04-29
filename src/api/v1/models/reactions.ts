@@ -10,12 +10,13 @@ export interface ReactionsAttributes {
   IdPublication?: number;
   IdComment?: number;
   IdTypeReaction: number;
-  DataCreate?: string;
+  DateCreate?: string;
+  DateUpdate?: string;
 }
 
 export type ReactionsPk = "IdReactions";
 export type ReactionsId = Reactions[ReactionsPk];
-export type ReactionsOptionalAttributes = "IdReactions" | "IdPublication" | "IdComment" | "DataCreate";
+export type ReactionsOptionalAttributes = "IdReactions" | "IdPublication" | "IdComment" | "DateCreate" | "DateUpdate";
 export type ReactionsCreationAttributes = Optional<ReactionsAttributes, ReactionsOptionalAttributes>;
 
 export class Reactions extends Model<ReactionsAttributes, ReactionsCreationAttributes> implements ReactionsAttributes {
@@ -24,7 +25,8 @@ export class Reactions extends Model<ReactionsAttributes, ReactionsCreationAttri
   IdPublication?: number;
   IdComment?: number;
   IdTypeReaction!: number;
-  DataCreate?: string;
+  DateCreate?: string;
+  DateUpdate?: string;
 
   // Reactions belongsTo Comments via IdComment
   IdCommentComment!: Comments;
@@ -83,17 +85,23 @@ export class Reactions extends Model<ReactionsAttributes, ReactionsCreationAttri
       },
       field: 'id_type_reaction'
     },
-    DataCreate: {
+    DateCreate: {
       type: DataTypes.DATEONLY,
       allowNull: true,
-      field: 'data_create'
+      field: 'date_create'
+    },
+    DateUpdate: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+      field: 'date_update'
     }
   }, {
     sequelize,
     tableName: 'reactions',
     schema: 'publication',
     timestamps: true, // ✅ activa los timestamps
-    createdAt: 'DataCreate', 
+    createdAt: 'DateCreate', 
+    updatedAt: 'DateUpdate', 
     indexes: [
       {
         name: "reactions_pkey",

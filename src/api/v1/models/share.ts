@@ -6,19 +6,21 @@ export interface ShareAttributes {
   IdShare: number;
   IdPublication?: number;
   IdUser: string;
-  DataCreate?: string;
+  DateCreate?: string;
+  DateUpdate?: string;
 }
 
 export type SharePk = "IdShare";
 export type ShareId = Share[SharePk];
-export type ShareOptionalAttributes = "IdShare" | "IdPublication" | "DataCreate";
+export type ShareOptionalAttributes = "IdShare" | "IdPublication" | "DateCreate" | "DateUpdate";
 export type ShareCreationAttributes = Optional<ShareAttributes, ShareOptionalAttributes>;
 
 export class Share extends Model<ShareAttributes, ShareCreationAttributes> implements ShareAttributes {
   IdShare!: number;
   IdPublication?: number;
   IdUser!: string;
-  DataCreate?: string;
+  DateCreate?: string;
+  DateUpdate?: string;
 
   // Share belongsTo Publications via IdPublication
   IdPublicationPublication!: Publications;
@@ -49,17 +51,23 @@ export class Share extends Model<ShareAttributes, ShareCreationAttributes> imple
       allowNull: false,
       field: 'id_user'
     },
-    DataCreate: {
+    DateCreate: {
       type: DataTypes.DATEONLY,
       allowNull: true,
-      field: 'data_create'
+      field: 'date_create'
+    },
+    DateUpdate: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+      field: 'date_update'
     }
   }, {
     sequelize,
     tableName: 'share',
     schema: 'publication',
     timestamps: true, // ✅ activa los timestamps
-    createdAt: 'DataCreate', 
+    createdAt: 'DateCreate', 
+    updatedAt: 'DateUpdate', 
     indexes: [
       {
         name: "share_pkey",

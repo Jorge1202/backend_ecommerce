@@ -11,13 +11,13 @@ export interface PublicationsAttributes {
   IdPostProduct?: number;
   IdTypePublication?: number;
   Active?: boolean;
-  DataCreate?: string;
-  DataUpdate?: string;
+  DateCreate?: string;
+  DateUpdate?: string;
 }
 
 export type PublicationsPk = "IdPublications";
 export type PublicationsId = Publications[PublicationsPk];
-export type PublicationsOptionalAttributes = "IdPublications" | "IdPostProduct" | "IdTypePublication" | "Active" | "DataCreate" | "DataUpdate";
+export type PublicationsOptionalAttributes = "IdPublications" | "IdPostProduct" | "IdTypePublication" | "Active" | "DateCreate" | "DateUpdate";
 export type PublicationsCreationAttributes = Optional<PublicationsAttributes, PublicationsOptionalAttributes>;
 
 export class Publications extends Model<PublicationsAttributes, PublicationsCreationAttributes> implements PublicationsAttributes {
@@ -25,8 +25,8 @@ export class Publications extends Model<PublicationsAttributes, PublicationsCrea
   IdPostProduct?: number;
   IdTypePublication?: number;
   Active?: boolean;
-  DataCreate?: string;
-  DataUpdate?: string;
+  DateCreate?: string;
+  DateUpdate?: string;
 
   // Publications belongsTo Posts via IdPostProduct
   IdPostProductPost!: Posts;
@@ -110,23 +110,23 @@ export class Publications extends Model<PublicationsAttributes, PublicationsCrea
       allowNull: true,
       field: 'active'
     },
-    DataCreate: {
+    DateCreate: {
       type: DataTypes.DATEONLY,
       allowNull: true,
-      field: 'data_create'
+      field: 'date_create'
     },
-    DataUpdate: {
+    DateUpdate: {
       type: DataTypes.DATEONLY,
       allowNull: true,
-      field: 'data_update'
+      field: 'date_update'
     }
   }, {
     sequelize,
     tableName: 'publications',
     schema: 'publication',
     timestamps: true, // ✅ activa los timestamps
-    createdAt: 'DataCreate', 
-    updatedAt: 'DataUpdate', 
+    createdAt: 'DateCreate', 
+    updatedAt: 'DateUpdate', 
     indexes: [
       {
         name: "publications_pkey",

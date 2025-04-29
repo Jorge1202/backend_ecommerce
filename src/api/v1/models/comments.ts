@@ -11,13 +11,13 @@ export interface CommentsAttributes {
   Content?: string;
   IdStatus?: number;
   IsEdit: boolean;
-  DataCreate?: string;
-  DataUpdate?: string;
+  DateCreate?: string;
+  DateUpdate?: string;
 }
 
 export type CommentsPk = "IdComments";
 export type CommentsId = Comments[CommentsPk];
-export type CommentsOptionalAttributes = "IdComments" | "IdPublication" | "IdParentComment" | "Content" | "IdStatus" | "DataCreate" | "DataUpdate";
+export type CommentsOptionalAttributes = "IdComments" | "IdPublication" | "IdParentComment" | "Content" | "IdStatus" | "DateCreate" | "DateUpdate";
 export type CommentsCreationAttributes = Optional<CommentsAttributes, CommentsOptionalAttributes>;
 
 export class Comments extends Model<CommentsAttributes, CommentsCreationAttributes> implements CommentsAttributes {
@@ -28,8 +28,8 @@ export class Comments extends Model<CommentsAttributes, CommentsCreationAttribut
   Content?: string;
   IdStatus?: number;
   IsEdit!: boolean;
-  DataCreate?: string;
-  DataUpdate?: string;
+  DateCreate?: string;
+  DateUpdate?: string;
 
   // Comments hasMany Reactions via IdComment
   Reactions!: Reactions[];
@@ -93,23 +93,23 @@ export class Comments extends Model<CommentsAttributes, CommentsCreationAttribut
       defaultValue: false,
       field: 'is_edit'
     },
-    DataCreate: {
+    DateCreate: {
       type: DataTypes.DATEONLY,
       allowNull: true,
-      field: 'data_create'
+      field: 'date_create'
     },
-    DataUpdate: {
+    DateUpdate: {
       type: DataTypes.DATEONLY,
       allowNull: true,
-      field: 'data_update'
+      field: 'date_update'
     }
   }, {
     sequelize,
     tableName: 'comments',
     schema: 'publication',
     timestamps: true, // ✅ activa los timestamps
-    createdAt: 'DataCreate', 
-    updatedAt: 'DataUpdate', 
+    createdAt: 'DateCreate', 
+    updatedAt: 'DateUpdate', 
     indexes: [
       {
         name: "comments_pkey",
