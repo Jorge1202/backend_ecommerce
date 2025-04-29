@@ -107,7 +107,9 @@ export class Comments extends Model<CommentsAttributes, CommentsCreationAttribut
     sequelize,
     tableName: 'comments',
     schema: 'publication',
-    timestamps: false,
+    timestamps: true, // ✅ activa los timestamps
+    createdAt: 'DataCreate', 
+    updatedAt: 'DataUpdate', 
     indexes: [
       {
         name: "comments_pkey",

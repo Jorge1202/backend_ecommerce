@@ -92,7 +92,9 @@ export class Multimedia extends Model<MultimediaAttributes, MultimediaCreationAt
     sequelize,
     tableName: 'multimedia',
     schema: 'multimedia',
-    timestamps: false,
+    timestamps: true, // ✅ activa los timestamps
+    createdAt: 'DateCreate', 
+    updatedAt: 'DateUpdate', 
     indexes: [
       {
         name: "multimedia_pkey",

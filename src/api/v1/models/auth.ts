@@ -123,7 +123,9 @@ export class Auth extends Model<AuthAttributes, AuthCreationAttributes> implemen
     sequelize,
     tableName: 'auth',
     schema: 'user',
-    timestamps: false,
+    timestamps: true, // ✅ activa los timestamps
+    createdAt: 'DateCreate', 
+    updatedAt: 'DateUpdate', 
     indexes: [
       {
         name: "auth_pkey",

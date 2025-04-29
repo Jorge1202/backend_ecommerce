@@ -83,7 +83,9 @@ export class Login extends Model<LoginAttributes, LoginCreationAttributes> imple
     sequelize,
     tableName: 'login',
     schema: 'user',
-    timestamps: false,
+    timestamps: true, // ✅ activa los timestamps
+    createdAt: 'DateCreate', 
+    updatedAt: 'DateUpdate', 
     indexes: [
       {
         name: "login_pkey",

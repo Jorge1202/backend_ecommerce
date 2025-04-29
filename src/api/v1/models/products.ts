@@ -187,7 +187,9 @@ export class Products extends Model<ProductsAttributes, ProductsCreationAttribut
     sequelize,
     tableName: 'products',
     schema: 'products',
-    timestamps: false,
+    timestamps: true, // ✅ activa los timestamps
+    createdAt: 'DateCreate', 
+    updatedAt: 'DateUpdate', 
     indexes: [
       {
         name: "products_pkey",

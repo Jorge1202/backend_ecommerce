@@ -58,7 +58,8 @@ export class Share extends Model<ShareAttributes, ShareCreationAttributes> imple
     sequelize,
     tableName: 'share',
     schema: 'publication',
-    timestamps: false,
+    timestamps: true, // ✅ activa los timestamps
+    createdAt: 'DataCreate', 
     indexes: [
       {
         name: "share_pkey",

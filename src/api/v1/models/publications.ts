@@ -124,7 +124,9 @@ export class Publications extends Model<PublicationsAttributes, PublicationsCrea
     sequelize,
     tableName: 'publications',
     schema: 'publication',
-    timestamps: false,
+    timestamps: true, // ✅ activa los timestamps
+    createdAt: 'DataCreate', 
+    updatedAt: 'DataUpdate', 
     indexes: [
       {
         name: "publications_pkey",

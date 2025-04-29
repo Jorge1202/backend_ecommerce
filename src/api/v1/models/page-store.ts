@@ -111,7 +111,9 @@ export class PageStore extends Model<PageStoreAttributes, PageStoreCreationAttri
     sequelize,
     tableName: 'page_store',
     schema: 'pages',
-    timestamps: false,
+    timestamps: true, // ✅ activa los timestamps
+    createdAt: 'DataCreate', 
+    updatedAt: 'DataUpdate', 
     indexes: [
       {
         name: "pageStore_pkey",

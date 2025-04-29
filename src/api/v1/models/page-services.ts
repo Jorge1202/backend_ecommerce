@@ -111,7 +111,9 @@ export class PageServices extends Model<PageServicesAttributes, PageServicesCrea
     sequelize,
     tableName: 'page_services',
     schema: 'pages',
-    timestamps: false,
+    timestamps: true, // ✅ activa los timestamps
+    createdAt: 'DateCreate', 
+    updatedAt: 'DateUpdate', 
     indexes: [
       {
         name: "pageServices_pkey",

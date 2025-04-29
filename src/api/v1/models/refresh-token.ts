@@ -85,7 +85,9 @@ export class RefreshToken extends Model<RefreshTokenAttributes, RefreshTokenCrea
     sequelize,
     tableName: 'refresh_token',
     schema: 'user',
-    timestamps: true,
+    timestamps: true, // ✅ activa los timestamps
+    createdAt: 'CreatedAt', 
+    updatedAt: 'UpdatedAt', 
     indexes: [
       {
         name: "refresh_token_pkey",

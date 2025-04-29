@@ -122,7 +122,9 @@ export class Posts extends Model<PostsAttributes, PostsCreationAttributes> imple
     sequelize,
     tableName: 'posts',
     schema: 'post',
-    timestamps: false,
+    timestamps: true, // ✅ activa los timestamps
+    createdAt: 'DataCreate', 
+    updatedAt: 'DataUpdate', 
     indexes: [
       {
         name: "posts_pkey",

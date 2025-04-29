@@ -146,7 +146,9 @@ export class Devices extends Model<DevicesAttributes, DevicesCreationAttributes>
     sequelize,
     tableName: 'devices',
     schema: 'user',
-    timestamps: false,
+    timestamps: true, // ✅ activa los timestamps
+    createdAt: 'date_create', 
+    updatedAt: 'date_update',
     indexes: [
       {
         name: "devices_pkey",

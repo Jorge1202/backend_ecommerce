@@ -17,7 +17,7 @@ export interface UserAttributes {
 
 export type UserPk = "IdUser";
 export type UserId = User[UserPk];
-export type UserOptionalAttributes = "Lastname" | "Phone" | "Genero" | "Active" | "DateCreate" | "DateUpdate";
+export type UserOptionalAttributes = "IdUser" | "Lastname" | "Phone" | "Genero" | "Active" | "DateCreate" | "DateUpdate";
 export type UserCreationAttributes = Optional<UserAttributes, UserOptionalAttributes>;
 
 export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
@@ -37,7 +37,8 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
   static initModel(sequelize: Sequelize.Sequelize): typeof User {
     return User.init({
     IdUser: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       allowNull: false,
       primaryKey: true,
       field: 'id_user'
@@ -97,7 +98,9 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
     sequelize,
     tableName: 'user',
     schema: 'user',
-    timestamps: false,
+    timestamps: true, // ✅ activa los timestamps
+    createdAt: 'DateCreate', 
+    updatedAt: 'DateUpdate',
     indexes: [
       {
         name: "id_user_pkey",

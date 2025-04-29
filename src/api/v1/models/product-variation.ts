@@ -117,7 +117,9 @@ export class ProductVariation extends Model<ProductVariationAttributes, ProductV
     sequelize,
     tableName: 'product_variation',
     schema: 'products',
-    timestamps: false,
+    timestamps: true, // ✅ activa los timestamps
+    createdAt: 'DateCreate', 
+    updatedAt: 'DateUpdate', 
     indexes: [
       {
         name: "productVariacion_pkey",

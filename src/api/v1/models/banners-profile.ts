@@ -67,7 +67,9 @@ export class BannersProfile extends Model<BannersProfileAttributes, BannersProfi
     sequelize,
     tableName: 'banners_profile',
     schema: 'pages',
-    timestamps: false
+    timestamps: true, // ✅ activa los timestamps
+    createdAt: 'DateCreate', 
+    updatedAt: 'DateUpdate', 
   });
   }
 }

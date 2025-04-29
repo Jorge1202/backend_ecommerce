@@ -92,7 +92,8 @@ export class Reactions extends Model<ReactionsAttributes, ReactionsCreationAttri
     sequelize,
     tableName: 'reactions',
     schema: 'publication',
-    timestamps: false,
+    timestamps: true, // ✅ activa los timestamps
+    createdAt: 'DataCreate', 
     indexes: [
       {
         name: "reactions_pkey",

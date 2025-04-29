@@ -75,6 +75,7 @@ export class HistoryRegister extends Model<HistoryRegisterAttributes, HistoryReg
     DateCreate: {
       type: DataTypes.DATE,
       allowNull: true,
+      defaultValue: Sequelize.NOW,
       field: 'date_create'
     },
     DateUpdate: {
@@ -92,7 +93,9 @@ export class HistoryRegister extends Model<HistoryRegisterAttributes, HistoryReg
     sequelize,
     tableName: 'history_register',
     schema: 'user',
-    timestamps: false,
+    timestamps: true, // ✅ activa los timestamps
+    createdAt: 'DateCreate', 
+    updatedAt: 'DateUpdate', 
     indexes: [
       {
         name: "history_register_pkey",

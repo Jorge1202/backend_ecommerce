@@ -82,7 +82,6 @@ export class StatisticsStore extends Model<StatisticsStoreAttributes, Statistics
     IdTypePrestige: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 1,
       references: {
         model: {
           tableName: 'type_prestige',

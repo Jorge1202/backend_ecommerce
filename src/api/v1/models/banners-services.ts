@@ -81,7 +81,9 @@ export class BannersServices extends Model<BannersServicesAttributes, BannersSer
     sequelize,
     tableName: 'banners_services',
     schema: 'pages',
-    timestamps: false
+    timestamps: true, // ✅ activa los timestamps
+    createdAt: 'DateCreate', 
+    updatedAt: 'DateUpdate', 
   });
   }
 }

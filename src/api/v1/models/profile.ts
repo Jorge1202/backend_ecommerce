@@ -139,7 +139,9 @@ export class Profile extends Model<ProfileAttributes, ProfileCreationAttributes>
     sequelize,
     tableName: 'profile',
     schema: 'pages',
-    timestamps: false,
+    timestamps: true, // ✅ activa los timestamps
+    createdAt: 'DateCreate', 
+    updatedAt: 'DateUpdate', 
     indexes: [
       {
         name: "pageUser_pkey",
