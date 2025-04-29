@@ -1,11 +1,12 @@
 import { Router } from 'express';
+import { authenticateToken } from '../../../common/middlewares/auth.middleware';
 import AuthController from '../controllers/auth.controller';
 
 const authRoutes = Router();
 
 
 //#region  ################ Iniciar y cerrar sesión    
-authRoutes.post('/loginHash', AuthController.postLoginByHash);
+authRoutes.post('/loginHash', authenticateToken, AuthController.postLoginByHash);
 authRoutes.post('/login', AuthController.postLogin);
 authRoutes.post('/logout', AuthController.postLogout);
 authRoutes.post('/verifyNewDevice', AuthController.postValidCodeDevice);

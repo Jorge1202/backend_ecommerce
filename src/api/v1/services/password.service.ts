@@ -17,6 +17,7 @@ import { MailServiceConfig, MailActions } from '../../../common/interfaces/mail'
 import { AuthPayload } from '../../../common/interfaces/tokens';
 
 import TokenService from '../../../core/services/tokens/token.service';
+import { prepareAndSendMail } from '../../../common/email/prepareAndSendMail ';
 
 import { logger } from '../../../core/logger';
 const bcrypt = require("bcrypt");
@@ -35,11 +36,12 @@ export class PasswordService {
                     })
                 }
 
-                const codeData = {
+                
+                const responseCode = await CodeAuthenticationService.createNewCode({
                     IdAuth:auth.IdAuth,
                     IdTypeCode: 3,
-                }
-                const responseCode = await CodeAuthenticationService.createNewCode(codeData,transaction)
+                    Description:'Solicitud de recordar contraseña'
+                },transaction)
                 
                 const {Token, ExpiresIn} = generateToken({
                     dataToken: {
@@ -67,8 +69,7 @@ export class PasswordService {
                     })
                 }
 
-
-                const mailConfig: MailServiceConfig = {
+                const objEmail = {
                     accion: MailActions.RecoveryPassword,
                     to: Email,
                     subject: 'Solicitud de cambio de contraseña',
@@ -76,10 +77,10 @@ export class PasswordService {
                         name: user.Name,
                         firstname: user.Firstname,
                         token:Token,
-                        code: responseCode.Code,
+                        code:responseCode.Code
                     }
-                };
-                await MailService.send(mailConfig);
+                }
+                await prepareAndSendMail(objEmail)
 
                 
                 return SuccessResult({
@@ -201,16 +202,17 @@ export class PasswordService {
                     message: 'No existe usuario'
                 })
             }
-            const mailConfig: MailServiceConfig = {
+
+            const objEmail = {
                 accion: MailActions.PasswordChangeSuccessful,
                 to: auth.Email,
                 subject: 'Confirmación de cambio de contraseña',
                 dataMail: {
-                  name: user.Name,
-                  firstname: user.Firstname
+                    name: user.Name,
+                    firstname: user.Firstname,
                 }
-            };
-            await MailService.send(mailConfig);
+            }
+            await prepareAndSendMail(objEmail)
 
 
             return SuccessResult({
@@ -238,11 +240,12 @@ export class PasswordService {
             /**Valida el estatus del usuario que este en estatus  */
 
 
-            const codeData = {
+            
+            const responseCode = await CodeAuthenticationService.createNewCode({
                 IdAuth,
                 IdTypeCode: 3,
-            }
-            const responseCode = await CodeAuthenticationService.createNewCode(codeData)
+                Description:'Reenviar codigo de recordar contraseña'
+            })
             
 
             const user = await User.findOne({
@@ -255,7 +258,7 @@ export class PasswordService {
                 })
             }
 
-            const mailConfig: MailServiceConfig = {
+            const objEmail = {
                 accion: MailActions.RecoveryPassword,
                 to: auth.Email,
                 subject: 'Solicitud de cambio de contraseña',
@@ -265,9 +268,8 @@ export class PasswordService {
                     token:Token,
                     code: responseCode.Code,
                 }
-            };
-            await MailService.send(mailConfig);
-
+            }
+            await prepareAndSendMail(objEmail)
             
             return SuccessResult({
                 status: HttpStatus.OK,

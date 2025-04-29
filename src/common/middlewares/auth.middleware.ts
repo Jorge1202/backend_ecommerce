@@ -1,19 +1,74 @@
 import { Request, Response, NextFunction } from 'express';
-import TokenService from '../../core/services/tokens/tokens_2.service';
+import { verifyToken, verifyTokenExpired } from '../utils/authenticationToken';
+import { ResponseHandler } from '../utils/response-controller/response-handler';
+import { HttpStatus } from '../constants/httpStatus';
 
 // Middleware para verificar el JWT
-export function checkToken(req: Request, res: Response, next: NextFunction): void | Response {
-  const token = req.headers['authorization']?.split(' ')[1];  // Obtiene el token del encabezado
-
-  if (!token) {
-    return res.status(401).send('Token required');  // Responde y termina la solicitud si no hay token
-  }
-
+export async function authenticateToken(req: Request, res: Response, next: NextFunction) {
   try {
-    const decoded = TokenService.verifyAccessToken(token);
-    req.dataToken = decoded;  // Pasa la información decodificada al siguiente middleware
+
+    const token = req.headers['authorization'];  // Obtiene el token del encabezado
+    if (!token) {
+      return ResponseHandler.error(res, 401, 'Token required');  // Responde y termina la solicitud si no hay token
+    }
+
+    const resValid = await verifyToken(token)
+    if(resValid.error || !resValid.payload){     
+      if(resValid.status == 403){
+        console.log('Caducado');        
+      }
+
+      return ResponseHandler.error(res, resValid.status, resValid.message); 
+    }
+
+    const {payload} =resValid
+    req.body.Token = {
+      payload,
+      token: token.substring(7).trim()
+    };  // Pasa la información decodificada al siguiente middleware
+   
     next();  // Llama a `next()` para pasar al siguiente middleware
-  } catch (err) {
-    return res.status(401).send('Invalid or expired token');  // Responde y termina si el token es inválido
+  } catch (err: any) {
+    // Manejar errores llamando al middleware de errores
+    next(err);
+  }
+}
+
+
+export async function decodeTokenEvenIfExpired(req: Request, res: Response, next: NextFunction) {
+  try {
+    const getToken = req.headers['authorization'];  // Obtiene el token del encabezado
+    if (!getToken) {
+      return ResponseHandler.error(res, 401, 'Token required');  // Responde y termina la solicitud si no hay token
+    }
+
+   
+
+    const resValid = await verifyToken(getToken)
+    if(resValid.error || !resValid.payload){     
+      if(resValid.status == HttpStatus.FORBIDDEN){   
+        const token = getToken.substring(7).trim()          
+        const {payload} = verifyTokenExpired(token)
+        req.body.Token = {
+          payload
+        };   
+
+        next()
+        return
+      }
+
+      return ResponseHandler.error(res, resValid.status, resValid.message); 
+    }
+
+    const {payload} =resValid
+    req.body.Token = {
+      payload,
+      token: getToken.substring(7).trim()
+    }; 
+    
+    next();  
+  } catch (err: any) {
+    // Manejar errores llamando al middleware de errores
+    next(err);
   }
 }

@@ -18,16 +18,16 @@ class AuthController extends AuthService {
 
     }
 
-    public postLoginByHash = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
-        try {
-            const hash = req.headers['authorization']?.split(' ')[1]; 
-            const  {dataToken} = req
-            const dataTokenAuthUser = dataToken as AuthPayload
+    public postLoginByHash = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {            
+            const {Token} = req.body
+            const {payload, token} = Token
+            const dataTokenAuthUser = payload as AuthPayload
 
             let deviceInfo: DevicesCreationAttributes;
             deviceInfo = await this._getDataDevice(req);       
                 
-            const response = await this.loginByHash(dataTokenAuthUser, String(hash), deviceInfo);
+            const response = await this.loginByHash(dataTokenAuthUser, String(token), deviceInfo);
             const { status, message, error } = response        
             if (error) { return ResponseHandler.error(res, status, message);}
 

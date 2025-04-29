@@ -1,4 +1,4 @@
-import { HistoryRegister } from '../models/history-register';
+import { HistoryRegister, HistoryRegisterCreationAttributes } from '../models/history-register';
 
 import { User, UserCreationAttributes } from '../models/user';
 import { CodeAutentication } from '../models/code-autentication';
@@ -21,11 +21,12 @@ import { NewUser, RegisterResult } from '../../../common/interfaces/register';
 import { AuthPayload } from '../../../common/interfaces/tokens';
 import { MailServiceConfig, MailActions } from '../../../common/interfaces/mail';
 import TokenService from '../../../core/services/tokens/token.service';
+import { prepareAndSendMail } from '../../../common/email/prepareAndSendMail ';
 
 const bcrypt = require("bcrypt");
 
 export class NewUserService {
-    protected async updateHistoryRegister(userData: HistoryRegister): Promise<ServiceResponse<number>> {
+    protected async updateHistoryRegister(userData: HistoryRegisterCreationAttributes): Promise<ServiceResponse<number>> {
         try {
 
             const [affectedCount] = await HistoryRegister.update(userData,
@@ -101,7 +102,7 @@ export class NewUserService {
 
     }
 
-    public async verifyUsername(Username: string): Promise<ServiceResponse<HistoryRegister>> {
+    public async verifyUsername(Username: string, IdHistoryRegister:number): Promise<ServiceResponse<HistoryRegister>> {
         try {
             // Validar si el email ya existe en la base de datos
             const existingUser = await Auth.findOne({ where: { Username } });
@@ -112,16 +113,22 @@ export class NewUserService {
                 })
             }
 
+            const objHistory = {
+                Id: IdHistoryRegister,
+                Username: Username,
+                StatusRegister: 3,
+                DateUpdate: new Date()
+            }
+            this.updateHistoryRegister(objHistory)
+
             return SuccessResult({
                 status: HttpStatus.OK,
                 message: 'El Username proporcionado esta disponible',
             })
 
-
         } catch (error) {
             ErrorHandler.handleServiceError(error, 'verifyEmail', 'NewUserService');
         }
-
     }
 
     /**
@@ -132,7 +139,7 @@ export class NewUserService {
     protected async newUserRegister(userData: NewUser): Promise<ServiceResponse<RegisterResult>> {
         try {
             return await withTransaction(async (transaction) => {
-                const { IdHistoryRegister, Email, Username, Name, Firstname, Lastname, Phone, Password } = userData;
+                const { IdHistoryRegister, Email, Password, Username, Name, Firstname, Lastname, Phone,  } = userData;
 
                 // Validar Email y Username que no exista
                 const existing = await Auth.findOne({ where: { Email }, transaction });
@@ -144,7 +151,6 @@ export class NewUserService {
 
                 // Crear el registro en la tabla User
                 const objDataUser: UserCreationAttributes = {
-                    IdUser: '',
                     Username,
                     Name,
                     Firstname,
@@ -167,11 +173,12 @@ export class NewUserService {
                 const { IdAuth } = await Auth.create(objDataAuth, { transaction });
 
                 // Crear el registro en la tabla CodeAutentication
-                const objDataCode = {
+                
+                const responseCode = await CodeAuthenticationService.createNewCode({
                     IdAuth,
                     IdTypeCode: 1,
-                }
-                const responseCode = await CodeAuthenticationService.createNewCode(objDataCode, transaction);
+                    Description:'Registro validar email'
+                }, transaction);
 
                 // Crear el registro en la tabla HistoryRegister
                 const objHistoryRegister = {
@@ -187,8 +194,7 @@ export class NewUserService {
                 };
                 await HistoryRegister.update(objHistoryRegister, { where: { Id: IdHistoryRegister }, transaction });
 
-                // Enviar correo con el código de verificación
-                const mailConfig: MailServiceConfig = {
+                const objEmail = {
                     accion: MailActions.CodeAuth,
                     to: Email,
                     subject: 'Código de verificación',
@@ -197,8 +203,10 @@ export class NewUserService {
                         firstname: Firstname,
                         code: responseCode.Code,
                     }
-                };
-                await MailService.send(mailConfig);
+                }
+                await prepareAndSendMail(objEmail)
+
+                
 
                 // Generar el token de verificación
                 const { Token, ExpiresIn } = generateToken({
@@ -292,11 +300,11 @@ export class NewUserService {
      * @param Code - Código de verificación.
      * @returns Respuesta del servicio con el resultado de la operación.
      */
-    protected async verifyCodeEmailRegister(dataToken: AuthPayload, Code: string): Promise<ServiceResponse<{ Hash: string }>> {
+    protected async verifyCodeEmailRegister(dataToken: AuthPayload, Code: string, Token:string): Promise<ServiceResponse<{ Hash: string }>> {
         try {
             return await withTransaction(async (transaction) => {
 
-                // 1️⃣ Valida el token de verificación
+                // Valida el token de verificación
                 const {body, status, error, message} = await TokenService.validateToken(dataToken)
                 if (error || !body) {
                     return ErrorResult({
@@ -306,7 +314,19 @@ export class NewUserService {
                 }
                 const {IdAuth, auth} = body
 
-                // 2️⃣ Verificar si el código es correcto y está activo
+                // Cambias el estado del token a inactivo (ya fue utilizado)
+                const [authenticationToken] = await AuthTokens.update({Status: 0},{
+                    where: {Token, IdAuth, Status: 1},
+                    transaction
+                })
+                if (authenticationToken === 0) {
+                    return ErrorResult({
+                        status: HttpStatus.INTERNAL_SERVER_ERROR,
+                        message: 'Error de base de datos',
+                    });
+                }
+
+                // Verificar si el código es correcto y está activo
                 const [codeUpdatedCount] = await CodeAutentication.update(
                     { IsActive: false },
                     {   
@@ -321,7 +341,7 @@ export class NewUserService {
                     });
                 }
 
-                // 3️⃣ Si el código es válido, actualizas el estado del usuario a "verificado"
+                // Si el código es válido, actualizas el estado del usuario a "verificado"
                 const [authUpdatedCount] = await Auth.update({ Status: 2 }, 
                     {    
                         where: { IdAuth, },
@@ -335,23 +355,10 @@ export class NewUserService {
                     });
                 }
 
-                // 4️⃣ Cambias el estado del token a inactivo (ya fue utilizado)
-                const [authenticationToken] = await AuthTokens.update(
-                    { Status: 0 },
-                    {
-                        where: {IdAuth},
-                        transaction
-                    }
-                );
-                if (authenticationToken === 0) {
-                    return ErrorResult({
-                        status: HttpStatus.INTERNAL_SERVER_ERROR,
-                        message: 'Error de base de datos',
-                    });
-                }
+                
 
-                // 5️⃣ Generas un nuevo token de acceso (JWT) para iniciar sesión
-                const { Token, ExpiresIn } = generateToken({
+                // Generas un nuevo token de acceso (JWT) para iniciar sesión
+                const { Token:tokenAccess, ExpiresIn } = generateToken({
                     dataToken: {
                         IdAuth,
                         IdUser:auth.IdUser
@@ -359,9 +366,9 @@ export class NewUserService {
                     expiresIn: '15m',
                 });
 
-                // 6️⃣ Guardas el nuevo token en la base de datos
+                // Guardas el nuevo token en la base de datos
                 await AuthTokens.create({
-                    Token,
+                    Token:tokenAccess,
                     IdAuth,
                     TypeTokens: 2,
                     ExpiresIn
@@ -370,9 +377,9 @@ export class NewUserService {
 
                 return SuccessResult({
                     status: HttpStatus.OK,
-                    message: 'Operación exitosa',
+                    message: '¡Código válido!, procede a inicia sesión',
                     body: {
-                        Hash: Token,
+                        Hash: tokenAccess,
                     }
                 });
             });
@@ -387,7 +394,7 @@ export class NewUserService {
      * @param dataToken - Datos del token de verificación.
      * @returns Respuesta del servicio con el resultado de la operación.
      */
-    protected async sendCodeAgainRegister(dataToken: AuthPayload): Promise<ServiceResponse<null>> {
+    protected async sendCodeAgainRegister(dataToken: AuthPayload): Promise<ServiceResponse<{Token:string}>> {
         try {
             return await withTransaction(async (transaction) => {
 
@@ -415,11 +422,11 @@ export class NewUserService {
 
                 await responseCodeValid.update({IsActive:false}, { transaction })
 
-                const objDataCode = {
+                const responseCode = await CodeAuthenticationService.createNewCode({
                     IdAuth,
                     IdTypeCode: 1,
-                }
-                const responseCode = await CodeAuthenticationService.createNewCode(objDataCode, transaction);
+                    Description: 'Reenvio de código para validar email'
+                }, transaction);
     
     
                 const responseUser = await User.findOne({
@@ -432,9 +439,10 @@ export class NewUserService {
                         message: 'No cuenta con solicitud de verificacion de correo'
                     });
                 }
+                // Generar token
     
                 // Enviar correo con el código de verificación
-                const mailConfig: MailServiceConfig = {
+                const objEmail = {
                     accion: MailActions.CodeAuth,
                     to: auth.Email,
                     subject: 'Código de verificación',
@@ -443,12 +451,23 @@ export class NewUserService {
                         firstname: responseUser.Firstname,
                         code: responseCode.Code,
                     }
-                };
-                await MailService.send(mailConfig);
+                }
+                await prepareAndSendMail(objEmail)
+
+                const { Token, ExpiresIn } = generateToken({
+                    dataToken: {
+                        IdAuth,
+                        IdUser:auth.IdUser
+                    },
+                    expiresIn: '15m',
+                });
     
                 return SuccessResult({
                     status: HttpStatus.OK,
-                    message: 'Vista autorizada'
+                    message: 'Nuevo codigo autorizado',
+                    body: {
+                        Token
+                    }
                 });
 
             });

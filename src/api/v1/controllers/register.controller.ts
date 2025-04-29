@@ -43,13 +43,21 @@ class NewUserController extends NewUserService {
       next(err);
     }
   }
+
   public postValidUsername = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       
-      const { Username } = req.body;
+      const { Username, IdHistoryRegister} = req.body;
+
+      if(!Username){
+        return ResponseHandler.error(res, 400, 'Se requiere el username');
+      }
+      if(!IdHistoryRegister){
+        return ResponseHandler.error(res, 400, 'Se requiere el IdHistoryRegister');
+      }
       // 2. Llamar al servicio para crear registro 
       // estatus 1
-      const response = await this.verifyUsername(Username);
+      const response = await this.verifyUsername(Username, IdHistoryRegister);
       const { status, message, body } = response
       ResponseHandler.success(res, status, message, body);
 
@@ -62,7 +70,6 @@ class NewUserController extends NewUserService {
   public newUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       let data = req.body;
-      console.log(data);
 
       // 2. Llamar al servicio para crear registro 
       // estatus 1
@@ -76,17 +83,12 @@ class NewUserController extends NewUserService {
     }
   }
 
-  public verifyToken = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+  public verifyToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const token = req.headers['authorization']?.split(' ')[1];  // Obtiene el token del encabezado
-      if (!token) {
-        ResponseHandler.error(res, 401, 'Token required') // Responde y termina la solicitud si no hay token
-      }
-
-      const  {dataToken} = req
-      const dataTokenAuthUser = dataToken as AuthPayload
+      const {Token} = req.body
+      const {payload, token} = Token
+      const dataTokenAuthUser = payload as AuthPayload
   
-
       // 2. Llamar al servicio para crear registro 
       // estatus 1
       const response = await this.verifyTokenRegister(dataTokenAuthUser, String(token));
@@ -99,17 +101,19 @@ class NewUserController extends NewUserService {
     }
   };
 
-  public verifyCodeEmail = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+  public verifyCodeEmail = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { dataToken } = req
-      const dataTokenAuthUser = dataToken as AuthPayload
+      const {Token} = req.body
+      const {payload, token} = Token
+      const dataTokenAuthUser = payload as AuthPayload
+      
       const { Code } = req.body
 
       if (!Code || (typeof Code === 'string' && Code.trim() === "")) {
           return ResponseHandler.error(res, 400, 'El código es requerido');
       }
 
-      const response = await this.verifyCodeEmailRegister(dataTokenAuthUser, Code);
+      const response = await this.verifyCodeEmailRegister(dataTokenAuthUser, Code, Token);
       const {status, message, body} = response
       ResponseHandler.success(res, status, message, body);
 
@@ -119,11 +123,12 @@ class NewUserController extends NewUserService {
     }
   }
 
-  public sendCodeAgain = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+  public sendCodeAgain = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
 
-      const { dataToken } = req
-      const dataTokenAuthUser = dataToken as AuthPayload
+      const {Token} = req.body
+      const {payload} = Token
+      const dataTokenAuthUser = payload as AuthPayload
 
       const response = await this.sendCodeAgainRegister(dataTokenAuthUser);
       const {status, message, body} = response

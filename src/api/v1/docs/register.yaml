@@ -1,4 +1,4 @@
-/v1/register/verifyEmail: 
+/v1/register/validEmail: 
   post:
     tags: [Register User]
     summary: Valida el Email y crea un historial del nuevo registro
@@ -23,7 +23,7 @@
                 type: string
                 format: Email
                 description: Email del usuario
-                example: "usuario@ejemplo.com"
+                example: "string"
     responses:
       200:
         description: Registro fue creado
@@ -37,7 +37,7 @@
                   example: false
                 status:
                   type: integer
-                  example: 201
+                  example: 200
                 message:
                   type: string
                   example: "Registro fue creado"
@@ -112,7 +112,14 @@
         application/json:
           schema:
             type: object
+            required:
+              - Username
+              - IdHistoryRegister
             properties:
+              IdHistoryRegister:
+                type: number
+                description: Id del Historial que se obtiene al validar el email
+                example: 0
               Username:
                 type: string
                 description: Username del usuario
@@ -130,7 +137,7 @@
                   example: false
                 status:
                   type: integer
-                  example: 201
+                  example: 200
                 message:
                   type: string
                   example: "El Username proporcionado esta disponible"                
@@ -138,7 +145,6 @@
         description: Error en los datos enviados
       500:
         description: Error interno del servidor
-
 
 /v1/register:
   post:
@@ -151,38 +157,50 @@
         application/json:
           schema:
             type: object
+            required:
+              - IdHistoryRegister
+              - Email
+              - Password
+              - Username
+              - Name
+              - Firstname
             properties:
+              IdHistoryRegister:
+                type: number
+                description: Id del Historial que se obtiene al validar el email
+                example: 0
               Email:
                 type: string
                 format: Email
                 description: Email del usuario
-                example: ""
+                example: "string"
               Password:
                 type: string
                 format: Password
                 description: Password del usuario
-                example: ""
-              Name:
-                type: string
-                description: Nombre del usuario
-                example: ""   
-              Firstname:
-                type: string
-                description: Primer nombre del usuario
-                example: ""    
-              Lastname:    
-                type: string
-                description: Apellido del usuario
-                example: ""  
+                example: "string"
+              
               Username:
                 type: string
                 description: Nombre de usuario
-                example: ""
-              StatusRegister: 
+                example: "string"
+              Name:
                 type: string
-                description: Estado del registro
-                example: ""                     
-
+                description: Nombres
+                example: "string"   
+              Firstname:
+                type: string
+                description: Apellido paterno
+                example: "string"    
+              Lastname:    
+                type: string
+                description: Apellido materno
+                example: "string" 
+              Phone:    
+                type: string
+                description: Número de teléfono
+                example: "string"  
+                    
     responses:       
       200:
         description: Respuesta exitosa
@@ -213,7 +231,7 @@
                       description: Correo electrónico del usuario
 
 /v1/register/verifyToken:
-  get:
+  post:
       tags: [Register User]
       summary: Verifica la vista por medio de un token
       security:
@@ -236,7 +254,7 @@
                     type: string
                     example: "Vista autorizada"
     
-/v1/register/validCode:  
+/v1/register/verifyCode:  
   post:
       tags: [Register User]
       summary: Se verifica el codigo de verificación del correo electrónico
@@ -253,7 +271,7 @@
                   type: string
                   format: Code
                   description: Codigo de verificación del correo electrónico
-                  example: ""
+                  example: "string"
       responses:       
         200:
           description: Respuesta exitosa
@@ -302,4 +320,10 @@
                 message:
                   type: string
                   example: "Se ha enviado el nuevo código de verificación"
-                
+                body:
+                    type: object  
+                    properties:
+                      Token:
+                        type: string
+                        example: ""
+                        description: token para validar codigo

@@ -1,6 +1,7 @@
 import jwt, { TokenExpiredError, JsonWebTokenError } from 'jsonwebtoken';
 import { config } from '../../core/config/security';
 import { TokenData, JwtOptions, ReturnToken } from '../interfaces/tokens';
+import { HttpStatus } from '../constants/httpStatus';
 
 // Llave secreta para firmar el JWT (colócala en tus variables de entorno)
 const JWT_SECRET_ACCESS = config.JWT_SECRET;
@@ -60,7 +61,7 @@ export const generateToken = (jwtToken: JwtOptions): ReturnToken => {
 export const verifyToken = async (token: string, secretType: secretType = 'access'): Promise<{ error: boolean; message: string; status: number; payload?: TokenData }> => {
   try {
     if (!token) {
-      return { status: 401, error: true, message: 'No se proporcionó el token' };
+      return { status: HttpStatus.UNAUTHORIZED, error: true, message: 'No se proporcionó el token' };
     }
 
     // Verificar el token utilizando la función getToken (que ya decodifica el header y lo valida)
@@ -68,13 +69,12 @@ export const verifyToken = async (token: string, secretType: secretType = 'acces
 
     if (error || !payload) {
       return { status, error, message };
-    }
-
+    }  
     return { status, error, message, payload };
 
   } catch (error: any) {
     console.error('Error desconocido en verifyToken:', error);
-    return { status: 500, error: true, message: `Error desconocido: ${error.message || 'Error en la verificación del token'}` };
+    return { status: HttpStatus.INTERNAL_SERVER_ERROR, error: true, message: `Error desconocido: ${error.message || 'Error en la verificación del token'}` };
   }
 };
 
@@ -104,13 +104,12 @@ const getToken = async (token: string, secretType: string): Promise<{ error: boo
     // console.error('Error en getToken:', error);
     return {
       error: true,
-      status: 500,
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
       message: 'Error interno al procesar el token',
       payload: null
     };
   }
 };
-
 
 /**
  * Decodifica y verifica el token JWT desde el header de autorización.
@@ -152,7 +151,7 @@ async function decodeHeader(authorization: string, secretType: string): Promise<
   } catch (error: any) {
     return {
       error: true,
-      status: 500,
+      status: HttpStatus.INTERNAL_SERVER_ERROR,
       message: 'Error interno al procesar el token',
       payload: null
     };
@@ -168,7 +167,7 @@ export function extractToken(authorization: string): { error: boolean; status: n
   if (!authorization) {
     return {
       error: true,
-      status: 401,
+      status: HttpStatus.UNAUTHORIZED,
       message: 'Se requiere un token para esta operación'
     };
   }
@@ -176,7 +175,7 @@ export function extractToken(authorization: string): { error: boolean; status: n
   if (!authorization.startsWith('Bearer ')) {
     return {
       error: true,
-      status: 401,
+      status: HttpStatus.UNAUTHORIZED,
       message: 'Formato de token incorrecto'
     };
   }
@@ -200,16 +199,23 @@ async function verifyJWT(token: string, secretType: string): Promise<{ error: bo
     const secretKey = secretType === 'refresh' ? JWT_SECRET_REFRESH : JWT_SECRET_ACCESS;
 
     const decoded = jwt.verify(token, secretKey) as TokenData;
-    return { error: false, status: 200, message: 'Token válido', payload: decoded };
+    return { error: false, status: HttpStatus.OK, message: 'Token válido', payload: decoded };
 
   } catch (err: any) {
     if (err instanceof TokenExpiredError) {
-      return { error: true, status: 403, message: 'El token ha expirado. Por favor, renueva tu autenticación' };
+      return { error: true, status: HttpStatus.FORBIDDEN, message: 'El token ha expirado. Por favor, renueva tu autenticación' };
     } else if (err instanceof JsonWebTokenError) {
-      return { error: true, status: 401, message: 'Token inválido' };
+      return { error: true, status: HttpStatus.UNAUTHORIZED, message: 'Token inválido' };
     } else {
       console.error('Error desconocido en verifyJWT:', err);
-      return { error: true, status: 500, message: 'Error interno al verificar el token' };
+      return { error: true, status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Error interno al verificar el token' };
     }
   }
 }
+
+export function verifyTokenExpired(token: string, secretType: string = 'access'){
+  const secretKey = secretType === 'refresh' ? JWT_SECRET_REFRESH : JWT_SECRET_ACCESS;
+
+  const decoded = jwt.verify(token, secretKey, { ignoreExpiration: true }) as TokenData;
+  return { error: false, status: 200, message: 'Token válido', payload: decoded };
+} 

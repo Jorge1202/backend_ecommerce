@@ -53,7 +53,21 @@ export class AuthService {
                     })
                 }
 
-                const {IdUser} = responseAuth               
+                const {IdUser, IdAuth} = responseAuth   
+                
+                // 4️⃣ Cambias el estado del token a inactivo (ya fue utilizado)
+                const [authenticationToken] = await AuthTokens.update({ Status: 0 },
+                    {
+                        where: {Token, IdAuth, Status: 1},
+                        transaction
+                    }
+                );
+                if (authenticationToken === 0) {
+                    return ErrorResult({
+                        status: HttpStatus.INTERNAL_SERVER_ERROR,
+                        message: 'Error de base de datos',
+                    });
+                }
 
                 const objUserPage = {IdTypePage: 1, IdUser}
                 const resUserPage = await UserPage.create(objUserPage, {transaction}) 
@@ -63,7 +77,7 @@ export class AuthService {
                 const TOKEN_DEVICE = uuidv4();
                 await resDevices.update({ Token: TOKEN_DEVICE }, { transaction }); // 7. Se genera un hash device y se actualiza en bd
 
-                const resCreateLogin = await this.createLogin({dataAuth: responseAuth, IdDevice: resDevices.IdDevice, IdUserPage:resUserPage.IdUserPage})
+                const resCreateLogin = await this.createLogin({dataAuth: responseAuth, IdDevice: resDevices.IdDevice, IdUserPage:resUserPage.IdUserPage}, transaction)
                 if(resCreateLogin.error){
                     return CriticalError({
                         status: HttpStatus.BAD_REQUEST,
@@ -204,7 +218,7 @@ export class AuthService {
                 await resDevices.update({ Token: TOKEN_DEVICE }, { transaction }); 
                 const {IdDevice} = resDevices
 
-                const resCreateLogin = await this.createLogin({dataAuth:dataAuth, IdDevice, IdUserPage:resUserPage.IdUserPage})
+                const resCreateLogin = await this.createLogin({dataAuth:dataAuth, IdDevice, IdUserPage:resUserPage.IdUserPage}, transaction)
                 if(resCreateLogin.error){
                     return CriticalError({
                         status: HttpStatus.BAD_REQUEST,
@@ -236,82 +250,85 @@ export class AuthService {
     }
     
     private async loginWithDevice(Username:string, Password:string, IdDevice:number):  Promise<ServiceResponse<ResponseLogin>> {
-        try {
-            
-            const dataAuth = await Auth.findOne({ where: { Username } })
-            if (!dataAuth) {
-                return ErrorResult({
-                    status: HttpStatus.BAD_REQUEST,
-                    message: 'Usuario o contraseña incorrecta'
-                }); 
-            }
+        return await withTransaction(async (transaction)=> {
 
-            const isPasswordValid = await bcrypt.compare(Password, dataAuth.Password);
-            if (!isPasswordValid) {
-                return ErrorResult({
-                    status: HttpStatus.BAD_REQUEST,
-                    message: 'Usuario o contraseña incorrecta'
-                });
-            }
-
-            // Status = 1 activo
-            if(dataAuth.Status === 1){    
-                // --- Email no verificado se manda correo con el nuevo código
-                const IdTypeCode = 1
-                await this.sendMailVerificationCode(dataAuth, IdTypeCode, 'Nuevo código de verificación');
-                return CriticalError({
-                    status: HttpStatus.BAD_REQUEST,
-                    message: 'Aún no confirma su correo electrónico mediante un código de verificación.'
+            try {
+                
+                const dataAuth = await Auth.findOne({ where: { Username } })
+                if (!dataAuth) {
+                    return ErrorResult({
+                        status: HttpStatus.BAD_REQUEST,
+                        message: 'Usuario o contraseña incorrecta'
+                    }); 
+                }
+    
+                const isPasswordValid = await bcrypt.compare(Password, dataAuth.Password);
+                if (!isPasswordValid) {
+                    return ErrorResult({
+                        status: HttpStatus.BAD_REQUEST,
+                        message: 'Usuario o contraseña incorrecta'
+                    });
+                }
+    
+                // Status = 1 activo
+                if(dataAuth.Status === 1){    
+                    // --- Email no verificado se manda correo con el nuevo código
+                    const IdTypeCode = 1
+                    await this.sendMailVerificationCode(dataAuth, IdTypeCode, 'Nuevo código de verificación');
+                    return CriticalError({
+                        status: HttpStatus.BAD_REQUEST,
+                        message: 'Aún no confirma su correo electrónico mediante un código de verificación.'
+                    })
+                }
+    
+                if (dataAuth.Status !== 2) {
+                    //Si el status no es activo (2)
+                    const status = await StatusAuth.findByPk(dataAuth.Status)
+                    return ErrorResult({
+                        status: HttpStatus.UNPROCESSABLE_ENTITY,
+                        message: `${status?.Description}`
+                    });
+                }
+    
+                const {IdUser} = dataAuth
+                const resUserPage = await UserPage.findOne({
+                    where:{ IdUser}
                 })
-            }
-
-            if (dataAuth.Status !== 2) {
-                //Si el status no es activo (2)
-                const status = await StatusAuth.findByPk(dataAuth.Status)
-                return ErrorResult({
-                    status: HttpStatus.UNPROCESSABLE_ENTITY,
-                    message: `${status?.Description}`
+                if(!resUserPage){
+                    return ErrorResult({
+                        status: HttpStatus.INTERNAL_SERVER_ERROR,
+                        message: 'Error en base de datos'
+                    }); 
+                }
+    
+                const resCreateLogin = await this.createLogin({dataAuth:dataAuth, IdDevice, IdUserPage:resUserPage.IdUserPage}, transaction)
+                if(resCreateLogin.error){
+                    return CriticalError({
+                        status: HttpStatus.BAD_REQUEST,
+                        message: 'Error en el proceso'
+                    })
+                }
+                const {TOKEN_ACCESS,TOKEN_REFRESH } = resCreateLogin
+    
+                return SuccessResult({
+                    status: HttpStatus.OK,
+                    message: '¡Inicio de sesión exitoso! Bienvenido.',
+                    body: {
+                        body:{
+                            newDevice: false,
+                            firstLogin: false,
+                            TOKEN_ACCESS,
+                        },
+                        tokens: {
+                            TOKEN_REFRESH,
+                        }
+                    },               
                 });
+    
+            } catch (error: any) {
+                ErrorHandler.handleServiceError(error, 'loginByHash', 'AuthService');
             }
-
-            const {IdUser} = dataAuth
-            const resUserPage = await UserPage.findOne({
-                where:{ IdUser}
-            })
-            if(!resUserPage){
-                return ErrorResult({
-                    status: HttpStatus.INTERNAL_SERVER_ERROR,
-                    message: 'Error en base de datos'
-                }); 
-            }
-
-            const resCreateLogin = await this.createLogin({dataAuth:dataAuth, IdDevice, IdUserPage:resUserPage.IdUserPage})
-            if(resCreateLogin.error){
-                return CriticalError({
-                    status: HttpStatus.BAD_REQUEST,
-                    message: 'Error en el proceso'
-                })
-            }
-            const {TOKEN_ACCESS,TOKEN_REFRESH } = resCreateLogin
-
-            return SuccessResult({
-                status: HttpStatus.OK,
-                message: '¡Inicio de sesión exitoso! Bienvenido.',
-                body: {
-                    body:{
-                        newDevice: false,
-                        firstLogin: false,
-                        TOKEN_ACCESS,
-                    },
-                    tokens: {
-                        TOKEN_REFRESH,
-                    }
-                },               
-            });
-
-        } catch (error: any) {
-            ErrorHandler.handleServiceError(error, 'loginByHash', 'AuthService');
-        }
+        })
     }
 
     private async validParamslogin(Username:string, Password:string): Promise<ServiceResponse<Auth>> {
@@ -381,63 +398,61 @@ export class AuthService {
         }
     }
 
-    private async createLogin({dataAuth, IdDevice, IdUserPage}: {dataAuth:Auth, IdDevice:number, IdUserPage:number} ): Promise<{error:boolean, TOKEN_ACCESS:string,TOKEN_REFRESH:string }> {
-        return await withTransaction(async (transaction)=> {
-            try {
-   
-                const {IdAuth, IdUser} = dataAuth               
-                const objLogin = {IdAuth, IdDevice}
-                await Login.update({ Active: false }, {
-                    where: { IdAuth, IdDevice }
-                })
+    private async createLogin({dataAuth, IdDevice, IdUserPage}: {dataAuth:Auth, IdDevice:number, IdUserPage:number}, transaction:Transaction ): Promise<{error:boolean, TOKEN_ACCESS:string,TOKEN_REFRESH:string }> {        
+        try {
 
-                await Login.create(objLogin, { transaction }); 
-                     
-                const objTokenefresh = {
-                    IdAuth,
-                    IdUser, 
-                    IdDevice,
-                    IdUserPage,
-                }
-                const resToken = await TokenService.generateRefreshToken(objTokenefresh, transaction)  // 5. Se genera un token Refresh
-                if(resToken.error || !resToken.body){
-                    return {
-                        error: true,
-                        TOKEN_ACCESS:'',
-                        TOKEN_REFRESH:'' 
-                    };
-                }
-
-                const { IdRefreshToken, token:tokenRefresh } = resToken.body
-                const dataAccessToken = { 
-                    IdAuth, 
-                    IdUser, 
-                    IdUserPage: IdUserPage, 
-                    IdRefreshToken
-                };
-
-                const resTokenAccess = TokenService.generateTokenAccess(dataAccessToken) // 6. Se genera un token Access
-                if(resTokenAccess.error || !resTokenAccess.body){
-                    return {
-                        error: true,
-                        TOKEN_ACCESS:'',
-                        TOKEN_REFRESH:'' 
-                    };
-                }
-
-       
-                const {token:tokenAccess} = resTokenAccess.body
-                                
-                return {
-                    error: false,
-                    TOKEN_ACCESS:tokenAccess,
-                    TOKEN_REFRESH:`Bearer ${tokenRefresh}`  
-                };
-
-            } catch (error: any) {
-                ErrorHandler.handleServiceError(error, 'loginByHash', 'AuthService');
+            const {IdAuth, IdUser} = dataAuth               
+            await Login.update({ Active: false }, {
+                where: { IdAuth, IdDevice }
+            })
+            
+            const objLogin = {IdAuth, IdDevice}
+            await Login.create(objLogin, { transaction }); 
+                    
+            const objTokenefresh = {
+                IdAuth,
+                IdUser, 
+                IdDevice,
+                IdUserPage,
             }
-        })
+            const resToken = await TokenService.generateRefreshToken(objTokenefresh, transaction)  // 5. Se genera un token Refresh
+            if(resToken.error || !resToken.body){
+                return {
+                    error: true,
+                    TOKEN_ACCESS:'',
+                    TOKEN_REFRESH:'' 
+                };
+            }
+
+            const { IdRefreshToken, token:tokenRefresh } = resToken.body
+            const dataAccessToken = { 
+                IdAuth, 
+                IdUser, 
+                IdUserPage: IdUserPage, 
+                IdRefreshToken
+            };
+
+            const resTokenAccess = TokenService.generateTokenAccess(dataAccessToken) // 6. Se genera un token Access
+            if(resTokenAccess.error || !resTokenAccess.body){
+                return {
+                    error: true,
+                    TOKEN_ACCESS:'',
+                    TOKEN_REFRESH:'' 
+                };
+            }
+
+    
+            const {token:tokenAccess} = resTokenAccess.body
+                            
+            return {
+                error: false,
+                TOKEN_ACCESS:tokenAccess,
+                TOKEN_REFRESH:`Bearer ${tokenRefresh}`  
+            };
+
+        } catch (error: any) {
+            ErrorHandler.handleServiceError(error, 'loginByHash', 'AuthService');
+            }
     }
 
     private async validateDevice(hash:string, dataAuth:Auth): Promise<{ error: boolean, IdDevice:number }>{
@@ -495,7 +510,8 @@ export class AuthService {
     
             const codeAuth = await CodeAuthenticationService.createNewCode({
                 IdAuth: dataAuth.IdAuth,
-                IdTypeCode
+                IdTypeCode,
+                Description:subject
             });
 
             const {Email} = dataAuth

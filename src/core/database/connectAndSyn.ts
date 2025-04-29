@@ -1,5 +1,8 @@
 import { db } from "../config/database.core";
 import { initModels } from '../../api/v1/shared/init-models'; 
+import { truncateTables } from '../../api/v1/shared/truncateTables'; 
+import { logger } from '../../core/logger';
+
 
 // Función para autenticar y sincronizar la base de datos
 export const connectAndSyncDatabase = async () => {
@@ -7,6 +10,7 @@ export const connectAndSyncDatabase = async () => {
     await authenticateDatabase()
     // Inicializar los modelos
     initModels(db);
+    await truncateTables();
     
     await syncDatabase()
 };

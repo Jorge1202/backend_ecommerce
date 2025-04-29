@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { authenticateToken, decodeTokenEvenIfExpired } from '../../../common/middlewares/auth.middleware';
 import NewUserController from '../controllers/register.controller';
 
 const registerRoutes = Router();
@@ -8,12 +9,12 @@ const registerRoutes = Router();
 
 // registerRoutes.put('/history', NewUserController.createHistory);
 
-registerRoutes.post('/verifyEmail', NewUserController.validEmail);
+registerRoutes.post('/validEmail',  NewUserController.validEmail);
 registerRoutes.post('/validUsername', NewUserController.postValidUsername);
 registerRoutes.post('/', NewUserController.newUser);
-registerRoutes.post('/verifyToken', NewUserController.verifyToken);
-registerRoutes.post('/verifyCode', NewUserController.verifyCodeEmail);
-registerRoutes.post('/newCode', NewUserController.sendCodeAgain);
+registerRoutes.post('/verifyToken', authenticateToken, NewUserController.verifyToken);
+registerRoutes.post('/verifyCode', authenticateToken, NewUserController.verifyCodeEmail);
+registerRoutes.get('/newCode', decodeTokenEvenIfExpired, NewUserController.sendCodeAgain);
 
 export default registerRoutes;
 

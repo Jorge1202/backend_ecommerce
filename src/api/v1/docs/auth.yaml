@@ -1,4 +1,4 @@
-/v1/auth/firstLogin:
+/v1/auth/loginHash:
   post:
     tags:
       - Auth

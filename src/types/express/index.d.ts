@@ -1,12 +1,11 @@
-import e, { Request } from 'express';
+import { TokenData } from "../../common/interfaces/tokens"; // o tu tipo personalizado
 
 declare global {
   namespace Express {
     interface Request {
-      dataToken?: any; // o un tipo específico como: dataToken?: { IdAuth: number }
+      dataToken?: string | TokenData; // o el tipo que estés usando
     }
   }
 }
 
 export {};
-
