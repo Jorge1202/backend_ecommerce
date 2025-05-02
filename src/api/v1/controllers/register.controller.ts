@@ -5,6 +5,19 @@ import { CustomRequest } from '../../../common/interfaces/controller-response';
 import { AuthPayload } from '../../../common/interfaces/tokens';
 
 
+// {
+//   "IdHistoryRegister": 1,
+//   "Email": "jorge1.uaeh@gmail.com",
+//   "Password": "123_Qwerty",
+//   "Username": "jorge",
+//   "Name": "Jorge",
+//   "Firstname": "dias",
+//   "Lastname": "noches",
+//   "Phone": "string"
+// }
+
+
+
 class NewUserController extends NewUserService {
 
   constructor() {
@@ -113,7 +126,7 @@ class NewUserController extends NewUserService {
           return ResponseHandler.error(res, 400, 'El código es requerido');
       }
 
-      const response = await this.verifyCodeEmailRegister(dataTokenAuthUser, Code, Token);
+      const response = await this.verifyCodeEmailRegister(dataTokenAuthUser, Code, token);
       const {status, message, body} = response
       ResponseHandler.success(res, status, message, body);
 
@@ -127,10 +140,10 @@ class NewUserController extends NewUserService {
     try {
 
       const {Token} = req.body
-      const {payload} = Token
+      const {payload, token} = Token
       const dataTokenAuthUser = payload as AuthPayload
 
-      const response = await this.sendCodeAgainRegister(dataTokenAuthUser);
+      const response = await this.sendCodeAgainRegister(dataTokenAuthUser, token);
       const {status, message, body} = response
       ResponseHandler.success(res, status, message, body);
 

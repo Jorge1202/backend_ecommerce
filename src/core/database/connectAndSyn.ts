@@ -10,7 +10,7 @@ export const connectAndSyncDatabase = async () => {
     await authenticateDatabase()
     // Inicializar los modelos
     initModels(db);
-    await truncateTables();
+    // await truncateTables();
     
     await syncDatabase()
 };

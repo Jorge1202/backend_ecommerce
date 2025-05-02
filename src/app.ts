@@ -9,6 +9,8 @@ import swaggerSpec from "./core/docs/swagger";
 import routes from './routes'; // tus rutas principales
 import { accessLogStream } from './core/logger/access';
 
+import { errorsMiddleware } from './common/middlewares/errors';
+
 // import './types/express'; 
 
 
@@ -38,8 +40,11 @@ app.use(morgan('combined', { stream: accessLogStream }));
 // Rutas
 app.use('/api', routes);
 
-
 // Documentación Swagger
 app.use("/api/swagger", swaggerUI.serve, swaggerUI.setup(swaggerSpec));
+
+
+// Middleware de manejo de errores
+app.use(errorsMiddleware);
 
 export {app};

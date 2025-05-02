@@ -7,6 +7,8 @@ import { UserPage } from '../models/user-page';
 import { Login } from '../models/login'
 import { DeviceAuth } from '../models/device-auth';
 import { Devices } from '../models/devices';
+import { RefreshToken } from '../models/refresh-token';
+
 import { logger } from '../../../core/logger';
 
 
@@ -15,8 +17,8 @@ import { logger } from '../../../core/logger';
 
 
 export const truncateTables = async () => {
-  logger.info('⚠️ Truncate tables [connectAndSyncDatabase]')
-
+  
+  await RefreshToken.truncate({ restartIdentity: true, cascade: true });
   await HistoryRegister.truncate({ where: {}, restartIdentity: true });
   await AuthTokens.truncate({ where: {}, restartIdentity: true });
   await CodeAutentication.truncate({ restartIdentity: true, cascade: true });
@@ -27,4 +29,6 @@ export const truncateTables = async () => {
   await Auth.truncate({ restartIdentity: true, cascade: true });
   await User.truncate({ restartIdentity: true, cascade: true });
 
+
+  logger.info('⚠️ Truncate tables [connectAndSyncDatabase]')
 }

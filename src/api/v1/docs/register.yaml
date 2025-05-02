@@ -231,7 +231,7 @@
                       description: Correo electrónico del usuario
 
 /v1/register/verifyToken:
-  post:
+  get:
       tags: [Register User]
       summary: Verifica la vista por medio de un token
       security:
@@ -257,7 +257,7 @@
 /v1/register/verifyCode:  
   post:
       tags: [Register User]
-      summary: Se verifica el codigo de verificación del correo electrónico
+      summary: Se valida el codigo para verificar el correo electrónico
       security:
         - BearerAuth: []
       requestBody:

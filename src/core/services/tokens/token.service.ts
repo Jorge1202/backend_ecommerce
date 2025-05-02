@@ -30,7 +30,7 @@ export class TokenService {
       this.refreshTokens = new Set();
     }
 
-    public async validateToken(dataToken: AuthPayload): Promise<ServiceResponse<{ IdAuth: number, auth: Auth }>> {
+    public async validateToken(dataToken: AuthPayload, transaction?:Transaction): Promise<ServiceResponse<{ IdAuth: number, auth: Auth }>> {
         try {
             const { IdAuth, IdUser } = dataToken;
 
@@ -43,6 +43,7 @@ export class TokenService {
 
             const auth = await Auth.findOne({
                 where: { IdAuth },
+                transaction
             },);
 
             if (!auth) {
@@ -106,7 +107,7 @@ export class TokenService {
             });
 
             //Actualizamos el registro en la base de datos
-            resToken.update({Token, ExpiresAt:ExpiresIn }, {transaction})
+            await resToken.update({Token, ExpiresAt:ExpiresIn }, {transaction})
             
             //Crear el registro del nuevo token en memoria
             this.refreshTokens.add(Token); 

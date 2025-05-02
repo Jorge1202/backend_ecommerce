@@ -50,7 +50,8 @@ export async function decodeTokenEvenIfExpired(req: Request, res: Response, next
         const token = getToken.substring(7).trim()          
         const {payload} = verifyTokenExpired(token)
         req.body.Token = {
-          payload
+          payload,
+          token
         };   
 
         next()

@@ -8,13 +8,13 @@ export interface LoginAttributes {
   Active?: boolean;
   DateCreate?: Date;
   DateUpdate?: Date;
-  IdAuth?: number;
-  IdDevice?: number;
+  IdAuth: number;
+  IdDevice: number;
 }
 
 export type LoginPk = "IdLogin";
 export type LoginId = Login[LoginPk];
-export type LoginOptionalAttributes = "IdLogin" | "Active" | "DateCreate" | "DateUpdate" | "IdAuth" | "IdDevice";
+export type LoginOptionalAttributes = "IdLogin" | "Active" | "DateCreate" | "DateUpdate";
 export type LoginCreationAttributes = Optional<LoginAttributes, LoginOptionalAttributes>;
 
 export class Login extends Model<LoginAttributes, LoginCreationAttributes> implements LoginAttributes {
@@ -22,8 +22,8 @@ export class Login extends Model<LoginAttributes, LoginCreationAttributes> imple
   Active?: boolean;
   DateCreate?: Date;
   DateUpdate?: Date;
-  IdAuth?: number;
-  IdDevice?: number;
+  IdAuth!: number;
+  IdDevice!: number;
 
   // Login belongsTo Auth via IdAuth
   IdAuthAuth!: Auth;

@@ -78,17 +78,16 @@ class AuthController extends AuthService {
             if(resLogin.error || !resLogin.body){
                 return ResponseHandler.error(res, resLogin.status, resLogin.message )
             }
-
-            const {body, tokens} = resLogin.body        
+            const {body, tokens} = resLogin.body                    
             if (tokens) {
                 const { TOKEN_REFRESH } = tokens
                 await generateCookieTokenRefresh(res, TOKEN_REFRESH)  
-
             }
-
 
             return ResponseHandler.success(res, resLogin.status, resLogin.message, body)
 
+            
+            
             
         } catch (err: any) {
             next(err);

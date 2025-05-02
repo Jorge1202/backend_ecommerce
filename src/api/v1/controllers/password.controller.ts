@@ -12,28 +12,28 @@ class PasswordController extends PasswordService {
         super();
     }
 
-    public postRecovery = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+    public postRecovery = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const {Email} = req.body
 
-            const { status,message, error } = await this.recovery(Email)
+            const { status,message, error, body } = await this.recovery(Email)
 
             if(error){ return ResponseHandler.error(res, status, message)}
             
-            return ResponseHandler.success(res, status, message);
+            return ResponseHandler.success(res, status, message, body);
 
         } catch (err:any) {
             next(err);
         }
     }
 
-    public getVerifyToken = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+    public getVerifyToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const {Token} = req.body
             const {payload, token} = Token
             const dataTokenAuthUser = payload as AuthPayload
 
-            const { status,message, error } = await this.verifyToken(dataTokenAuthUser, String(token))
+            const { status,message, error } = await this.verifyToken(dataTokenAuthUser)
 
             if(error){ return ResponseHandler.error(res, status, message)}
             
@@ -43,13 +43,13 @@ class PasswordController extends PasswordService {
         }
     }
 
-    public postValidCode = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+    public postValidCode = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {      
             const {Token, Code} = req.body
             const {payload, token} = Token
             const dataTokenAuthUser = payload as AuthPayload
                     
-            const { status,message, error } = await this.validCode(dataTokenAuthUser, String(Code))
+            const { status,message, error } = await this.validCode(dataTokenAuthUser, String(Code), String(token))
 
             if(error){ return ResponseHandler.error(res, status, message)}
             
@@ -59,14 +59,14 @@ class PasswordController extends PasswordService {
         }
     }
 
-    public putChangePassword = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+    public putChangePassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
 
             const {Token, Password} = req.body
             const {payload, token} = Token
             const dataTokenAuthUser = payload as AuthPayload
 
-            const { status,message, error, body } = await this.changePassword(dataTokenAuthUser, String(Password))
+            const { status,message, error, body } = await this.changePassword(dataTokenAuthUser, String(Password), String(token))
 
             if(error){ return ResponseHandler.error(res, status, message)}
             
@@ -76,7 +76,7 @@ class PasswordController extends PasswordService {
         }
     }
 
-    public getNewCode = async (req: CustomRequest, res: Response, next: NextFunction): Promise<void> => {
+    public getNewCode = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const {Token} = req.body
             const {payload, token} = Token

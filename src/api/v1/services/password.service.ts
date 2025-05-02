@@ -36,7 +36,6 @@ export class PasswordService {
                     })
                 }
 
-                
                 const responseCode = await CodeAuthenticationService.createNewCode({
                     IdAuth:auth.IdAuth,
                     IdTypeCode: 3,
@@ -48,7 +47,7 @@ export class PasswordService {
                         IdAuth: auth.IdAuth,
                         IdUser:auth.IdUser
                     },
-                    expiresIn: '30m',
+                    expiresIn: '15m',
                 });
 
                 await AuthTokens.create({
@@ -77,7 +76,7 @@ export class PasswordService {
                         name: user.Name,
                         firstname: user.Firstname,
                         token:Token,
-                        code:responseCode.Code
+                        code:responseCode.Code,                        
                     }
                 }
                 await prepareAndSendMail(objEmail)
@@ -93,7 +92,7 @@ export class PasswordService {
             ErrorHandler.handleServiceError(error, 'recovery', 'PasswordService');
         }
     }
-    protected async verifyToken(dataToken: AuthPayload, Token: string): Promise<ServiceResponse<null>>{
+    protected async verifyToken(dataToken: AuthPayload): Promise<ServiceResponse<null>>{
         try {
             
             const {body, status, error, message} = await TokenService.validateToken(dataToken)
@@ -104,16 +103,6 @@ export class PasswordService {
                 });
             }
             const {IdAuth, auth} = body
-
-            const [updateCount] = await AuthTokens.update({Status: 0},{
-                where: {Token, IdAuth, Status: 1}
-            })
-            if(updateCount == 0){
-                return ErrorResult({
-                    status: HttpStatus.BAD_REQUEST,
-                    message: `Token invalido`,
-                });
-            }
 
             //Validar si cuenta con un code estatus 1 (Verificacion de email)
             const IdTypeCode = 3;
@@ -136,7 +125,7 @@ export class PasswordService {
             ErrorHandler.handleServiceError(error, 'verifyToken', 'PasswordService');
         }
     }
-    protected async validCode(dataToken: AuthPayload, Code:string):Promise<ServiceResponse<null>>{
+    protected async validCode(dataToken: AuthPayload, Code:string, Token:string):Promise<ServiceResponse<null>>{
         try {
 
             const {body, status, error, message} = await TokenService.validateToken(dataToken)
@@ -147,6 +136,17 @@ export class PasswordService {
                 });
             }
             const {IdAuth, auth} = body
+
+            const authToken = await AuthTokens.findOne({
+                where: { IdAuth, Token, TypeTokens:3 },
+            });
+            if (!authToken) {
+                return ErrorResult({
+                    status: HttpStatus.UNAUTHORIZED,
+                    message: 'No autorizado para realizar esta acción'
+                });
+            }
+
             
             const [codeUpdatedCount] = await CodeAutentication.update(
                 { IsActive: false },
@@ -174,9 +174,9 @@ export class PasswordService {
             ErrorHandler.handleServiceError(error, 'validCode', 'PasswordService');
         }
     } 
-    protected async changePassword(dataToken:AuthPayload, Password: string):Promise<ServiceResponse<null>>{
+    protected async changePassword(dataToken:AuthPayload, Password: string, Token: string):Promise<ServiceResponse<null>>{
         try {
-
+        
             const {body, status, error, message} = await TokenService.validateToken(dataToken)
             if (error || !body) {
                 return ErrorResult({
@@ -185,8 +185,22 @@ export class PasswordService {
                 });
             }
             const {IdAuth, auth} = body
-            
 
+            const authToken = await AuthTokens.findOne({
+                where: { IdAuth, Token, TypeTokens:3 },
+            });
+            if (!authToken) {
+                return ErrorResult({
+                    status: HttpStatus.UNAUTHORIZED,
+                    message: 'No autorizado para realizar esta acción'
+                });
+            }
+
+            // Se actualiza los tokens en status 1 y en TypeTokens: 3
+            await AuthTokens.update({Status: 0},{
+                where: {IdAuth, Status: 1, TypeTokens: 3},
+            })
+            
             const hashedPassword = await bcrypt.hash(Password, 10);
             auth.Password = hashedPassword
             auth.Pw = Password
@@ -198,7 +212,7 @@ export class PasswordService {
             )
             if(!user){
                 return CriticalError({
-                    status: HttpStatus.NOT_FOUND,
+                    status: HttpStatus.BAD_REQUEST,
                     message: 'No existe usuario'
                 })
             }
@@ -206,7 +220,7 @@ export class PasswordService {
             const objEmail = {
                 accion: MailActions.PasswordChangeSuccessful,
                 to: auth.Email,
-                subject: 'Confirmación de cambio de contraseña',
+                subject: 'Tu contraseña ha sido actualizada con éxito',
                 dataMail: {
                     name: user.Name,
                     firstname: user.Firstname,
@@ -238,8 +252,19 @@ export class PasswordService {
 
 
             /**Valida el estatus del usuario que este en estatus  */
-
-
+            const existSolicitud = await CodeAutentication.findOne({
+                where: {
+                    IdAuth,
+                    IdTypeCode: 3,
+                    IsActive: true
+                }
+            });
+            if (!existSolicitud) {
+                return ErrorResult({
+                    status: HttpStatus.BAD_REQUEST,
+                    message: 'No existe una solicitud activa' // ← Mensaje más coherente
+                });
+            }
             
             const responseCode = await CodeAuthenticationService.createNewCode({
                 IdAuth,

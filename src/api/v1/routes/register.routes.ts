@@ -12,7 +12,7 @@ const registerRoutes = Router();
 registerRoutes.post('/validEmail',  NewUserController.validEmail);
 registerRoutes.post('/validUsername', NewUserController.postValidUsername);
 registerRoutes.post('/', NewUserController.newUser);
-registerRoutes.post('/verifyToken', authenticateToken, NewUserController.verifyToken);
+registerRoutes.get('/verifyToken', authenticateToken, NewUserController.verifyToken);
 registerRoutes.post('/verifyCode', authenticateToken, NewUserController.verifyCodeEmail);
 registerRoutes.get('/newCode', decodeTokenEvenIfExpired, NewUserController.sendCodeAgain);
 

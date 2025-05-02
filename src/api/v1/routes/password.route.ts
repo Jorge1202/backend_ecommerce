@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { authenticateToken, decodeTokenEvenIfExpired } from '../../../common/middlewares/auth.middleware';
 import PasswordController from '../controllers/password.controller';
 
 
@@ -6,10 +7,10 @@ const passwordRoutes = Router();
 
 //#region ################ Solicitar cambio de contraseña 
 passwordRoutes.post('/recovery', PasswordController.postRecovery);
-passwordRoutes.get('/verifyToken', PasswordController.getVerifyToken);
-passwordRoutes.post('/validCode', PasswordController.postValidCode);
-passwordRoutes.put('/change', PasswordController.putChangePassword);
-passwordRoutes.get('/newCode', PasswordController.getNewCode);
+passwordRoutes.get('/verifyToken', authenticateToken, PasswordController.getVerifyToken);
+passwordRoutes.put('', authenticateToken, PasswordController.putChangePassword);
+// passwordRoutes.post('/verifyCode', authenticateToken, PasswordController.postValidCode);
+// passwordRoutes.get('/newCode', authenticateToken, PasswordController.getNewCode); 
 //#endregion ################ Solicitar cambio de contraseña 
 
 export default passwordRoutes;

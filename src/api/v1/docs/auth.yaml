@@ -54,11 +54,11 @@
                 type: string
                 format: Email
                 description: Email del usuario
-                example: usuario@ejemplo.com
+                example: string
               Password:
                 type: string
                 description: Password del usuario
-                example: "******"
+                example: "string"
     responses:
       200:
         description: Inicio de sesión por token

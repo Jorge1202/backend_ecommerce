@@ -12,11 +12,12 @@ export interface HistoryRegisterAttributes {
   DateCreate?: Date;
   DateUpdate?: Date;
   HasPassword?: boolean;
+  IdUser?: string;
 }
 
 export type HistoryRegisterPk = "Id";
 export type HistoryRegisterId = HistoryRegister[HistoryRegisterPk];
-export type HistoryRegisterOptionalAttributes = "Id" | "Email" | "Name" | "Firstname" | "Lastname" | "Username" | "StatusRegister" | "DateCreate" | "DateUpdate" | "HasPassword";
+export type HistoryRegisterOptionalAttributes = "Id" | "Email" | "Name" | "Firstname" | "Lastname" | "Username" | "StatusRegister" | "DateCreate" | "DateUpdate" | "HasPassword" | "IdUser";
 export type HistoryRegisterCreationAttributes = Optional<HistoryRegisterAttributes, HistoryRegisterOptionalAttributes>;
 
 export class HistoryRegister extends Model<HistoryRegisterAttributes, HistoryRegisterCreationAttributes> implements HistoryRegisterAttributes {
@@ -30,6 +31,7 @@ export class HistoryRegister extends Model<HistoryRegisterAttributes, HistoryReg
   DateCreate?: Date;
   DateUpdate?: Date;
   HasPassword?: boolean;
+  IdUser?: string;
 
 
   static initModel(sequelize: Sequelize.Sequelize): typeof HistoryRegister {
@@ -75,7 +77,6 @@ export class HistoryRegister extends Model<HistoryRegisterAttributes, HistoryReg
     DateCreate: {
       type: DataTypes.DATE,
       allowNull: true,
-      defaultValue: Sequelize.NOW,
       field: 'date_create'
     },
     DateUpdate: {
@@ -88,14 +89,17 @@ export class HistoryRegister extends Model<HistoryRegisterAttributes, HistoryReg
       allowNull: true,
       defaultValue: false,
       field: 'has_password'
+    },
+    IdUser: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      defaultValue: "NULL"
     }
   }, {
     sequelize,
     tableName: 'history_register',
     schema: 'user',
-    timestamps: true, // ✅ activa los timestamps
-    createdAt: 'DateCreate', 
-    updatedAt: 'DateUpdate', 
+    timestamps: false,
     indexes: [
       {
         name: "history_register_pkey",

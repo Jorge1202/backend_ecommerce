@@ -23,9 +23,12 @@ import { withTransaction } from '../../../common/database/transaction_helper';
 import { generateToken } from '../../../common/utils/authenticationToken';
 import { MailActions } from '../../../common/interfaces/mail';
 import { prepareAndSendMail } from '../../../common/email/prepareAndSendMail ';
+import { SuccessResponseLogin } from '../../../common/interfaces/auth';
+
 
 const bcrypt = require("bcrypt");
 const { v4: uuidv4 } = require('uuid');
+
 
 export class AuthService {
     
@@ -53,21 +56,7 @@ export class AuthService {
                     })
                 }
 
-                const {IdUser, IdAuth} = responseAuth   
-                
-                // 4️⃣ Cambias el estado del token a inactivo (ya fue utilizado)
-                const [authenticationToken] = await AuthTokens.update({ Status: 0 },
-                    {
-                        where: {Token, IdAuth, Status: 1},
-                        transaction
-                    }
-                );
-                if (authenticationToken === 0) {
-                    return ErrorResult({
-                        status: HttpStatus.INTERNAL_SERVER_ERROR,
-                        message: 'Error de base de datos',
-                    });
-                }
+                const {IdUser, IdAuth} = responseAuth               
 
                 const objUserPage = {IdTypePage: 1, IdUser}
                 const resUserPage = await UserPage.create(objUserPage, {transaction}) 
@@ -132,6 +121,7 @@ export class AuthService {
 
     protected async login(Username:string, Password:string, hash: string): Promise<ServiceResponse<ResponseLogin>> {
         try {
+
             const resValidLogin = await this.validParamslogin(Username, Password)
             if(resValidLogin.error){
                 return ErrorResult({
@@ -139,19 +129,29 @@ export class AuthService {
                     message: resValidLogin.message
                 }); 
             }
-            
+
             const {body} = resValidLogin
-            const {error, IdDevice} = await this.validateDevice(hash, body!)
-            if(error){
-                ErrorResult({
+            
+            if(!hash && body){
+                const mailDevice = await this.sendVerificationCodeResponse(body);            
+                return ErrorResult( {
+                    status: mailDevice.status,
+                    message: mailDevice.message,
+                })                            
+            }
+
+
+            const {error, body:infoDevice} = await this.validateDevice(hash, body!)
+            if(error || !infoDevice){
+                return ErrorResult({
                     status: HttpStatus.BAD_REQUEST,
-                    message: 'Dispositivo no verificado. Por favor, revisa tu correo para continuar con el acceso.'
+                    message: 'Dispositivo no verificado'
                 })
             }
 
-            const resLogin = await this.loginWithDevice(Username, Password, IdDevice)
+            const resLogin = await this.loginWithDevice(Username, Password, infoDevice.IdDevice)
             if(resLogin.error){
-                ErrorResult({
+                return ErrorResult({
                     status: resLogin.status,
                     message: resLogin.message
                 })
@@ -203,7 +203,8 @@ export class AuthService {
 
                 const {IdUser} = dataAuth
                 const resUserPage = await UserPage.findOne({
-                    where:{ IdUser}
+                    where:{ IdUser},
+                    transaction
                 })
                 if(!resUserPage){
                     return ErrorResult({
@@ -314,6 +315,7 @@ export class AuthService {
                     status: HttpStatus.OK,
                     message: '¡Inicio de sesión exitoso! Bienvenido.',
                     body: {
+                        type: SuccessResponseLogin.LoginSuccess,
                         body:{
                             newDevice: false,
                             firstLogin: false,
@@ -403,11 +405,11 @@ export class AuthService {
 
             const {IdAuth, IdUser} = dataAuth               
             await Login.update({ Active: false }, {
-                where: { IdAuth, IdDevice }
+                where: { IdAuth, IdDevice, Active: true },
+                transaction
             })
             
-            const objLogin = {IdAuth, IdDevice}
-            await Login.create(objLogin, { transaction }); 
+            await Login.create({IdAuth, IdDevice}, { transaction }); 
                     
             const objTokenefresh = {
                 IdAuth,
@@ -446,8 +448,8 @@ export class AuthService {
                             
             return {
                 error: false,
-                TOKEN_ACCESS:tokenAccess,
-                TOKEN_REFRESH:`Bearer ${tokenRefresh}`  
+                TOKEN_ACCESS: tokenAccess,
+                TOKEN_REFRESH: tokenRefresh  
             };
 
         } catch (error: any) {
@@ -455,48 +457,59 @@ export class AuthService {
             }
     }
 
-    private async validateDevice(hash:string, dataAuth:Auth): Promise<{ error: boolean, IdDevice:number }>{
+    private async validateDevice( hash: string, dataAuth: Auth): Promise<ServiceResponse<{ IdDevice: number }>> {
         try {
-            //Si existe el registro del dispositivo      
-            const device = await Devices.findOne({
-                where: { Token: hash, IsActive:true }
+
+          
+          const device = await Devices.findOne({ where: { Token: hash, IsActive: true } })
+          if (!device) {
+            return ErrorResult({
+                status: HttpStatus.BAD_REQUEST,
+                message:'Identificador de dispositivo incorrecto'
             })
-            if (!device) {
-                //Si no se encuentra, se manda correo con un codigo de validación
-                const IdTypeCode = 6
-                await this.sendMailVerificationCode(dataAuth, IdTypeCode, 'Seguridad: Verificación del dispositivo');
-
-                return {
-                    error: true,
-                    IdDevice: 0
-                }
+          }
+      
+          // Si el dispositivo existe pero pertenece a otro usuario
+          if (device.IdAuth !== dataAuth.IdAuth) {
+            const alreadyLinked = await DeviceAuth.findOne({
+              where: { IdDevice: device.IdDevice, IdAuth: dataAuth.IdAuth },
+            });
+      
+            if (!alreadyLinked) {
+              const newAuth: DeviceAuthAttributes = {
+                IdDeviceAuth: 0,
+                IdDevice: device.IdDevice,
+                IdAuth: dataAuth.IdAuth,
+              };
+              await DeviceAuth.create(newAuth);
             }
-
-            if(device.IdAuth !== dataAuth.IdAuth){
-
-                const findDeviceAuth = await DeviceAuth.findOne({
-                    where: {
-                        IdDevice: device.IdDevice, 
-                        IdAuth:dataAuth.IdAuth
-                    }
-                })
-
-                if (!findDeviceAuth) {
-                    const objUserPage:DeviceAuthAttributes = {IdDeviceAuth: 0, IdDevice: device.IdDevice, IdAuth:dataAuth.IdAuth }
-                    await DeviceAuth.create(objUserPage)
-                }
-
-            }
-            
-            return {
-                error: false,
-                IdDevice: device.IdDevice
-            }     
-     
+          }
+      
+          return SuccessResult({
+            status: HttpStatus.OK,
+            message: 'Dispositivo validado',
+            body: {
+              IdDevice: device.IdDevice,
+            },
+          });
         } catch (error: any) {
-            ErrorHandler.handleServiceError(error, 'loginByHash', 'AuthService');
+          ErrorHandler.handleServiceError(error, 'validateDevice', 'AuthService');
         }
-    }
+      }
+      
+
+    private async sendVerificationCodeResponse(dataAuth: Auth): Promise<ServiceResponse<null>> {
+        const IdTypeCode = 6;
+        const mailDevice = await this.sendMailVerificationCode(dataAuth, IdTypeCode, 'Seguridad: Verificación de dispositivo');
+      
+        const {message } = mailDevice;
+        return ErrorResult({
+          status: HttpStatus.BAD_REQUEST,
+          message: message,
+        });
+      
+      }
+      
 
     private async sendMailVerificationCode(dataAuth: Auth, IdTypeCode: number, subject:string): Promise<ServiceResponse<{ Token: string }>> {
         try {
@@ -518,9 +531,9 @@ export class AuthService {
             const {Name, Firstname, } = dataUser
             // Enviar correo con el código de verificación
             const objEmail = {
-                accion: MailActions.CodeAuth,
+                accion: MailActions.NuevoDispositivo,
                 to: Email,
-                subject: 'Nuevo código de verificación',
+                subject: 'Seguridad: Verificación de nuevo dispositivo',
                 dataMail: {
                     name: Name,
                     firstname: Firstname,
@@ -539,8 +552,8 @@ export class AuthService {
             });
 
             return SuccessResult({
-                status: 205,
-                message: `Confirma tu correo electrónico, mediante el código de verificación`,
+                status: HttpStatus.OK,
+                message: `Por seguridad, te hemos enviado un código a tu correo. Por favor, verifica este acceso para continuar`,
                 body: {Token}
             });
         } catch (error: any) {
@@ -561,7 +574,7 @@ export class AuthService {
             const {IdAuth, auth} = body
     
             const [updateCount] = await AuthTokens.update({Status: 0},{
-                where: {Token, IdAuth, Status: 1},
+                where: {Token, IdAuth, Status: 1, TypeTokens:2},
                 transaction
             })
             if(updateCount == 0){
