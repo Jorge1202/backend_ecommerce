@@ -47,7 +47,7 @@ class NewUserController extends NewUserService {
 
       // 2. Llamar al servicio para crear registro 
       // estatus 1
-      const response = await this.validEmailRegister(data);
+      const response = await this.validEmailRegister(data, data.IdHistoryRegister);
       const { status, message, body } = response
       ResponseHandler.success(res, status, message, body);
 

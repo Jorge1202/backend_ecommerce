@@ -10,23 +10,21 @@ import routes from './routes'; // tus rutas principales
 import { accessLogStream } from './core/logger/access';
 
 import { errorsMiddleware } from './common/middlewares/errors';
-
+import cookieParser from 'cookie-parser';
+import { corsOptions } from './core/config/cors';
+import { securityHelmet } from './core/config/helmet';
 // import './types/express'; 
-
 
 const app = express();
 
 // Middleware de seguridad
-app.use(helmet());  //Usá una herramienta como https://securityheaders.com para analizar tu API. O podés ver las cabeceras en Postman / navegador:
-// app.use(helmet.dnsPrefetchControl());       // Controla dns-prefetch
-// app.use(helmet.frameguard({ action: 'deny' })); // Previene clickjacking
-// app.use(helmet.hidePoweredBy());           // Elimina el X-Powered-By
-// app.use(helmet.hsts());                    // Seguridad HTTPS Strict
-// app.use(helmet.noSniff());                 // No sniffing
-// app.use(helmet.xssFilter());               // Previene XSS
+securityHelmet(app)
+
+// Middleware obtener cookies only-http
+app.use(cookieParser())
 
 // Middleware para permitir CORS
-app.use(cors());
+app.use(cors(corsOptions));
 
 // Middleware para parsear JSON
 app.use(express.json());

@@ -1,15 +1,24 @@
 import { DevicesCreationAttributes } from '../../api/v1/models/devices';
 
+
 export enum SuccessResponseLogin {
   DeviceVerification = 'device_verification',
   LoginSuccess = 'login_success',
+}
+
+export interface PropsValidLogin<T> {
+  error: boolean,
+  status: number,
+  message: string,
+  dataAuth?: T | null, 
+  Token?: string | null
 }
 
 interface body {
   // HashDevice?: string; // cuando aún no se ha validado el dispositivo
   newDevice: boolean;
   firstLogin: boolean;
-  TOKEN_ACCESS: string;
+  TOKEN: string;
 }
 // Caso 1: requiere verificación de dispositivo
 // export interface ResponseLoginDeviceVerification {

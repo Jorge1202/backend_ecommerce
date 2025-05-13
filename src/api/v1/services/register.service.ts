@@ -5,7 +5,7 @@ import { CodeAutentication } from '../models/code-autentication';
 import { Auth, AuthCreationAttributes } from '../models/auth';
 import { AuthTokens } from '../models/auth-tokens';
 
-import CodeAuthenticationService from './CodeAuthentication.service';
+import {CodeAuthenticationService} from './CodeAuthentication.service';
 
 import { withTransaction } from '../../../common/database/transaction_helper';
 import { HttpStatus } from '../../../common/constants/httpStatus';
@@ -17,9 +17,7 @@ import { maskEmail } from '../../../common/utils/maskEmail'
 import { ServiceResponse } from '../../../common/interfaces/service-response';
 import { NewUser, RegisterResult } from '../../../common/interfaces/register';
 import { AuthPayload } from '../../../common/interfaces/tokens';
-import { MailActions } from '../../../common/interfaces/mail';
 import TokenService from '../../../core/services/tokens/token.service';
-import { prepareAndSendMail } from '../../../common/email/prepareAndSendMail ';
 
 const bcrypt = require("bcrypt");
 
@@ -48,7 +46,7 @@ export class NewUserService {
      * @param userData - Datos del nuevo usuario.
      * @returns Respuesta del servicio con el resultado de la operación.
      */
-    protected async validEmailRegister(userData: HistoryRegister): Promise<ServiceResponse<HistoryRegister>> {
+    protected async validEmailRegister(userData: HistoryRegister, idHistory:null|number): Promise<ServiceResponse<HistoryRegister>> {
         try {
 
             if (!userData.Email) {
@@ -57,22 +55,35 @@ export class NewUserService {
                     message: 'El campo Email es requerido'
                 })
             }
-
+        
             const responseValid = await this.verifyEmail(userData.Email);
             if (responseValid.error) {
                 return ErrorResult({
-                    status: HttpStatus.UNPROCESSABLE_ENTITY,
+                    status: HttpStatus.BAD_REQUEST,
                     message: responseValid.message
                 })
             }
 
-            const createdRecord = await HistoryRegister.create(userData);
+            if (!idHistory) {
+                const createdRecord = await HistoryRegister.create(userData);
+                return SuccessResult({
+                    status: HttpStatus.OK,
+                    message:  responseValid.message,
+                    body: createdRecord
+                });
+            }
+
+            await HistoryRegister.update({Email:userData.Email}, {
+                where:{Id: idHistory}
+            });
+
             return SuccessResult({
                 status: HttpStatus.OK,
                 message:  responseValid.message,
-                body: createdRecord
             });
 
+
+            
         } catch (error: any) {
             ErrorHandler.handleServiceError(error, 'createHistoryRegister', 'NewUserService');
         }
@@ -141,11 +152,11 @@ export class NewUserService {
 
                 // Validar Email y Username que no exista
                 const existing = await Auth.findOne({ where: { Email }, transaction });
-                if (existing) return ErrorResult({ status: HttpStatus.CONFLICT, message: 'Ya existe un usuario con ese email' });
+                if (existing) return ErrorResult({ status: HttpStatus.BAD_REQUEST, message: 'Ya existe un usuario con ese email' });
 
 
                 const existingUsername = await Auth.findOne({ where: { Username }, transaction });
-                if (existingUsername) return ErrorResult({ status: HttpStatus.CONFLICT, message: 'Ya existe un usuario con ese Username' });
+                if (existingUsername) return ErrorResult({ status: HttpStatus.BAD_REQUEST, message: 'Ya existe un usuario con ese Username' });
 
                 // Crear el registro en la tabla User
                 const objDataUser: UserCreationAttributes = {
@@ -171,12 +182,17 @@ export class NewUserService {
                 const { IdAuth } = await Auth.create(objDataAuth, { transaction });
 
 
-                // Crear el registro en la tabla CodeAutentication                
-                const responseCode = await CodeAuthenticationService.createNewCode({
-                    IdAuth,
-                    IdTypeCode: 1,
-                    Description:'Registro validar email'
-                }, transaction);
+
+                const Token = await CodeAuthenticationService.SendVerificationEmail({   
+                        IdAuth, IdUser, Email, Name, Firstname,
+                    }, 
+                    transaction)
+                if(!Token){
+                    return ErrorResult({
+                        status:HttpStatus.INTERNAL_SERVER_ERROR,
+                        message:'Error interno'
+                    })
+                }
 
                 // Crear el registro en la tabla HistoryRegister
                 const objHistoryRegister = {
@@ -193,45 +209,16 @@ export class NewUserService {
                 };
                 await HistoryRegister.update(objHistoryRegister, { where: { Id: IdHistoryRegister }, transaction });
 
-                const objEmail = {
-                    accion: MailActions.CodeAuth,
-                    to: Email,
-                    subject: 'Código de verificación',
-                    dataMail: {
-                        name: Name,
-                        firstname: Firstname,
-                        code: responseCode.Code,
-                    }
-                }
-                await prepareAndSendMail(objEmail)
+       
                 
-                // Generar el token de verificación
-                const { Token, ExpiresIn } = generateToken({
-                    dataToken: {
-                        IdAuth,
-                        IdUser
-                    },
-                    expiresIn: '15m',
-                });
-
-                // Guardar el token en la bd
-                await AuthTokens.create({
-                    Token,
-                    IdAuth,
-                    TypeTokens: 1,
-                    ExpiresIn
-                }, { transaction });
-
-
-                const maskedEmail = maskEmail(Email);
 
                 // Responder al frontend con el token y el email enmascarado
                 return SuccessResult({
-                    status: HttpStatus.OK,
+                    status: HttpStatus.CREATED,
                     message: 'Usuario registrado correctamente',
                     body: {
                         Token,
-                        maskedEmail,
+                        maskedEmail:maskEmail(Email),
                     }
                 });
             });
@@ -328,7 +315,7 @@ export class NewUserService {
                 );
                 if (codeUpdatedCount === 0) {
                     return ErrorResult({
-                        status: HttpStatus.UNPROCESSABLE_ENTITY,
+                        status: HttpStatus.BAD_REQUEST,
                         message: 'El código no es válido o ya fue utilizado',
                     });
                 }
@@ -423,60 +410,35 @@ export class NewUserService {
                 });
                 if (!responseCodeValid) {
                     return ErrorResult({
-                        status: HttpStatus.UNPROCESSABLE_ENTITY,
+                        status: HttpStatus.BAD_REQUEST,
                         message: 'No cuenta con solicitud de verificacion de correo'
                     });
                 }
 
                 await responseCodeValid.update({IsActive:false}, { transaction })
 
-                const responseCode = await CodeAuthenticationService.createNewCode({
-                    IdAuth,
-                    IdTypeCode: 1,
-                    Description: 'Reenvio de código para validar email'
-                }, transaction);
-    
-    
+
                 const responseUser = await User.findOne({
                     where: { IdUser: auth.IdUser },
                     transaction
                 })
                 if (!responseUser) {
                     return ErrorResult({
-                        status: HttpStatus.UNPROCESSABLE_ENTITY,
-                        message: 'No cuenta con solicitud de verificacion de correo'
+                        status: HttpStatus.INTERNAL_SERVER_ERROR,
+                        message: 'Error en la base de datos'
                     });
                 }
-                // Generar token
-    
-                // Enviar correo con el código de verificación
-                const objEmail = {
-                    accion: MailActions.CodeAuth,
-                    to: auth.Email,
-                    subject: 'Código de verificación',
-                    dataMail: {
-                        name: responseUser.Name,
-                        firstname: responseUser.Firstname,
-                        code: responseCode.Code,
-                    }
+
+                const {IdUser,Name,Firstname} = responseUser
+                const Token = await CodeAuthenticationService.SendVerificationEmail({
+                    IdAuth,IdUser, Name, Firstname, Email: auth.Email,
+                }, transaction)
+                if(!Token){
+                    return ErrorResult({
+                        status: HttpStatus.INTERNAL_SERVER_ERROR,
+                        message: 'Error Interno'
+                    });
                 }
-                await prepareAndSendMail(objEmail)
-
-                const { Token, ExpiresIn } = generateToken({
-                    dataToken: {
-                        IdAuth,
-                        IdUser:auth.IdUser
-                    },
-                    expiresIn: '15m',
-                });
-
-                //genera un token de tipo 1 para validar el email del registro
-                await AuthTokens.create({
-                    Token,
-                    IdAuth,
-                    TypeTokens: 1,
-                    ExpiresIn
-                }, { transaction });
     
                 return SuccessResult({
                     status: HttpStatus.OK,

@@ -1,5 +1,4 @@
-import { Config } from "../../common/interfaces/config.config";
-
+import { Config } from "../../common/interfaces/config";
 
 // Configuración principal
 const config: Config = {
@@ -11,12 +10,6 @@ const config: Config = {
     
     api: {
         PORT: Number(process.env.PORT) || 3005, // Convertimos a número para mayor seguridad
-    },
-    CORS: {
-        origin: process.env.SRV_HOST || [
-          "http://localhost:3000",
-          "http://192.168.1.70:3000",
-        ],
     },
 };
 

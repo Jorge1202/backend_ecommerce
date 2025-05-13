@@ -24,6 +24,10 @@
                 format: Email
                 description: Email del usuario
                 example: "string"
+              IdHistoryRegister:
+                type: number
+                description: Id del Historial en caso de tenerlo
+                example: null
     responses:
       200:
         description: Registro fue creado
@@ -221,7 +225,7 @@
                 body:
                   type: object  
                   properties:
-                    Email:
+                    maskedEmail:
                       type: string
                       example: "pru.....@g....com"
                       description: Correo electrónico del usuario

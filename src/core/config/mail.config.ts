@@ -1,4 +1,4 @@
-import { MailConfig } from "../../common/interfaces/config.config";
+import { MailConfig } from "../../common/interfaces/config";
 
 
 // Configuración principal

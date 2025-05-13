@@ -1,5 +1,5 @@
 import jwt, { TokenExpiredError, JsonWebTokenError } from 'jsonwebtoken';
-import { config } from '../../core/config/security';
+import { config } from '../../core/config';
 import { TokenData, JwtOptions, ReturnToken } from '../interfaces/tokens';
 import { HttpStatus } from '../constants/httpStatus';
 

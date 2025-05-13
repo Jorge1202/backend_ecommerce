@@ -5,7 +5,7 @@ type ActionType = {
 };
 
 export const actionType: ActionType = {
-    TOKEN_REFRESH: "__Secure-RTK",
+    TOKEN_REFRESH: "Secure-RTK",
     DEVICE: "SSID",
 };
 
@@ -21,7 +21,9 @@ export const generateCookieTokenRefresh = async (res: Response, token:string): P
         httpOnly: true, // Protege contra ataques XSS
         maxAge: refreshTokenTTL, //30 días en milisegundos
         secure: process.env.NODE_ENV === 'production', // Solo en HTTPS si estás en producción
-        sameSite: process.env.NODE_ENV === 'production' ? 'strict':'lax', // lax(local) strict(produccion)
+        //sameSite para permitir cookies entre // lax(local) | none(entre subdominios) | strict(en mismo domino)
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict':'lax', // lax(local) | none(entre subdominios) | strict(en mismo domino)
+        // domain: '.tusitio.com', // compartir cookie entre tusitio.com y api.tusitio.com
     });
 };
   

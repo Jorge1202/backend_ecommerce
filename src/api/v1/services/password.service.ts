@@ -31,7 +31,7 @@ export class PasswordService {
                 })
                 if(!auth){
                     return ErrorResult({
-                        status: HttpStatus.UNPROCESSABLE_ENTITY,
+                        status: HttpStatus.BAD_REQUEST,
                         message:'Si existe una cuenta asociada con este correo, recibirás un email',
                     })
                 }
@@ -111,7 +111,7 @@ export class PasswordService {
             });
             if (!codeValid) {
                 return ErrorResult({
-                    status: HttpStatus.UNPROCESSABLE_ENTITY,
+                    status: HttpStatus.BAD_REQUEST,
                     message: 'No cuenta con solicitud de verificacion de correo'
                 });
             }
