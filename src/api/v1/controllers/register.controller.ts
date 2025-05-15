@@ -88,6 +88,10 @@ class NewUserController extends NewUserService {
       // estatus 1
       const response = await this.newUserRegister(data);
       const { status, message, body } = response
+      if(response.error){
+        return ResponseHandler.error(res, response.status, response.message )
+      }
+      
       ResponseHandler.success(res, status, message, body);
 
     } catch (err: any) {
@@ -106,6 +110,10 @@ class NewUserController extends NewUserService {
       // estatus 1
       const response = await this.verifyTokenRegister(dataTokenAuthUser, String(token));
       const {status, message, body} = response
+      if(response.error){
+        return ResponseHandler.error(res, response.status, response.message )
+      }
+
       ResponseHandler.success(res, status, message, body);
 
     } catch (err: any) {

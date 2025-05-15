@@ -12,21 +12,22 @@ import { AuthTokens } from '../models/auth-tokens';
 
 
 interface PropsEmail {
-  IdAuth:number,
-   IdUser:string,
-   Email:string,
-   Name:string,
-   Firstname:string
-   subject:string
-   IdTypeCode:number
-   TypeTokens:number
+  action: MailActions,
+  IdAuth: number,
+  IdUser: string,
+  Email: string,
+  Name: string,
+  Firstname: string
+  subject: string
+  IdTypeCode: number
+  TypeTokens: number
 }
 interface SendVerificarion {
-  IdAuth:number,
-   IdUser:string,
-   Email:string,
-   Name:string,
-   Firstname:string
+  IdAuth: number,
+  IdUser: string,
+  Email: string,
+  Name: string,
+  Firstname: string
 }
 
 export class CodeAuthenticationService {
@@ -38,41 +39,73 @@ export class CodeAuthenticationService {
    * @param transaction 
    * @returns 
    */
-  public async createNewCode(codeData: CodeAutenticationCreationAttributes, transaction?: Transaction): Promise<CodeAutentication> {
+  static async SendVerificationEmail({ IdAuth, IdUser, Email, Name, Firstname }: SendVerificarion, transaction?: Transaction): Promise<string | null> {
     try {
-      // 1️⃣ Desactivar códigos anteriores
-      await this._deactivatePreviousCodes(codeData, transaction);
+      // Catalogos de la base de datos
+      const TypeTokens = 1 //viene de la tabla typeTokens 
+      const IdTypeCode = 1 //viene de la tabla type_code
 
-      // 2️⃣ Generar código aleatorio
-      const newCode = this._generateRandomCode();
 
-      // 3️⃣ Crear nuevo código
-      const code = await CodeAutentication.create(
-        { ...codeData, Code: newCode },
-        { transaction }
-      );
+      const objData = {
+        action: MailActions.CodeAuth,
+        IdAuth,
+        IdUser,
+        Email,
+        Name,
+        Firstname,
+        subject: 'Activa tu cuenta ahora',
+        IdTypeCode,
+        TypeTokens
+      }
 
-      return code;
+
+      const codeAuth = new CodeAuthenticationService()
+      const Token = await codeAuth.SendCode(objData, transaction)
+      return Token
 
     } catch (error: any) {
-      throw ErrorHandler.handleServiceError(error, 'createNewCode', 'CodeAuthenticationService');
+      ErrorHandler.handleServiceError(error, 'registerUser', 'NewUserService');
+    }
+  }
+  static async SendVerificationDevice({ IdAuth, IdUser, Email, Name, Firstname }: SendVerificarion, transaction?: Transaction): Promise<string | null> {
+    try {
+
+      // Catalogos de la base de datos
+      const TypeTokens = 4 //viene de la tabla typeTokens 
+      const IdTypeCode = 6 //viene de la tabla type_code
+
+      const objData = {
+        action: MailActions.NuevoDispositivo,
+        IdAuth,
+        IdUser,
+        Email,
+        Name,
+        Firstname,
+        subject: 'Solicitud para activar nuevo dispositivo',
+        IdTypeCode,
+        TypeTokens
+      }
+
+      const codeAuth = new CodeAuthenticationService()
+      const Token = await codeAuth.SendCode(objData, transaction)
+      return Token
+
+    } catch (error: any) {
+      ErrorHandler.handleServiceError(error, 'registerUser', 'NewUserService');
     }
   }
 
-
-
-  private async SendCode({ IdAuth, IdUser, Email, Name, Firstname, subject, IdTypeCode, TypeTokens }: PropsEmail, transaction?: Transaction): Promise<string | null> {
+  private async SendCode({ IdAuth, IdUser, Email, Name, Firstname, subject, IdTypeCode, TypeTokens, action }: PropsEmail, transaction?: Transaction): Promise<string | null> {
     try {
       // Crear el registro en la tabla CodeAutentication    
-      const CodeAuthentication = new CodeAuthenticationService()            
-      const responseCode = await CodeAuthentication.createNewCode({
+      const responseCode = await this.createNewCode({
         IdAuth,
         IdTypeCode,
         Description: subject
       }, transaction);
 
       const objEmail = {
-        accion: MailActions.CodeAuth,
+        accion: action,
         to: Email,
         subject,
         dataMail: {
@@ -105,34 +138,24 @@ export class CodeAuthenticationService {
     }
   }
 
-  static async SendVerificationEmail({ IdAuth, IdUser, Email, Name, Firstname }: SendVerificarion, transaction?: Transaction): Promise<string | null > {
+  public async createNewCode(codeData: CodeAutenticationCreationAttributes, transaction?: Transaction): Promise<CodeAutentication> {
     try {
+      // 1️⃣ Desactivar códigos anteriores
+      await this._deactivatePreviousCodes(codeData, transaction);
 
-      const subject = ''
-      const TypeTokens = 1
-      const IdTypeCode = 1
+      // 2️⃣ Generar código aleatorio
+      const newCode = this._generateRandomCode();
 
-      const codeAuth = new CodeAuthenticationService()
-      const Token = await codeAuth.SendCode({IdAuth, IdUser, Email, Name, Firstname, subject, IdTypeCode, TypeTokens}, transaction)
-      return Token
+      // 3️⃣ Crear nuevo código
+      const code = await CodeAutentication.create(
+        { ...codeData, Code: newCode },
+        { transaction }
+      );
+
+      return code;
 
     } catch (error: any) {
-      ErrorHandler.handleServiceError(error, 'registerUser', 'NewUserService');
-    }
-  }
-  static async SendVerificationDevice({ IdAuth, IdUser, Email, Name, Firstname }: SendVerificarion, transaction?: Transaction): Promise<string | null > {
-    try {
-
-      const subject = ''
-      const TypeTokens = 1
-      const IdTypeCode = 1
-
-      const codeAuth = new CodeAuthenticationService()
-      const Token = await codeAuth.SendCode({IdAuth, IdUser, Email, Name, Firstname, subject, IdTypeCode, TypeTokens})
-      return Token
-      
-    } catch (error: any) {
-      ErrorHandler.handleServiceError(error, 'registerUser', 'NewUserService');
+      throw ErrorHandler.handleServiceError(error, 'createNewCode', 'CodeAuthenticationService');
     }
   }
 

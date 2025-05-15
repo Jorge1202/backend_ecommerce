@@ -8,7 +8,7 @@ import { UserPage } from '../models/user-page';
 import { StatusAuth } from '../models/status-auth';
 import { User } from '../models/user';
 import { CodeAutentication } from '../models/code-autentication';
-import { DeviceAuth, DeviceAuthAttributes } from '../models/device-auth';
+import { DeviceAuth, DeviceAuthCreationAttributes } from '../models/device-auth';
 
 import { CodeAuthenticationService } from './CodeAuthentication.service';
 import TokenService from '../../../core/services/tokens/token.service';
@@ -22,6 +22,8 @@ import { ErrorHandler } from '../../../common/utils/response-servece/error-handl
 import { withTransaction } from '../../../common/database/transaction_helper';
 import { MailActions } from '../../../common/interfaces/mail';
 import { prepareAndSendMail } from '../../../common/email/prepareAndSendMail ';
+import { maskEmail } from '../../../common/utils/maskEmail';
+import { RefreshToken } from '../models/refresh-token';
 
 
 const bcrypt = require("bcrypt");
@@ -30,8 +32,45 @@ const { v4: uuidv4 } = require('uuid');
 
 export class AuthService {
 
-    protected async logout(): Promise<ServiceResponse<null>> {
+    protected async logout(hashDevice: string, TokenRefresh: string, dataToken: AuthPayload, ): Promise<ServiceResponse<null>> {
         try {
+            const responseDevice = await Devices.findOne({
+                where:{
+                    Token: hashDevice,
+                }
+            });
+            if(!responseDevice){
+                return ErrorResult({
+                    status: HttpStatus.BAD_REQUEST,
+                    message: 'Hash no autorizado'
+                });
+            }
+
+
+            const { body, status, error, message } = await TokenService.validateToken(dataToken)
+            if (error || !body) {
+                return CriticalError({
+                    status,
+                    message,
+                });
+            }
+            const { IdAuth } = body
+    
+            await Login.update({Active:false}, {
+                where: {
+                    IdAuth,
+                    IdDevice: responseDevice.IdDevice,
+                }
+            })
+
+            TokenService.revokeRefreshToken(TokenRefresh)            
+            await RefreshToken.update({IsActive:false}, {
+                where: {
+                    IdAuth,
+                    IdDevice: responseDevice.IdDevice,
+                }
+            })
+
             // Add distinct logout logic or message
             return SuccessResult({
                 status: HttpStatus.OK,
@@ -121,23 +160,25 @@ export class AuthService {
         return await withTransaction(async (transaction) => {
             try {
 
-                const {error, status, message, Token, dataAuth} = await this.validParamslogin(Username, Password)
+                //Verifica el status del usuario
+                const { error, status, message, Token, dataAuth } = await this.validParamslogin(Username, Password)
                 if (error) {
                     return ErrorResult({
                         status: status,
                         message: message
                     });
-                }                
-             
+                }
+
                 if (Token) {
+                    //Si el estatus es 1 necesita verificar su correo y se manda Token
                     return SuccessResult({
-                        status: HttpStatus.RESET_CONTENT,
+                        status: HttpStatus.OK,
                         message: 'Aún no has verificado tu correo. Por favor, revisa tu bandeja de entrada para completar el proceso',
                         body: {
                             type: SuccessResponseLogin.LoginSuccess,
                             body: {
                                 newDevice: false,
-                                firstLogin: false,
+                                firstLogin: true,
                                 TOKEN: Token,
                             },
                             tokens: {
@@ -145,9 +186,9 @@ export class AuthService {
                             }
                         },
                     });
-                }    
+                }
 
-                if(!dataAuth){
+                if (!dataAuth) {
                     return CriticalError({
                         status: HttpStatus.INTERNAL_SERVER_ERROR,
                         message: 'Error interno'
@@ -155,17 +196,19 @@ export class AuthService {
                 }
 
 
-                const {IdAuth, IdUser, Email} = dataAuth
+                const { IdAuth, IdUser, Email } = dataAuth
 
-                if(!hash){
-                    const responseNewDevice = await this.newDevice({IdAuth, IdUser, Email}, transaction)
+                if (!hash) {
+                    //si no existe Hash genvia código por correo para verificar dispositivo
+                    const responseNewDevice = await this.newDevice({ IdAuth, IdUser, Email }, transaction)
                     return responseNewDevice
                 }
-    
+
 
                 const { newDevice, IdDevice } = await this.validateDevice(hash, dataAuth)
                 if (newDevice) {
-                    const responseNewDevice = await this.newDevice({IdAuth, IdUser, Email}, transaction)
+                    //valida el hash y si el hash no pertenece al usuario manda código popr correo
+                    const responseNewDevice = await this.newDevice({ IdAuth, IdUser, Email }, transaction)
                     return responseNewDevice
                 }
 
@@ -186,7 +229,7 @@ export class AuthService {
                         message: 'Error en base de datos'
                     });
                 }
-    
+
                 const resCreateLogin = await this.createLogin({ dataAuth: dataAuth, IdDevice, IdUserPage: resUserPage.IdUserPage }, transaction)
                 if (resCreateLogin.error) {
                     return CriticalError({
@@ -195,7 +238,7 @@ export class AuthService {
                     })
                 }
                 const { TOKEN, TOKEN_REFRESH } = resCreateLogin
-    
+
                 return SuccessResult({
                     status: HttpStatus.OK,
                     message: '¡Inicio de sesión exitoso! Bienvenido.',
@@ -211,56 +254,26 @@ export class AuthService {
                         }
                     },
                 });
-    
-    
+
+
             } catch (error: any) {
                 ErrorHandler.handleServiceError(error, 'logout', 'AuthService');
             }
 
-        })       
+        })
     }
 
-    private async newDevice ({IdUser, IdAuth, Email}: {IdUser:string, IdAuth:number, Email:string}, transaction:Transaction): Promise<ServiceResponse<ResponseLogin>>{
+    protected async newAccesToken (TokenRefresh: string, dataTokenAccess: AuthPayload, TokenAccess: string): Promise<ServiceResponse<{ TOKEN_ACCESS: string, TOKEN_REFRESH: string }>>{
         try {
-            const dataUser = await User.findByPk(IdUser)
-            if(!dataUser){
-                return CriticalError({
-                    status: HttpStatus.INTERNAL_SERVER_ERROR,
-                    message: 'Error interno'
-                });
-            }
-            const {Name, Firstname} = dataUser
-    
-            const Token = await CodeAuthenticationService.SendVerificationDevice({
-                IdAuth, IdUser, Email, Name, Firstname
-            }, transaction)
-            if(!Token){
-                return CriticalError({
-                    status: HttpStatus.INTERNAL_SERVER_ERROR,
-                    message: 'Error interno'
-                });
-            }   
-            
-            
-            return SuccessResult({
-                status: HttpStatus.RESET_CONTENT,
-                message: 'Nuevo dispositivo, Por favor, revisa tu bandeja de entrada para completar el proceso',
-                body: {
-                    type: SuccessResponseLogin.LoginSuccess,
-                    body: {
-                        newDevice: false,
-                        firstLogin: false,
-                        TOKEN: Token,
-                    },
-                    tokens: {
-                        TOKEN_REFRESH: '',
-                    }
-                },
-            });
+
+            const response = await TokenService.reNewAccessToken(TokenRefresh)
+            return response
+
         } catch (error: any) {
             ErrorHandler.handleServiceError(error, 'logout', 'AuthService');
         }
     }
+
 
     protected async validCodeDevice(Username: string, Password: string, Code: string, device: DevicesCreationAttributes): Promise<ServiceResponse<ResponseDeviceLogin>> {
         return await withTransaction(async (transaction) => {
@@ -274,9 +287,9 @@ export class AuthService {
                     });
                 }
 
-                const { IdAuth, IdUser } = responseAuth
+                const { IdAuth, IdUser, Password:originPass } = responseAuth
 
-                const isPasswordValid = await bcrypt.compare(Password, Password);
+                const isPasswordValid = await bcrypt.compare(Password, originPass);
                 if (!isPasswordValid) {
                     return ErrorResult({
                         status: HttpStatus.BAD_REQUEST,
@@ -312,7 +325,7 @@ export class AuthService {
                         message: 'Error en base de datos'
                     });
                 }
-                
+
                 const resDevices = await Devices.create({ ...device, IdAuth }, { transaction });
 
                 const TOKEN_DEVICE = uuidv4();
@@ -327,6 +340,11 @@ export class AuthService {
                     })
                 }
                 const { TOKEN, TOKEN_REFRESH } = resCreateLogin
+
+
+                await AuthTokens.update({ Status: 0 }, {
+                    where: { IdAuth, Status: 1, TypeTokens: 4 }
+                })
 
                 return SuccessResult({
                     status: HttpStatus.OK,
@@ -350,6 +368,155 @@ export class AuthService {
         })
     }
 
+    protected async verifyToken(dataToken: AuthPayload, Token: string): Promise<ServiceResponse<{ Email: string }>> {
+        try {
+
+            const { body, status, error, message } = await TokenService.validateToken(dataToken)
+            if (error || !body) {
+                return ErrorResult({
+                    status,
+                    message,
+                });
+            }
+            const { IdAuth, auth } = body
+
+            //Validar si cuenta con un code estatus 1 (Verificacion de email)
+            const IdTypeCode = 6;
+            const codeValid = await CodeAutentication.findOne({
+                where: { IdTypeCode, IdAuth: IdAuth, IsActive: true }
+            });
+            if (!codeValid) {
+                return ErrorResult({
+                    status: HttpStatus.BAD_REQUEST,
+                    message: 'No cuenta con solicitud de nuevo dispositivo'
+                });
+            }
+
+            return SuccessResult({
+                status: HttpStatus.OK,
+                message: 'Vista autorizada',
+                body: {
+                    Email: maskEmail(auth.Email)
+                }
+            });
+
+        } catch (error: any) {
+            ErrorHandler.handleServiceError(error, 'logout', 'AuthService');
+        }
+    }
+
+    /**
+     * Envía nuevamente el código de verificación al correo del usuario.
+     * @param dataToken - Datos del token de verificación.
+     * @returns Respuesta del servicio con el resultado de la operación.
+     */
+    protected async sendCodeAgain(dataToken: AuthPayload, tokenOld: string): Promise<ServiceResponse<{ Token: string }>> {
+        try {
+            return await withTransaction(async (transaction) => {
+
+                const { body, status, error, message } = await TokenService.validateToken(dataToken, transaction)
+                if (error || !body) {
+                    return ErrorResult({
+                        status,
+                        message,
+                    });
+                }
+                const { IdAuth, auth } = body
+
+                // Cambia el status del token a 0
+                await AuthTokens.update({ Status: 0 }, {
+                    where: { Token: tokenOld, IdAuth, Status: 1, TypeTokens: 1 },
+                    transaction
+                })
+
+                //Validar si cuenta con un code estatus 
+                const IdTypeCode = 6;
+                const responseCodeValid = await CodeAutentication.findOne({
+                    where: { IdTypeCode, IdAuth, IsActive: true },
+                    transaction
+                });
+                if (!responseCodeValid) {
+                    return ErrorResult({
+                        status: HttpStatus.BAD_REQUEST,
+                        message: 'No cuenta con solicitud de verificacion de dispositivo'
+                    });
+                }
+
+                await responseCodeValid.update({ IsActive: false }, { transaction })
+
+
+                const responseUser = await User.findOne({
+                    where: { IdUser: auth.IdUser },
+                    transaction
+                })
+                if (!responseUser) {
+                    return CriticalError({
+                        status: HttpStatus.INTERNAL_SERVER_ERROR,
+                        message: 'Error en la base de datos'
+                    });
+                }
+
+                const { IdUser, Name, Firstname } = responseUser
+                const Token = await CodeAuthenticationService.SendVerificationDevice({
+                    IdAuth, IdUser, Name, Firstname, Email: auth.Email,
+                }, transaction)             
+
+                return SuccessResult({
+                    status: HttpStatus.OK,
+                    message: 'Nuevo código enviado'
+                });
+
+            });
+
+        } catch (error: any) {
+            ErrorHandler.handleServiceError(error, 'verifyEmailRegister', 'NewUserService');
+        }
+
+    }
+
+
+    private async newDevice({ IdUser, IdAuth, Email }: { IdUser: string, IdAuth: number, Email: string }, transaction: Transaction): Promise<ServiceResponse<ResponseLogin>> {
+        try {
+            const dataUser = await User.findByPk(IdUser)
+            if (!dataUser) {
+                return CriticalError({
+                    status: HttpStatus.INTERNAL_SERVER_ERROR,
+                    message: 'Error interno'
+                });
+            }
+            const { Name, Firstname } = dataUser
+
+            const Token = await CodeAuthenticationService.SendVerificationDevice({
+                IdAuth, IdUser, Email, Name, Firstname
+            }, transaction)
+            if (!Token) {
+                return CriticalError({
+                    status: HttpStatus.INTERNAL_SERVER_ERROR,
+                    message: 'Error interno'
+                });
+            }
+
+
+            return SuccessResult({
+                status: HttpStatus.OK,
+                message: 'Nuevo dispositivo, Por favor, revisa tu bandeja de entrada para completar el proceso',
+                body: {
+                    type: SuccessResponseLogin.LoginSuccess,
+                    body: {
+                        newDevice: true,
+                        firstLogin: false,
+                        TOKEN: Token,
+                    },
+                    tokens: {
+                        TOKEN_REFRESH: '',
+                    }
+                },
+            });
+        } catch (error: any) {
+            ErrorHandler.handleServiceError(error, 'logout', 'AuthService');
+        }
+    }
+
     private async validParamslogin(Username: string, Password: string): Promise<PropsValidLogin<Auth>> {
         try {
             const responseAuth = await this.searchAuth(Username)
@@ -361,15 +528,15 @@ export class AuthService {
                 };
             }
 
-            const { IdAuth, IdUser, Email, Status, Password:pwOrigin } = responseAuth
+            const { IdAuth, IdUser, Email, Status, Password: pwOrigin } = responseAuth
 
-            const isPasswordValid = await bcrypt.compare(pwOrigin, Password);
+            const isPasswordValid = await bcrypt.compare(Password, pwOrigin);
             if (!isPasswordValid) {
                 return {
                     error: true,
                     status: HttpStatus.BAD_REQUEST,
                     message: 'Usuario o contraseña incorrecta'
-                };    
+                };
             }
 
             if (Status !== 1 && Status !== 2) {
@@ -401,7 +568,7 @@ export class AuthService {
                     status: HttpStatus.BAD_REQUEST,
                     message: `Verifica tu correo`,
                     Token
-                };               
+                };
             }
 
             return {
@@ -409,7 +576,7 @@ export class AuthService {
                 status: HttpStatus.OK,
                 message: `Autorizado`,
                 dataAuth: responseAuth,
-            }; 
+            };
 
         } catch (error: any) {
             ErrorHandler.handleServiceError(error, 'validParamslogin', 'AuthService');
@@ -490,7 +657,7 @@ export class AuthService {
         }
     }
 
-    private async validateDevice(hash: string, dataAuth: Auth): Promise<{ IdDevice: number | null, newDevice:boolean }> {
+    private async validateDevice(hash: string, dataAuth: Auth): Promise<{ IdDevice: number | null, newDevice: boolean }> {
         try {
             let newDevice = false
 
@@ -511,8 +678,7 @@ export class AuthService {
                 });
 
                 if (!alreadyLinked) {
-                    const newAuth: DeviceAuthAttributes = {
-                        IdDeviceAuth: 0,
+                    const newAuth: DeviceAuthCreationAttributes = {                        
                         IdDevice: device.IdDevice,
                         IdAuth: dataAuth.IdAuth,
                     };

@@ -261,7 +261,7 @@
 /v1/register/verifyCode:  
   post:
       tags: [Register User]
-      summary: Se valida el codigo para verificar el correo electrónico
+      summary: Se valida el código para verificar el correo electrónico
       security:
         - BearerAuth: []
       requestBody:
@@ -274,7 +274,7 @@
                 Code:
                   type: string
                   format: Code
-                  description: Codigo de verificación del correo electrónico
+                  description: Código de verificación del correo electrónico
                   example: "string"
       responses:       
         200:
@@ -330,4 +330,4 @@
                       Token:
                         type: string
                         example: ""
-                        description: token para validar codigo
+                        description: token para validar código

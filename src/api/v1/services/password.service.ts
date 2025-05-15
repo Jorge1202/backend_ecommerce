@@ -23,6 +23,42 @@ import { logger } from '../../../core/logger';
 const bcrypt = require("bcrypt");
 
 export class PasswordService {
+    protected async validUser(Email:string): Promise<ServiceResponse<{Name:string, Firstname:string}>> {
+        try { 
+            const auth = await Auth.findOne({
+                where: {Email}
+            })
+            if(!auth){
+                return ErrorResult({
+                    status: HttpStatus.BAD_REQUEST,
+                    message:'Si existe una cuenta asociada con este correo, recibirás un email',
+                })
+            }
+
+            const user = await User.findOne({
+                where: {IdUser: auth.IdUser}
+            })
+            if(!user){
+                CriticalError({
+                    status: HttpStatus.INTERNAL_SERVER_ERROR,
+                    message: 'Error en base de datos'
+                })
+            }
+
+            const {Name, Firstname} = user
+           
+            return SuccessResult({
+                status: HttpStatus.OK,
+                message: `¡Solicitud aprovada!, Accede al correo (${Email}) para seguir el proceso`,
+                body: {
+                    Name,
+                    Firstname                        
+                }
+            })
+        } catch (error: any) {
+            ErrorHandler.handleServiceError(error, 'recovery', 'PasswordService');
+        }
+    }
     protected async recovery(Email:string): Promise<ServiceResponse<{Token:string}>> {
         try {
             return await withTransaction(async (transaction) => {
@@ -39,7 +75,7 @@ export class PasswordService {
                 const responseCode = await CodeAuthenticationService.createNewCode({
                     IdAuth:auth.IdAuth,
                     IdTypeCode: 3,
-                    Description:'Solicitud de recordar contraseña'
+                    Description:'Solicitud para recordar contraseña'
                 },transaction)
                 
                 const {Token, ExpiresIn} = generateToken({
@@ -68,13 +104,15 @@ export class PasswordService {
                     })
                 }
 
+                const {Name, Firstname} = user
+
                 const objEmail = {
                     accion: MailActions.RecoveryPassword,
                     to: Email,
-                    subject: 'Solicitud de cambio de contraseña',
+                    subject: 'Solicitud cambio de contraseña',
                     dataMail: {
-                        name: user.Name,
-                        firstname: user.Firstname,
+                        name: Name,
+                        firstname: Firstname,
                         token:Token,
                         code:responseCode.Code,                        
                     }
@@ -85,7 +123,9 @@ export class PasswordService {
                 return SuccessResult({
                     status: HttpStatus.OK,
                     message: `¡Solicitud aprovada!, Accede al correo (${Email}) para seguir el proceso`,
-                    body: {Token}
+                    body: {
+                        Token,
+                    }
                 })
             })
         } catch (error: any) {
@@ -107,7 +147,7 @@ export class PasswordService {
             //Validar si cuenta con un code estatus 1 (Verificacion de email)
             const IdTypeCode = 3;
             const codeValid = await CodeAutentication.findOne({
-                where: { IdTypeCode, IdAuth }
+                where: { IdTypeCode, IdAuth, IsActive:true }
             });
             if (!codeValid) {
                 return ErrorResult({
@@ -269,7 +309,7 @@ export class PasswordService {
             const responseCode = await CodeAuthenticationService.createNewCode({
                 IdAuth,
                 IdTypeCode: 3,
-                Description:'Reenviar codigo de recordar contraseña'
+                Description:'Reenviar código de recordar contraseña'
             })
             
 

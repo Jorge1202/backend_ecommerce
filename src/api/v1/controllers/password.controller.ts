@@ -12,6 +12,21 @@ class PasswordController extends PasswordService {
         super();
     }
 
+    public postValidUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const {Email} = req.body
+
+            const { status,message, error, body } = await this.validUser(Email)
+
+            if(error){ return ResponseHandler.error(res, status, message)}
+            
+            return ResponseHandler.success(res, status, message, body);
+
+        } catch (err:any) {
+            next(err);
+        }
+    }
+
     public postRecovery = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const {Email} = req.body

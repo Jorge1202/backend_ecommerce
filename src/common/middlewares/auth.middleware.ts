@@ -69,7 +69,7 @@ export async function decodeTokenEvenIfExpired(req: Request, res: Response, next
   try {
     const getToken = req.headers['authorization'];  // Obtiene el token del encabezado
     if (!getToken) {
-      return ResponseHandler.error(res, 401, 'Token required');  // Responde y termina la solicitud si no hay token
+      return ResponseHandler.error(res, HttpStatus.UNAUTHORIZED, 'Token required');  // Responde y termina la solicitud si no hay token
     }
 
     const resValid = await verifyToken(getToken)
@@ -80,7 +80,7 @@ export async function decodeTokenEvenIfExpired(req: Request, res: Response, next
         req.body.Token = { 
           payload, 
           token 
-        };   
+        };    
 
         next()
         return

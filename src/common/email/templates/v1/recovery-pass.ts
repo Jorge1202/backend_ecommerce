@@ -32,7 +32,7 @@ export const recoveryPass = (param:DataMail):string => `
     })} 
     ${parrafo_TR({
         content: `Esta solicitud es válida por 15 minutos y solo puede usarse una vez.
-                <br/> Una vez cambiada la contraseña, el enlace quedará inhabilitado.`
+                <br/> Una vez que la contraseña se actualice, el enlace quedará inhabilitado.`
     })} 
     ${parrafo_TR({
         content: `<strong>Importante:</strong> Si no solicitaste este cambio, puedes ignorar este correo.`

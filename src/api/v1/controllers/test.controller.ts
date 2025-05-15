@@ -35,9 +35,7 @@ class TestController extends TokenService {
           // Manejar errores llamando al middleware de errores
           next(err);
         }
-    }
-    
-    
+    }        
 }
 
 export default new TestController();

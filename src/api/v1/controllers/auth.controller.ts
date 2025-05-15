@@ -15,7 +15,28 @@ class AuthController extends AuthService {
     }
     
     public postLogout = async (req: Request, res: Response, next: NextFunction): Promise<void> =>{
+        try {
+            const {Token} = req.body
+            const {payload, token} = Token
+            const dataTokenAuthUser = payload as AuthPayload
+            
+            const hashDevice = req.cookies[actionType.DEVICE];
+            const tokenRefresh = req.cookies[actionType.TOKEN_REFRESH];
 
+            const response = await this.logout(hashDevice, tokenRefresh, dataTokenAuthUser);
+            const { status, message, error } = response        
+            if (error) { return ResponseHandler.error(res, status, message);}
+
+
+            //Delete token refresh
+            //delete token access
+
+
+            ResponseHandler.success(res, status, message);
+
+        } catch (err: any) {
+            next(err);
+        } 
     }
 
     public postLoginByHash = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -94,6 +115,28 @@ class AuthController extends AuthService {
         }       
     }
 
+    public postNewAccesToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const {Token} = req.body
+            const {payload, token} = Token
+            const dataTokenAuthUser = payload as AuthPayload
+
+            const tokenRefresh = req.cookies[actionType.TOKEN_REFRESH];
+
+            const response = await this.newAccesToken(tokenRefresh, dataTokenAuthUser, token)
+            if(response.error){
+                return ResponseHandler.error(res, response.status, response.message )
+            }
+
+            return ResponseHandler.success(res, response.status, response.message)
+
+
+        } catch (err: any) {
+            next(err);
+        }   
+    }
+
+
     public postValidCodeDevice = async (req: Request, res: Response, next: NextFunction): Promise<void> =>{        
         try {
             const { Username, Password, Code } = req.body;
@@ -142,6 +185,45 @@ class AuthController extends AuthService {
         }       
     }
 
+    public getVerifyToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const {Token} = req.body
+            const {payload, token} = Token
+            const dataTokenAuthUser = payload as AuthPayload
+        
+            // 2. Llamar al servicio para crear registro 
+            // estatus 1
+            const response = await this.verifyToken(dataTokenAuthUser, String(token));
+            const {status, message, body} = response
+            if(response.error){
+                return ResponseHandler.error(res, response.status, response.message )
+            }
+
+            ResponseHandler.success(res, status, message, body);
+    
+        } catch (err: any) {
+          // Manejar errores llamando al middleware de errores
+          next(err);
+        }
+      };
+
+    public getSendCodeAgain = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+
+        const {Token} = req.body
+        const {payload, token} = Token
+        const dataTokenAuthUser = payload as AuthPayload
+
+        const response = await this.sendCodeAgain(dataTokenAuthUser, token);
+        const {status, message, body} = response
+        ResponseHandler.success(res, status, message, body);
+
+    } catch (err: any) {
+        // Manejar errores llamando al middleware de errores
+        next(err);
+    }
+    }
+
     private _getDataDevice = async (req: Request): Promise<DevicesCreationAttributes> => {
         const userAgent = req.headers['user-agent'];
 
@@ -150,7 +232,6 @@ class AuthController extends AuthService {
 
         const _ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
         return {
-            IdAuth: 0,
             UserAgent: userAgent,
             Plataform: result.os.name || 'Unknown',
             VersionPlataform: result.os.version || 'Unknown',
@@ -160,7 +241,7 @@ class AuthController extends AuthService {
             Ip: String(_ip) || 'Unknown',
             Cpu: result.cpu.architecture || 'Unknown',
         };
-    }
+    }    
 }
 
 export default new AuthController();

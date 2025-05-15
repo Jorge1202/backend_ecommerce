@@ -257,7 +257,7 @@ export class NewUserService {
             //Validar si cuenta con un code estatus 1 (Verificacion de email)
             const IdTypeCode = 1;
             const codeValid = await CodeAutentication.findOne({
-                where: { IdTypeCode, IdAuth: IdAuth }
+                where: { IdTypeCode, IdAuth: IdAuth, IsActive:true }
             });
             if (!codeValid) {
                 return ErrorResult({
@@ -405,7 +405,7 @@ export class NewUserService {
                 //Validar si cuenta con un code estatus 1 (Verificacion de email)
                 const IdTypeCode = 1;
                 const responseCodeValid = await CodeAutentication.findOne({
-                    where: { IdTypeCode, IdAuth },
+                    where: { IdTypeCode, IdAuth, IsActive:true },
                     transaction
                 });
                 if (!responseCodeValid) {
@@ -442,7 +442,7 @@ export class NewUserService {
     
                 return SuccessResult({
                     status: HttpStatus.OK,
-                    message: 'Nuevo codigo autorizado',
+                    message: 'Nuevo código enviado',
                     body: {
                         Token
                     }

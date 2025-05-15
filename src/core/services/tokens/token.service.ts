@@ -97,7 +97,7 @@ export class TokenService {
                 IdDevice,
                 IdUserPage,
                 IdRefreshToken: resToken.IdRefreshToken
-            };
+            };            
 
             // Paso 5: Generar un JWT de tipo refresh con duración de 30 días
             const { Token, ExpiresIn } = generateToken({
@@ -180,21 +180,30 @@ export class TokenService {
         }
     }
 
-    public async renewAccessToken(refreshToken: string): Promise<{ TOKEN_ACCESS: string, TOKEN_REFRESH: string }> {
+    public async reNewAccessToken(refreshToken: string): Promise<ServiceResponse<{ TOKEN_ACCESS: string, TOKEN_REFRESH: string }>> {
         // 1. Validación inicial del refreshToken en caché/local
         if (!this.refreshTokens.has(refreshToken)) {
-            throw new Error('Token de actualización no reconocido');
+            throw CriticalError({
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Token para actualización no reconocido'
+            });
         }
     
         // 2. Verificación del token
         const { error, message, payload } = await verifyToken(refreshToken, 'refresh');
         if (error || !payload) {
-            throw new Error(message || 'Token inválido');
+            throw CriticalError({
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: message || 'Token inválido'
+            });
         }
     
         // 3. Validación de estructura del payload
         if (!this.isTokenRefresh(payload)) {
-            throw new Error('El payload no tiene el formato esperado de TokenRefresh');
+            throw CriticalError({
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'El payload no tiene el formato esperado de Token'
+            });
         }
     
         const {
@@ -208,7 +217,10 @@ export class TokenService {
         // 4. Validar tiempo restante del token
         const estaPorExpirar = await this.validaTokenRefresh(IdRefreshToken!, refreshToken);
         if (estaPorExpirar === null) {
-            throw new Error('No se encontró la fecha de expiración del token');
+            throw CriticalError({
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'No se encontró la fecha de expiración del token'
+            });
         }
     
         // 5. Obtener nuevo refresh token si está por expirar
@@ -216,9 +228,13 @@ export class TokenService {
         let idRefreshTokenFinal = IdRefreshToken!;
     
         if (estaPorExpirar) {
+            //generar nuevo token refresh  si la expiración es menor a 1 hora
             const { body, error: errNuevoToken, message: msgNuevoToken } = await this.generateRefreshToken(payload);
             if (errNuevoToken || !body) {
-                throw new Error(msgNuevoToken || 'Error al generar nuevo token de actualización');
+                throw CriticalError({
+                    status: HttpStatus.INTERNAL_SERVER_ERROR,
+                    message: msgNuevoToken || 'Error al generar nuevo token de actualización'
+                });
             }
     
             tokenRefreshFinal = body.token;
@@ -235,14 +251,24 @@ export class TokenService {
     
         const { body: accessBody, error: accessError, message: accessMessage } = this.generateTokenAccess(tokenAccessPayload);
         if (accessError || !accessBody) {
-            throw new Error(accessMessage || 'Error al generar token de acceso');
+            throw CriticalError({
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: accessMessage || 'Error al generar token de acceso'
+            });
         }
     
         // 7. Retornar ambos tokens
-        return {
-            TOKEN_ACCESS: accessBody.token,
-            TOKEN_REFRESH: `Bearer ${idRefreshTokenFinal}`,
-        };
+        return SuccessResult({
+            status: HttpStatus.INTERNAL_SERVER_ERROR,
+            message: accessMessage || 'Error al generar token de acceso',
+            body: {
+                TOKEN_ACCESS: accessBody.token,
+                TOKEN_REFRESH: `Bearer ${tokenRefreshFinal}`,
+            }
+        });
+        
+        
+        
     }
         
     public revokeRefreshToken(refreshToken: string): void {

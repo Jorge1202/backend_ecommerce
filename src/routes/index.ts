@@ -2,12 +2,10 @@ import express from 'express';
 
 //#region ############################ VERION 1
 import testRoutes from '../api/v1/routes/test.routes'
-import register from '../api/v1/routes/register.routes'
-import auth from '../api/v1/routes/auth.routes'
-import password from '../api/v1/routes/password.route'
-// import userRoutes_1 from '../v1/Routes/user.routes'
-// import authRoutes_v1 from '../v1/Routes/auth.routes'
-// // import profileRoutes_v1 from '../v1/Routes/profile.routes'
+import registerRoutes from '../api/v1/routes/register.routes'
+import authRoutes from '../api/v1/routes/auth.routes'
+import passwordRoutes from '../api/v1/routes/password.route'
+import userRoutes from '../api/v1/routes/user.routes'
 //#endregion ############################ VERION 1
 
 const router = express.Router();
@@ -20,9 +18,10 @@ const v = {
 }
 
 router.use(`/${v.v1}/pruebas`, testRoutes);
-router.use(`/${v.v1}/register`, register);
-router.use(`/${v.v1}/auth`, auth);
-router.use(`/${v.v1}/password`, password);
+router.use(`/${v.v1}/register`, registerRoutes);
+router.use(`/${v.v1}/auth`, authRoutes);
+router.use(`/${v.v1}/password`, passwordRoutes);
+router.use(`/${v.v1}/user`, userRoutes);
 
 
 

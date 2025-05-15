@@ -22,7 +22,7 @@ export interface DevicesAttributes {
 
 export type DevicesPk = "IdDevice";
 export type DevicesId = Devices[DevicesPk];
-export type DevicesOptionalAttributes = "UserAgent" | "Plataform" | "Token" | "Mobile" | "Ip" | "Location" | "DateCreate" | "DateUpdate" | "VersionPlataform" | "Cpu" | "Browser" | "IdDevice" | "IsActive";
+export type DevicesOptionalAttributes = "UserAgent" | "Plataform" | "Token" | "Mobile" | "Ip" | "Location" | "DateCreate" | "DateUpdate" | "VersionPlataform" | "Cpu" | "Browser" | "IdDevice" | "IsActive" | "IdAuth";
 export type DevicesCreationAttributes = Optional<DevicesAttributes, DevicesOptionalAttributes>;
 
 export class Devices extends Model<DevicesAttributes, DevicesCreationAttributes> implements DevicesAttributes {

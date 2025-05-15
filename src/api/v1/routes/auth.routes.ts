@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { authenticateToken } from '../../../common/middlewares/auth.middleware';
+import { authenticateToken, decodeTokenEvenIfExpired } from '../../../common/middlewares/auth.middleware';
 import AuthController from '../controllers/auth.controller';
 
 const authRoutes = Router();
@@ -8,14 +8,14 @@ const authRoutes = Router();
 //#region  ################ Iniciar y cerrar sesión    
 authRoutes.post('/loginHash', authenticateToken, AuthController.postLoginByHash);
 authRoutes.post('/login', AuthController.postLogin);
-authRoutes.post('/logout', authenticateToken, AuthController.postLogout);
-authRoutes.post('/verifyNewDevice', AuthController.postValidCodeDevice); 
+authRoutes.post('/logout', decodeTokenEvenIfExpired, AuthController.postLogout);
+authRoutes.post('/newAccesToken', AuthController.postNewAccesToken);
 //#endregion  ################ Iniciar y cerrar sesión    
 
-//#region ################ Login en nuevo Dispositivo
-// authRoutes.post('/verifyToken', AuthController.postLogout);
-// authRoutes.post('/verifyCode', AuthController.postLogout);
-// authRoutes.post('/newCodeAgain', AuthController.postLogout); 
-//#endregion ################ Login en nuevo Dispositivo
+//#region ################ Nuevo Dispositivo
+authRoutes.get('/verifyToken', authenticateToken, AuthController.getVerifyToken);
+authRoutes.post('/verifyCode', authenticateToken, AuthController.postValidCodeDevice); 
+authRoutes.get('/newCode', authenticateToken, AuthController.postNewAccesToken);
+//#endregion ################ Nuevo Dispositivo
 
 export default authRoutes;  
